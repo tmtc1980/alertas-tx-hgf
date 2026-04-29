@@ -1895,12 +1895,13 @@ function editarLeito(leito){
   var label=get('leito-pac-label-'+lid);
   var actions=get('leito-act-'+lid);
   pacInput.value=d.paciente||'';
+  pacInput.removeAttribute('readonly');
   pacInput.style.display='block';
   label.style.display='none';
   txtArea.value=d.texto||'';
   txtArea.removeAttribute('readonly');
   actions.style.display='flex';
-  pacInput.focus();
+  setTimeout(function(){pacInput.focus();},50);
 }
 
 function cancelarLeito(leito){
