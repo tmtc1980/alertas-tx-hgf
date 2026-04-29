@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alertas Tx Hepatico - HGF</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7fa;--surface:#ffffff;--surface2:#f0f4f8;--border:#dde3ed;--border2:#c5cfe0;
+  --text:#1a2535;--text2:#4a5e78;--text3:#8a9ab5;
+  --accent:#185FA5;--accent2:#0c447c;--accent-light:#e8f1fb;
+  --green:#1e9e5e;--green-bg:#e8f7f0;--green-border:#a3dcc0;--green-dark:#157a48;
+  --red:#d93025;--red-bg:#fdf0ef;--red-border:#f5a9a3;
+  --yellow:#c47f00;--yellow-bg:#fffbea;--yellow-border:#f5d78a;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  --radius:8px;--radius2:12px;
+  --shadow:0 1px 4px rgba(0,0,0,.07),0 2px 8px rgba(0,0,0,.04);
+  --shadow2:0 2px 8px rgba(0,0,0,.10),0 4px 20px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8f1fb 0%,#f5f7fa 60%,#e8f7f0 100%);padding:20px;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:40px 36px;width:100%;max-width:380px;text-align:center;box-shadow:var(--shadow2);}
+.login-logo{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;}
+.login-title{font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.login-subtitle{font-size:12px;color:var(--text2);margin-bottom:32px;}
+.login-box input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;color:var(--text);font-family:var(--mono);font-size:13px;margin-bottom:12px;outline:none;transition:border-color .2s;}
+.login-box input:focus{border-color:var(--accent);background:#fff;}
+.btn-login{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:12px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;box-shadow:0 2px 8px rgba(24,95,165,.25);}
+.btn-login:hover{background:var(--accent2);}
+.login-error{color:var(--red);font-size:12px;margin-top:10px;display:none;}
+
+/* LAYOUT */
+#app{display:none;flex-direction:column;min-height:100vh;}
+header{background:var(--accent);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(24,95,165,.3);}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header-logo{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.9);text-transform:uppercase;}
+.header-sep{color:rgba(255,255,255,.3);}
+.header-title{font-size:13px;font-weight:500;color:rgba(255,255,255,.75);}
+.header-right{display:flex;align-items:center;gap:10px;}
+.badge-role{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.25);}
+.badge-role.diarista{background:rgba(30,158,94,.25);border-color:rgba(30,158,94,.5);color:#a3dcc0;}
+.badge-role.admin{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);color:#fff;}
+.btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);border-radius:var(--radius);padding:5px 12px;font-size:12px;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{background:rgba(255,255,255,.2);}
+
+/* TABS */
+.tabs{background:var(--surface);border-bottom:2px solid var(--border);display:flex;padding:0 24px;gap:2px;box-shadow:var(--shadow);}
+.tab{padding:0 16px;height:44px;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .2s;}
+.tab:hover{color:var(--text2);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab-count{font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border);padding:2px 7px;border-radius:10px;color:var(--text2);}
+.tab.active .tab-count{background:var(--accent-light);border-color:var(--accent);color:var(--accent);}
+
+/* MAIN */
+main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.section-title{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:var(--sans);}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(24,95,165,.2);}
+.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.btn-success{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);font-weight:600;}
+.btn-success:hover{background:#d4f0e4;}
+.btn-ciente{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);font-weight:600;}
+.btn-ciente:hover{background:var(--accent);color:#fff;}
+.btn-sm{padding:4px 10px;font-size:12px;}
+
+/* CARDS FILA - compactos */
+.card-list{display:flex;flex-direction:column;gap:8px;}
+.patient-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;border-left:4px solid var(--border);box-shadow:var(--shadow);}
+.patient-card.red{border-left-color:var(--red);background:#fffcfc;}
+.patient-card.yellow{border-left-color:var(--yellow);background:#fffdf5;}
+.patient-card.green{border-left-color:var(--green);background:#fafffe;}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-name{font-size:14px;font-weight:600;color:var(--text);}
+.card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.meta-chip{font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);padding:1px 7px;border-radius:4px;}
+.color-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;font-family:var(--mono);padding:3px 10px;border-radius:20px;text-transform:uppercase;white-space:nowrap;}
+.color-badge.red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.color-badge.yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border);}
+.color-badge.green{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);}
+.card-body{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.6;display:flex;flex-wrap:wrap;gap:4px 20px;}
+.card-field{margin-bottom:0;}
+.card-field strong{color:var(--text3);font-weight:500;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-right:3px;}
+.card-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+
+/* CARDS SESSAO - compactos */
+.sessao-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;border-left:4px solid var(--accent);box-shadow:var(--shadow);margin-bottom:8px;}
+.sessao-card.resolvido{border-left-color:var(--green);}
+.sessao-card.ciente{border-left-color:var(--text3);opacity:.5;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,37,53,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow2);}
+.modal-title{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.form-row{margin-bottom:12px;}
+.form-label{display:block;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:all .2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-light);}
+.form-select option{background:var(--surface);}
+.form-textarea{resize:vertical;min-height:75px;line-height:1.5;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.conduct-info{background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--accent2);line-height:1.6;}
+.confirm-text{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:20px;}
+
+/* TIPO INTERNAMENTO */
+.tipo-group{display:flex;flex-direction:column;gap:7px;}
+.tipo-opt{padding:10px 14px;border-radius:var(--radius);border:2px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;font-size:13px;background:var(--surface2);}
+.tipo-opt:hover{border-color:var(--border2);background:#fff;}
+.tipo-icon{font-size:18px;flex-shrink:0;}
+.tipo-label{font-weight:600;color:var(--text);margin-bottom:1px;}
+.tipo-desc{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.tipo-opt.sel-green{background:var(--green-bg);border-color:var(--green);}
+.tipo-opt.sel-yellow{background:var(--yellow-bg);border-color:var(--yellow);}
+.tipo-opt.sel-red{background:var(--red-bg);border-color:var(--red);}
+
+/* CID */
+.cid-wrapper{position:relative;}
+.cid-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);z-index:200;max-height:220px;overflow-y:auto;display:none;box-shadow:var(--shadow2);}
+.cid-dropdown.open{display:block;}
+.cid-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);}
+.cid-item:last-child{border-bottom:none;}
+.cid-item:hover{background:var(--accent-light);}
+.cid-code{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);margin-bottom:2px;}
+.cid-desc-text{font-size:12px;color:var(--text2);}
+.cid-selected{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius);padding:7px 12px;font-size:12px;color:var(--green-dark);margin-top:5px;font-family:var(--mono);display:none;}
+
+/* SETTINGS */
+.settings-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.settings-title{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.doctor-list{display:flex;flex-direction:column;gap:7px;}
+.doctor-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;}
+
+/* STATS */
+.stats-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:all .2s;font-family:var(--mono);}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;text-align:center;box-shadow:var(--shadow);}
+.stat-num{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.stat-label{font-size:11px;color:var(--text2);}
+.stats-table{width:100%;border-collapse:collapse;font-size:12px;}
+.stats-table th{background:var(--surface2);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border);}
+.stats-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);}
+.stats-table tr:last-child td{border-bottom:none;}
+.stats-table tr:hover td{background:var(--surface2);}
+
+/* MISC */
+.empty-state{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:40px 20px;text-align:center;color:var(--text2);font-size:13px;box-shadow:var(--shadow);}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:13px;color:var(--text);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;box-shadow:var(--shadow2);}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.success{border-color:var(--green);color:var(--green-dark);background:var(--green-bg);}
+#toast.error{border-color:var(--red);color:var(--red);background:var(--red-bg);}
+.loading{display:flex;align-items:center;justify-content:center;padding:30px;color:var(--text3);font-family:var(--mono);font-size:12px;gap:8px;}
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.section-divider{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+/* LEITOS PLANTAO */
+.leito-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+.leito-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.leito-id{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:3px 10px;border-radius:6px;border:1px solid var(--accent);}
+.leito-paciente{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.leito-paciente.vazio{color:var(--text3);font-style:italic;font-weight:400;}
+.leito-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.leito-texto{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;resize:vertical;min-height:120px;line-height:1.6;transition:all .2s;}
+.leito-texto:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-light);}
+.leito-texto:read-only{background:var(--surface2);cursor:default;color:var(--text2);}
+.leito-paciente-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:all .2s;}
+.leito-paciente-input:focus{border-color:var(--accent);background:#fff;}
+.leito-paciente-input:read-only{background:var(--surface2);cursor:default;color:var(--text2);}
+.leito-actions{display:flex;gap:6px;justify-content:flex-end;}
+
+@media(max-width:600px){header{padding:0 12px;}.header-title{display:none;}main{padding:10px 12px;}.modal{padding:16px;}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">HGF - Transplante Hepatico</div>
+    <div class="login-title">Alertas Tx Hepatico</div>
+    <div class="login-subtitle">Sistema de comunicacao clinica</div>
+    <input type="password" id="login-pass" placeholder="Senha de acesso" autocomplete="off">
+    <button class="btn-login" id="btn-entrar">Entrar</button>
+    <div class="login-error" id="login-error">Senha incorreta.</div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="header-logo">Alertas Tx</div>
+      <div class="header-sep">|</div>
+      <div class="header-title">HGF - Transplante Hepatico</div>
+    </div>
+    <div class="header-right">
+      <span class="badge-role" id="role-badge">-</span>
+      <button class="btn-logout" id="btn-sair">Sair</button>
+    </div>
+  </header>
+  <div class="tabs">
+    <div class="tab active" id="tab-fila">🏥 Fila de Internacao <span class="tab-count" id="count-fila">0</span></div>
+    <div class="tab" id="tab-sessao">🩺 Sessao Clinica <span class="tab-count" id="count-sessao">0</span></div>
+    <div class="tab" id="tab-stats">📊 Estatisticas</div>
+    <div class="tab" id="tab-plantao" style="display:none">🛏️ Passagem de Plantao</div>
+    <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
+  </div>
+  <main>
+    <div id="panel-fila">
+      <div class="section-header">
+        <div class="section-title">Fila de Internacao</div>
+        <button class="btn btn-primary" id="btn-novo-paciente">+ Novo Paciente</button>
+      </div>
+      <div id="fila-list" class="card-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+    </div>
+
+    <div id="panel-sessao" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Casos para Sessao Clinica</div>
+        <button class="btn btn-primary" id="btn-novo-caso">+ Novo Caso</button>
+      </div>
+      <div id="sessao-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+    </div>
+
+    <div id="panel-stats" style="display:none">
+      <div class="section-header"><div class="section-title">Estatisticas</div></div>
+      <div class="stats-filters">
+        <button class="filter-btn active" data-period="mes">Mes Atual</button>
+        <button class="filter-btn" data-period="trim">Trimestre</button>
+        <button class="filter-btn" data-period="ano">Ano Atual</button>
+        <button class="filter-btn" data-period="total">Total</button>
+      </div>
+      <div id="stats-content"></div>
+    </div>
+
+    <!-- PLANTAO -->
+    <div id="panel-plantao" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Passagem de Plantao</div>
+        <div style="font-size:12px;color:var(--text3);font-family:var(--mono)" id="plantao-updated"></div>
+      </div>
+      <div id="plantao-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+    </div>
+
+    <div id="panel-config" style="display:none">
+      <div class="section-header"><div class="section-title">Configuracoes</div></div>
+      <div class="settings-section">
+        <div class="settings-title">🔌 Conexao Supabase</div>
+        <div class="form-row"><label class="form-label">Supabase URL</label><input type="text" class="form-input" id="cfg-url" placeholder="https://xxxx.supabase.co"></div>
+        <div class="form-row"><label class="form-label">Supabase Anon Key</label><input type="text" class="form-input" id="cfg-key" placeholder="eyJ..."></div>
+        <button class="btn btn-primary" id="btn-salvar-supabase">Salvar e Conectar</button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">📧 Email de Alerta (Emergencias 🔴)</div>
+        <div class="form-row"><label class="form-label">EmailJS Service ID</label><input type="text" class="form-input" id="cfg-ejs-service" placeholder="service_xxxxxxx"></div>
+        <div class="form-row"><label class="form-label">EmailJS Template ID</label><input type="text" class="form-input" id="cfg-ejs-template" placeholder="template_xxxxxxx"></div>
+        <div class="form-row"><label class="form-label">EmailJS Public Key</label><input type="text" class="form-input" id="cfg-ejs-pubkey" placeholder="xxxxxxxxxxxx"></div>
+        <div class="form-row"><label class="form-label">Email de Destino do Alerta</label><input type="email" class="form-input" id="cfg-alert-email" placeholder="diarista@email.com"></div>
+        <button class="btn btn-primary" id="btn-salvar-email">Salvar Email</button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">👥 Medicos da Equipe</div>
+        <div class="doctor-list" id="doctor-list"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <input type="text" class="form-input" id="new-doctor-name" placeholder="Nome do medico" style="flex:1">
+          <button class="btn btn-primary" id="btn-add-doctor">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: NOVO PACIENTE -->
+<div class="modal-overlay" id="modal-fila">
+  <div class="modal">
+    <div class="modal-title">Inserir Paciente - Fila de Internacao</div>
+    <div class="form-row"><label class="form-label">Medico Responsavel *</label><select class="form-select" id="f-medico"></select></div>
+    <div class="form-row"><label class="form-label">Nome do Paciente *</label><input type="text" class="form-input" id="f-nome" placeholder="Nome completo"></div>
+    <div class="form-row"><label class="form-label">Nome da Mae *</label><input type="text" class="form-input" id="f-mae" placeholder="Nome da mae"></div>
+    <div class="form-row"><label class="form-label">Prontuario *</label><input type="text" class="form-input" id="f-prontuario" placeholder="Numero do prontuario"></div>
+    <div class="form-row"><label class="form-label">Diagnostico de Base *</label><input type="text" class="form-input" id="f-diagnostico" placeholder="Diagnostico principal"></div>
+    <div class="form-row">
+      <label class="form-label">Internar para *</label>
+      <div class="tipo-group">
+        <div class="tipo-opt" id="tipo-green"><span class="tipo-icon">🟢</span><div><div class="tipo-label">Exames / Procedimentos</div><div class="tipo-desc">Internamento eletivo</div></div></div>
+        <div class="tipo-opt" id="tipo-yellow"><span class="tipo-icon">🟡</span><div><div class="tipo-label">Sinais / Sintomas</div><div class="tipo-desc">Exige internamento por sinais ou sintomas</div></div></div>
+        <div class="tipo-opt" id="tipo-red"><span class="tipo-icon">🔴</span><div><div class="tipo-label">A Emergencia</div><div class="tipo-desc">Encaminhado direto a emergencia - dispara alerta</div></div></div>
+      </div>
+    </div>
+    <div class="form-row" id="campo-procedimento" style="display:none">
+      <label class="form-label">Descricao do Exame / Procedimento *</label>
+      <textarea class="form-textarea" id="f-procedimento" placeholder="Descreva o exame ou procedimento..."></textarea>
+    </div>
+    <div class="form-row" id="campo-cid" style="display:none">
+      <label class="form-label">CID-10 do Motivo do Internamento *</label>
+      <div class="cid-wrapper">
+        <input type="text" class="form-input" id="f-cid-busca" placeholder="Digite codigo ou descricao (ex: K76, diarreia...)">
+        <div class="cid-dropdown" id="cid-dropdown"></div>
+      </div>
+      <div class="cid-selected" id="cid-selecionado"></div>
+      <input type="hidden" id="f-cid-code">
+      <input type="hidden" id="f-cid-desc">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-fila">Cancelar</button>
+      <button class="btn btn-primary" id="btn-submit-fila">Inserir Paciente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SESSAO -->
+<div class="modal-overlay" id="modal-sessao">
+  <div class="modal">
+    <div class="modal-title">Inserir Caso - Sessao Clinica</div>
+    <div class="form-row"><label class="form-label">Inserido por *</label><select class="form-select" id="s-medico"></select></div>
+    <div class="form-row"><label class="form-label">Nome do Paciente *</label><input type="text" class="form-input" id="s-nome" placeholder="Nome completo"></div>
+    <div class="form-row"><label class="form-label">Prontuario *</label><input type="text" class="form-input" id="s-prontuario" placeholder="Numero do prontuario"></div>
+    <div class="form-row"><label class="form-label">Resumo Clinico *</label><textarea class="form-textarea" id="s-resumo" placeholder="Resumo da historia clinica..."></textarea></div>
+    <div class="form-row"><label class="form-label">Duvida / Questao para Discussao *</label><textarea class="form-textarea" id="s-duvida" placeholder="O que deve ser discutido na sessao?"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-sessao">Cancelar</button>
+      <button class="btn btn-primary" id="btn-submit-sessao">Inserir Caso</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONDUTA -->
+<div class="modal-overlay" id="modal-conduta">
+  <div class="modal">
+    <div class="modal-title">Registrar Conduta - Sessao Clinica</div>
+    <input type="hidden" id="conduta-id">
+    <div class="conduct-info" id="conduta-info"></div>
+    <div class="form-row"><label class="form-label">Conduta Definida *</label><textarea class="form-textarea" id="conduta-texto" placeholder="Registre a conduta definida na sessao..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-conduta">Cancelar</button>
+      <button class="btn btn-success" id="btn-submit-conduta">Marcar como Resolvido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RESOLVER -->
+<div class="modal-overlay" id="modal-resolver">
+  <div class="modal">
+    <div class="modal-title">Confirmar Resolucao</div>
+    <input type="hidden" id="resolver-id">
+    <p class="confirm-text" id="resolver-text"></p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-resolver">Cancelar</button>
+      <button class="btn btn-success" id="btn-confirmar-resolver">Confirmar - Resolvido</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var CID10 = [
+  // ── INFECÇÕES / DOENÇAS INFECCIOSAS ──
+  {code:'A00.0',desc:'Colera por Vibrio cholerae'},
+  {code:'A01.0',desc:'Febre tifoide'},
+  {code:'A02.0',desc:'Enterite por Salmonella'},
+  {code:'A04.0',desc:'Infeccao por Escherichia coli enteropatogenica'},
+  {code:'A04.7',desc:'Enterocolite por Clostridium difficile'},
+  {code:'A05.0',desc:'Intoxicacao alimentar estafilococica'},
+  {code:'A06.0',desc:'Disenteria amebiana aguda'},
+  {code:'A07.1',desc:'Giardíase'},
+  {code:'A08.0',desc:'Enterite por rotavirus'},
+  {code:'A09',  desc:'Diarreia e gastroenterite de origem infecciosa'},
+  {code:'A15.0',desc:'Tuberculose pulmonar'},
+  {code:'A16.0',desc:'Tuberculose pulmonar sem confirmacao'},
+  {code:'A17.0',desc:'Meningite tuberculosa'},
+  {code:'A18.0',desc:'Tuberculose osteoarticular'},
+  {code:'A19.0',desc:'Tuberculose miliar aguda'},
+  {code:'A20.0',desc:'Peste bubonica'},
+  {code:'A22.1',desc:'Carbunculo pulmonar'},
+  {code:'A23.0',desc:'Brucelose por Brucella melitensis'},
+  {code:'A27.0',desc:'Leptospirose ictero-hemorragica'},
+  {code:'A28.2',desc:'Infeccao extraintestinal por Yersinia'},
+  {code:'A30.0',desc:'Hanseniase indeterminada'},
+  {code:'A31.0',desc:'Infeccao pulmonar por Mycobacterium'},
+  {code:'A32.1',desc:'Meningite por Listeria'},
+  {code:'A33',  desc:'Tetano neonatal'},
+  {code:'A34',  desc:'Tetano obstetrico'},
+  {code:'A35',  desc:'Outros tetanos'},
+  {code:'A36.0',desc:'Difteria faringea'},
+  {code:'A37.0',desc:'Coqueluche por Bordetella pertussis'},
+  {code:'A38',  desc:'Escarlatina'},
+  {code:'A39.0',desc:'Meningite meningococica'},
+  {code:'A40.0',desc:'Septicemia por Streptococcus do grupo A'},
+  {code:'A40.3',desc:'Septicemia por Streptococcus pneumoniae'},
+  {code:'A41.0',desc:'Septicemia por Staphylococcus aureus'},
+  {code:'A41.1',desc:'Septicemia por Staphylococcus coagulase negativo'},
+  {code:'A41.3',desc:'Septicemia por Haemophilus influenzae'},
+  {code:'A41.4',desc:'Septicemia por anaerobios'},
+  {code:'A41.5',desc:'Septicemia por outros organismos gram-negativos'},
+  {code:'A41.8',desc:'Outras septicemias especificadas'},
+  {code:'A41.9',desc:'Septicemia nao especificada'},
+  {code:'A46',  desc:'Erisipela'},
+  {code:'A48.0',desc:'Gangrena gasosa'},
+  {code:'A48.1',desc:'Doenca do legionario'},
+  {code:'A49.0',desc:'Infeccao estafilococica nao especificada'},
+  {code:'A49.1',desc:'Infeccao estreptococica nao especificada'},
+  {code:'A50.0',desc:'Sifilis congenita precoce'},
+  {code:'A51.0',desc:'Sifilis primaria genital'},
+  {code:'A52.1',desc:'Neurossifilis'},
+  {code:'A53.9',desc:'Sifilis nao especificada'},
+  {code:'A54.0',desc:'Infeccao gonococcica do trato geniturinario inferior'},
+  {code:'A56.0',desc:'Infeccao clamidiana do trato geniturinario inferior'},
+  {code:'A59.0',desc:'Tricomoníase urogenital'},
+  {code:'A60.0',desc:'Infeccao herpetica dos genitais'},
+  {code:'A63.0',desc:'Condiloma acuminado'},
+  {code:'A69.2',desc:'Doenca de Lyme'},
+  {code:'A77.0',desc:'Febre maculosa por Rickettsia rickettsii'},
+  {code:'A80.0',desc:'Poliomielite aguda'},
+  {code:'A82.0',desc:'Raiva'},
+  {code:'A84.0',desc:'Encefalite por virus da taiga'},
+  {code:'A87.0',desc:'Meningite enteroviral'},
+  {code:'A90',  desc:'Dengue classica'},
+  {code:'A91',  desc:'Febre hemorragica por virus do dengue'},
+  {code:'A92.0',desc:'Infeccao pelo virus chikungunya'},
+  {code:'A97.0',desc:'Dengue sem sinais de alarme'},
+  {code:'A98.0',desc:'Febre hemorragica da Crimeia-Congo'},
+
+  // ── HIV / AIDS ──
+  {code:'B20',  desc:'Doenca pelo HIV resultando em doencas infecciosas'},
+  {code:'B21',  desc:'Doenca pelo HIV resultando em neoplasias malignas'},
+  {code:'B22',  desc:'Doenca pelo HIV resultando em outras doencas especificadas'},
+  {code:'B23',  desc:'Doenca pelo HIV resultando em outras condicoes'},
+  {code:'B24',  desc:'Doenca pelo HIV nao especificada'},
+
+  // ── MICOSES ──
+  {code:'B37.0',desc:'Candidíase da boca (sapinho)'},
+  {code:'B37.1',desc:'Candidíase pulmonar'},
+  {code:'B37.2',desc:'Candidíase cutanea'},
+  {code:'B37.3',desc:'Candidíase vulvovaginal'},
+  {code:'B37.4',desc:'Candidíase urogenital masculina'},
+  {code:'B37.5',desc:'Meningite por Candida'},
+  {code:'B37.6',desc:'Endocardite por Candida'},
+  {code:'B37.7',desc:'Septicemia por Candida'},
+  {code:'B37.8',desc:'Candidíase de outros locais'},
+  {code:'B37.9',desc:'Candidíase nao especificada'},
+  {code:'B38.0',desc:'Coccidioidomicose pulmonar aguda'},
+  {code:'B39.0',desc:'Histoplasmose pulmonar aguda'},
+  {code:'B40.0',desc:'Blastomicose pulmonar aguda'},
+  {code:'B44.0',desc:'Aspergilose pulmonar invasiva'},
+  {code:'B44.1',desc:'Outras aspergiloses pulmonares'},
+  {code:'B44.7',desc:'Aspergilose disseminada'},
+  {code:'B45.0',desc:'Criptococose pulmonar'},
+  {code:'B45.1',desc:'Criptococose cerebral'},
+  {code:'B45.7',desc:'Criptococose disseminada'},
+  {code:'B46.0',desc:'Mucormicose pulmonar'},
+  {code:'B46.5',desc:'Mucormicose disseminada'},
+  {code:'B48.7',desc:'Infeccao fungica oportunista'},
+
+  // ── PARASITOSES ──
+  {code:'B50.0',desc:'Malaria por Plasmodium falciparum'},
+  {code:'B51.0',desc:'Malaria por Plasmodium vivax'},
+  {code:'B54',  desc:'Malaria nao especificada'},
+  {code:'B55.0',desc:'Leishmaniose visceral'},
+  {code:'B55.1',desc:'Leishmaniose cutanea'},
+  {code:'B56.0',desc:'Tripanossomíase gambiana'},
+  {code:'B57.0',desc:'Doenca de Chagas aguda'},
+  {code:'B57.2',desc:'Doenca de Chagas cronica com comprometimento cardiaco'},
+  {code:'B57.3',desc:'Doenca de Chagas cronica com comprometimento digestivo'},
+  {code:'B65.0',desc:'Esquistossomose por Schistosoma haematobium'},
+  {code:'B65.1',desc:'Esquistossomose por Schistosoma mansoni'},
+  {code:'B66.0',desc:'Opistorquíase'},
+  {code:'B67.0',desc:'Hidatidose hepatica por Echinococcus'},
+  {code:'B68.0',desc:'Tenia por Taenia solium'},
+  {code:'B69.0',desc:'Cisticercose do sistema nervoso central'},
+  {code:'B76.0',desc:'Ancilostomíase por Ancylostoma duodenale'},
+  {code:'B77.0',desc:'Ascaridíase com complicacoes intestinais'},
+  {code:'B80',  desc:'Enterobíase (oxiurose)'},
+  {code:'B82.0',desc:'Helmintíase intestinal nao especificada'},
+
+  // ── HEPATITES VIRAIS ──
+  {code:'B15.0',desc:'Hepatite A com coma hepatico'},
+  {code:'B15.9',desc:'Hepatite A sem coma hepatico'},
+  {code:'B16.0',desc:'Hepatite B aguda com agente delta e coma'},
+  {code:'B16.1',desc:'Hepatite B aguda com agente delta sem coma'},
+  {code:'B16.2',desc:'Hepatite B aguda sem agente delta com coma'},
+  {code:'B16.9',desc:'Hepatite B aguda sem coma'},
+  {code:'B17.0',desc:'Superinfeccao delta por hepatite B'},
+  {code:'B17.1',desc:'Hepatite C aguda'},
+  {code:'B17.2',desc:'Hepatite E aguda'},
+  {code:'B18.0',desc:'Hepatite B cronica com agente delta'},
+  {code:'B18.1',desc:'Hepatite B cronica sem agente delta'},
+  {code:'B18.2',desc:'Hepatite C cronica'},
+  {code:'B18.8',desc:'Outras hepatites virais cronicas'},
+  {code:'B18.9',desc:'Hepatite viral cronica nao especificada'},
+  {code:'B19.0',desc:'Hepatite viral nao especificada com coma'},
+  {code:'B19.9',desc:'Hepatite viral nao especificada sem coma'},
+
+  // ── NEOPLASIAS MALIGNAS ──
+  {code:'C00.0',desc:'Neoplasia maligna do labio superior'},
+  {code:'C01',  desc:'Neoplasia maligna da base da lingua'},
+  {code:'C02.0',desc:'Neoplasia maligna da face dorsal da lingua'},
+  {code:'C03.0',desc:'Neoplasia maligna da gengiva superior'},
+  {code:'C04.0',desc:'Neoplasia maligna do assoalho anterior da boca'},
+  {code:'C06.0',desc:'Neoplasia maligna da mucosa jugal'},
+  {code:'C07',  desc:'Neoplasia maligna da glandula parotida'},
+  {code:'C10.0',desc:'Neoplasia maligna da valécula'},
+  {code:'C11.0',desc:'Neoplasia maligna da parede superior da nasofaringe'},
+  {code:'C15.0',desc:'Neoplasia maligna da porcao cervical do esofago'},
+  {code:'C15.5',desc:'Neoplasia maligna da porcao inferior do esofago'},
+  {code:'C15.9',desc:'Neoplasia maligna do esofago nao especificada'},
+  {code:'C16.0',desc:'Neoplasia maligna da cárdia'},
+  {code:'C16.1',desc:'Neoplasia maligna do fundus gastrico'},
+  {code:'C16.2',desc:'Neoplasia maligna do corpo do estomago'},
+  {code:'C16.9',desc:'Neoplasia maligna do estomago nao especificada'},
+  {code:'C17.0',desc:'Neoplasia maligna do duodeno'},
+  {code:'C18.0',desc:'Neoplasia maligna do ceco'},
+  {code:'C18.2',desc:'Neoplasia maligna do colon ascendente'},
+  {code:'C18.4',desc:'Neoplasia maligna do colon transverso'},
+  {code:'C18.6',desc:'Neoplasia maligna do colon descendente'},
+  {code:'C18.7',desc:'Neoplasia maligna do colon sigmoide'},
+  {code:'C18.9',desc:'Neoplasia maligna do colon nao especificada'},
+  {code:'C19',  desc:'Neoplasia maligna da juncao retossigmoide'},
+  {code:'C20',  desc:'Neoplasia maligna do reto'},
+  {code:'C21.0',desc:'Neoplasia maligna do anus'},
+  {code:'C22.0',desc:'Hepatocarcinoma (carcinoma hepatocelular)'},
+  {code:'C22.1',desc:'Colangiocarcinoma intra-hepatico'},
+  {code:'C22.2',desc:'Hepatoblastoma'},
+  {code:'C22.3',desc:'Angiossarcoma do figado'},
+  {code:'C22.9',desc:'Neoplasia maligna do figado nao especificada'},
+  {code:'C23',  desc:'Neoplasia maligna da vesicula biliar'},
+  {code:'C24.0',desc:'Neoplasia maligna do ducto biliar extra-hepatico'},
+  {code:'C25.0',desc:'Neoplasia maligna da cabeca do pancreas'},
+  {code:'C25.1',desc:'Neoplasia maligna do corpo do pancreas'},
+  {code:'C25.2',desc:'Neoplasia maligna da cauda do pancreas'},
+  {code:'C25.9',desc:'Neoplasia maligna do pancreas nao especificada'},
+  {code:'C26.0',desc:'Neoplasia maligna do trato intestinal'},
+  {code:'C34.0',desc:'Neoplasia maligna do bronquio principal'},
+  {code:'C34.1',desc:'Neoplasia maligna do lobo superior do pulmao'},
+  {code:'C34.3',desc:'Neoplasia maligna do lobo inferior do pulmao'},
+  {code:'C34.9',desc:'Neoplasia maligna do bronquio e pulmao nao especificados'},
+  {code:'C50.0',desc:'Neoplasia maligna do mamilo e aréola'},
+  {code:'C50.9',desc:'Neoplasia maligna da mama nao especificada'},
+  {code:'C53.0',desc:'Neoplasia maligna do endocervix'},
+  {code:'C53.9',desc:'Neoplasia maligna do colo do utero nao especificada'},
+  {code:'C54.1',desc:'Neoplasia maligna do endometrio'},
+  {code:'C56',  desc:'Neoplasia maligna do ovario'},
+  {code:'C61',  desc:'Neoplasia maligna da prostata'},
+  {code:'C64',  desc:'Neoplasia maligna do rim'},
+  {code:'C67.9',desc:'Neoplasia maligna da bexiga nao especificada'},
+  {code:'C71.0',desc:'Neoplasia maligna do cerebro exceto lobos e ventriculos'},
+  {code:'C71.9',desc:'Neoplasia maligna do cerebro nao especificada'},
+  {code:'C73',  desc:'Neoplasia maligna da glandula tireoide'},
+  {code:'C78.0',desc:'Neoplasia maligna secundaria do pulmao'},
+  {code:'C78.7',desc:'Neoplasia maligna secundaria do figado'},
+  {code:'C79.5',desc:'Neoplasia maligna secundaria dos ossos'},
+  {code:'C80.0',desc:'Neoplasia maligna sem especificacao do local'},
+  {code:'C81.0',desc:'Linfoma de Hodgkin com predominancia linfocitaria'},
+  {code:'C81.9',desc:'Linfoma de Hodgkin nao especificado'},
+  {code:'C82.0',desc:'Linfoma folicular nao especificado'},
+  {code:'C83.0',desc:'Linfoma de pequenas celulas B'},
+  {code:'C83.3',desc:'Linfoma difuso de grandes celulas B'},
+  {code:'C84.0',desc:'Micose fungoide'},
+  {code:'C85.1',desc:'Linfoma de celulas B nao especificado'},
+  {code:'C88.0',desc:'Macroglobulinemia de Waldenstrom'},
+  {code:'C90.0',desc:'Mieloma multiplo'},
+  {code:'C91.0',desc:'Leucemia linfoblastica aguda'},
+  {code:'C91.1',desc:'Leucemia linfocítica cronica de celulas B'},
+  {code:'C92.0',desc:'Leucemia mieloide aguda'},
+  {code:'C92.1',desc:'Leucemia mieloide cronica BCR-ABL positiva'},
+  {code:'C94.0',desc:'Eritremia aguda e eritroleucemia'},
+
+  // ── DOENÇAS DO SANGUE ──
+  {code:'D50.0',desc:'Anemia por deficiencia de ferro secundaria a perda de sangue'},
+  {code:'D50.9',desc:'Anemia por deficiencia de ferro nao especificada'},
+  {code:'D51.0',desc:'Anemia por deficiencia de vitamina B12'},
+  {code:'D52.0',desc:'Anemia por deficiencia de folato'},
+  {code:'D55.0',desc:'Anemia por deficiencia de glicose-6-fosfato desidrogenase'},
+  {code:'D56.0',desc:'Alfa-talassemia'},
+  {code:'D56.1',desc:'Beta-talassemia'},
+  {code:'D57.0',desc:'Anemia falciforme com crise'},
+  {code:'D57.1',desc:'Anemia falciforme sem crise'},
+  {code:'D59.0',desc:'Anemia hemolítica autoimune induzida por drogas'},
+  {code:'D59.1',desc:'Outras anemias hemolíticas autoimunes'},
+  {code:'D60.0',desc:'Anemia aplastica adquirida cronica'},
+  {code:'D61.0',desc:'Anemia aplastica constitucional'},
+  {code:'D61.9',desc:'Anemia aplastica nao especificada'},
+  {code:'D62',  desc:'Anemia pos-hemorragica aguda'},
+  {code:'D63.8',desc:'Anemia em outras doencas cronicas'},
+  {code:'D64.9',desc:'Anemia nao especificada'},
+  {code:'D65',  desc:'Coagulacao intravascular disseminada (CIVD)'},
+  {code:'D66',  desc:'Deficiencia hereditaria do fator VIII (hemofilia A)'},
+  {code:'D67',  desc:'Deficiencia hereditaria do fator IX (hemofilia B)'},
+  {code:'D68.0',desc:'Doenca de von Willebrand'},
+  {code:'D68.3',desc:'Transtorno hemorragico por anticoagulantes circulantes'},
+  {code:'D69.0',desc:'Purpura alergica'},
+  {code:'D69.3',desc:'Purpura trombocitopenica idiopatica'},
+  {code:'D69.5',desc:'Trombocitopenia secundaria'},
+  {code:'D69.6',desc:'Trombocitopenia nao especificada'},
+  {code:'D70.0',desc:'Agranulocitose congenita'},
+  {code:'D70.1',desc:'Agranulocitose secundaria por quimioterapia'},
+  {code:'D70.9',desc:'Agranulocitose nao especificada'},
+  {code:'D72.0',desc:'Anomalias geneticas dos leucocitos'},
+  {code:'D72.1',desc:'Eosinofilia'},
+  {code:'D75.0',desc:'Eritrocitose familiar'},
+  {code:'D75.1',desc:'Policitemia secundaria'},
+  {code:'D76.1',desc:'Linfohistiocitose hemofagocítica'},
+  {code:'D80.0',desc:'Hipogamaglobulinemia hereditaria'},
+  {code:'D83.9',desc:'Imunodeficiencia comum variavel nao especificada'},
+  {code:'D84.9',desc:'Imunodeficiencia nao especificada'},
+  {code:'D86.0',desc:'Sarcoidose do pulmao'},
+  {code:'D86.1',desc:'Sarcoidose dos ganglios linfaticos'},
+  {code:'D86.9',desc:'Sarcoidose nao especificada'},
+
+  // ── ENDÓCRINO / METABÓLICO ──
+  {code:'E03.9',desc:'Hipotireoidismo nao especificado'},
+  {code:'E05.0',desc:'Tireotoxicose com bócio difuso (Doenca de Graves)'},
+  {code:'E06.0',desc:'Tireoidite aguda'},
+  {code:'E06.3',desc:'Tireoidite autoimune (Hashimoto)'},
+  {code:'E10.0',desc:'Diabetes mellitus tipo 1 com coma'},
+  {code:'E10.4',desc:'Diabetes mellitus tipo 1 com complicacoes neurologicas'},
+  {code:'E10.5',desc:'Diabetes mellitus tipo 1 com complicacoes circulatorias perifericas'},
+  {code:'E10.9',desc:'Diabetes mellitus tipo 1 sem complicacoes'},
+  {code:'E11.0',desc:'Diabetes mellitus tipo 2 com coma'},
+  {code:'E11.2',desc:'Diabetes mellitus tipo 2 com complicacoes renais'},
+  {code:'E11.3',desc:'Diabetes mellitus tipo 2 com complicacoes oftalmicas'},
+  {code:'E11.4',desc:'Diabetes mellitus tipo 2 com complicacoes neurologicas'},
+  {code:'E11.5',desc:'Diabetes mellitus tipo 2 com complicacoes circulatorias perifericas'},
+  {code:'E11.6',desc:'Diabetes mellitus tipo 2 com outras complicacoes especificadas'},
+  {code:'E11.9',desc:'Diabetes mellitus tipo 2 sem complicacoes'},
+  {code:'E13.9',desc:'Outros tipos especificados de diabetes mellitus'},
+  {code:'E14.9',desc:'Diabetes mellitus nao especificado'},
+  {code:'E16.0',desc:'Hipoglicemia induzida por insulina sem coma'},
+  {code:'E16.2',desc:'Hipoglicemia nao especificada'},
+  {code:'E21.0',desc:'Hiperparatireoidismo primario'},
+  {code:'E22.0',desc:'Acromegalia e gigantismo hipofisario'},
+  {code:'E23.0',desc:'Hipopituitarismo'},
+  {code:'E24.0',desc:'Sindrome de Cushing dependente da hipofise'},
+  {code:'E25.0',desc:'Transtornos adrenogenitais congenitos'},
+  {code:'E26.0',desc:'Hiperaldosteronismo primario'},
+  {code:'E27.1',desc:'Insuficiencia adrenocortical primaria (Addison)'},
+  {code:'E27.4',desc:'Outras insuficiencias adrenocorticais'},
+  {code:'E28.0',desc:'Excesso de estrogenos'},
+  {code:'E29.0',desc:'Hiperfuncao testicular'},
+  {code:'E31.0',desc:'Insuficiencia poliglandular autoimune'},
+  {code:'E40',  desc:'Kwashiorkor'},
+  {code:'E41',  desc:'Marasmo nutricional'},
+  {code:'E43',  desc:'Desnutricao proteico-calorica grave nao especificada'},
+  {code:'E44.0',desc:'Desnutricao proteico-calorica moderada'},
+  {code:'E46',  desc:'Desnutricao proteico-energetica nao especificada'},
+  {code:'E50.0',desc:'Deficiencia de vitamina A com xeroftalmia'},
+  {code:'E53.0',desc:'Deficiencia de riboflavina'},
+  {code:'E55.0',desc:'Raquitismo ativo'},
+  {code:'E61.1',desc:'Deficiencia de ferro'},
+  {code:'E66.0',desc:'Obesidade devida a excesso de calorias'},
+  {code:'E66.9',desc:'Obesidade nao especificada'},
+  {code:'E70.0',desc:'Fenilcetonuria classica'},
+  {code:'E71.0',desc:'Doenca da urina em xarope de bordo'},
+  {code:'E72.0',desc:'Transtornos do transporte de aminoacidos'},
+  {code:'E74.0',desc:'Doenca de deposito de glicogenio'},
+  {code:'E75.0',desc:'Gangliosidose GM2'},
+  {code:'E76.0',desc:'Mucopolissacaridose tipo I'},
+  {code:'E78.0',desc:'Hipercolesterolemia pura'},
+  {code:'E78.1',desc:'Hipertrigliceridemia pura'},
+  {code:'E78.2',desc:'Hiperlipidemia mista'},
+  {code:'E78.5',desc:'Hiperlipidemia nao especificada'},
+  {code:'E79.0',desc:'Hiperuricemia sem sinais de artrite e gota'},
+  {code:'E80.0',desc:'Porfiria eritropoietica hereditaria'},
+  {code:'E83.0',desc:'Doenca de Wilson (disturbio do metabolismo do cobre)'},
+  {code:'E83.1',desc:'Hemocromatose (disturbio do metabolismo do ferro)'},
+  {code:'E83.3',desc:'Disturbios do metabolismo do fosforo'},
+  {code:'E83.5',desc:'Disturbios do metabolismo do calcio'},
+  {code:'E84.0',desc:'Fibrose cística com manifestacoes pulmonares'},
+  {code:'E84.1',desc:'Fibrose cística com manifestacoes intestinais'},
+  {code:'E85.0',desc:'Amiloidose hereditaria'},
+  {code:'E85.9',desc:'Amiloidose nao especificada'},
+  {code:'E86.0',desc:'Desidratacao'},
+  {code:'E87.0',desc:'Hiperosmolalidade e hipernatremia'},
+  {code:'E87.1',desc:'Hiposmolalidade e hiponatremia'},
+  {code:'E87.2',desc:'Acidose'},
+  {code:'E87.3',desc:'Alcalose'},
+  {code:'E87.4',desc:'Disturbio misto do equilibrio acido-basico'},
+  {code:'E87.5',desc:'Hiperpotassemia'},
+  {code:'E87.6',desc:'Hipopotassemia'},
+  {code:'E87.7',desc:'Sobrecarga de liquidos'},
+  {code:'E87.8',desc:'Outros disturbios do equilibrio eletrolítico'},
+  {code:'E88.0',desc:'Disturbios do metabolismo das proteinas plasmaticas'},
+  {code:'E89.0',desc:'Hipotireoidismo pos-procedimento'},
+
+  // ── TRANSTORNOS MENTAIS ──
+  {code:'F00.0',desc:'Demencia na doenca de Alzheimer de inicio precoce'},
+  {code:'F01.0',desc:'Demencia vascular de inicio agudo'},
+  {code:'F02.3',desc:'Demencia na doenca de Parkinson'},
+  {code:'F05.0',desc:'Delirium nao sobreposto a demencia'},
+  {code:'F05.1',desc:'Delirium sobreposto a demencia'},
+  {code:'F10.0',desc:'Transtornos mentais por uso de alcool - intoxicacao aguda'},
+  {code:'F10.2',desc:'Transtornos mentais por uso de alcool - sindrome de dependencia'},
+  {code:'F10.3',desc:'Transtornos mentais por uso de alcool - estado de abstinencia'},
+  {code:'F10.4',desc:'Transtornos mentais por uso de alcool - estado de abstinencia com delirium'},
+  {code:'F19.2',desc:'Transtornos mentais por uso de multiplas drogas - dependencia'},
+  {code:'F20.0',desc:'Esquizofrenia paranoide'},
+  {code:'F31.0',desc:'Transtorno afetivo bipolar - episodio hipomaniaco'},
+  {code:'F32.0',desc:'Episodio depressivo leve'},
+  {code:'F32.1',desc:'Episodio depressivo moderado'},
+  {code:'F32.2',desc:'Episodio depressivo grave sem sintomas psicoticos'},
+  {code:'F41.0',desc:'Transtorno de panico'},
+  {code:'F41.1',desc:'Ansiedade generalizada'},
+
+  // ── NEUROLOGIA ──
+  {code:'G00.0',desc:'Meningite por Haemophilus'},
+  {code:'G00.1',desc:'Meningite pneumococica'},
+  {code:'G00.2',desc:'Meningite estreptococica'},
+  {code:'G00.3',desc:'Meningite estafilococica'},
+  {code:'G00.9',desc:'Meningite bacteriana nao especificada'},
+  {code:'G01',  desc:'Meningite em doencas bacterianas'},
+  {code:'G02.0',desc:'Meningite em doencas virais'},
+  {code:'G03.0',desc:'Meningite piogenica nao especificada'},
+  {code:'G03.9',desc:'Meningite nao especificada'},
+  {code:'G04.0',desc:'Encefalite aguda disseminada'},
+  {code:'G04.9',desc:'Encefalite mielite e encefalomielite nao especificadas'},
+  {code:'G06.0',desc:'Abscesso e granuloma intracranianos'},
+  {code:'G08',  desc:'Flebite e tromboflebite dos seios intracranianos'},
+  {code:'G10',  desc:'Doenca de Huntington'},
+  {code:'G11.0',desc:'Ataxia cerebelar congenita nao progressiva'},
+  {code:'G12.2',desc:'Doenca do neuronio motor'},
+  {code:'G20',  desc:'Doenca de Parkinson'},
+  {code:'G21.0',desc:'Sindrome maligna dos antipsicoticos'},
+  {code:'G25.0',desc:'Tremor essencial'},
+  {code:'G30.0',desc:'Doenca de Alzheimer de inicio precoce'},
+  {code:'G30.1',desc:'Doenca de Alzheimer de inicio tardio'},
+  {code:'G35',  desc:'Esclerose multipla'},
+  {code:'G40.0',desc:'Epilepsia e sindromes epilepticas focais'},
+  {code:'G40.3',desc:'Epilepsia generalizada idiopatica'},
+  {code:'G40.9',desc:'Epilepsia nao especificada'},
+  {code:'G41.0',desc:'Estado de mal epileptico de grande mal'},
+  {code:'G41.9',desc:'Estado de mal epileptico nao especificado'},
+  {code:'G43.0',desc:'Enxaqueca sem aura'},
+  {code:'G43.1',desc:'Enxaqueca com aura'},
+  {code:'G43.9',desc:'Enxaqueca nao especificada'},
+  {code:'G45.0',desc:'Sindrome da arteria vertebrobasilar'},
+  {code:'G45.9',desc:'Ataque isquemico transitorio nao especificado'},
+  {code:'G47.0',desc:'Disturbios do inicio e da manutencao do sono (insonia)'},
+  {code:'G47.3',desc:'Apneia do sono'},
+  {code:'G60.0',desc:'Neuropatia hereditaria motora e sensitiva'},
+  {code:'G61.0',desc:'Sindrome de Guillain-Barre'},
+  {code:'G62.0',desc:'Polineuropatia induzida por drogas'},
+  {code:'G62.9',desc:'Polineuropatia nao especificada'},
+  {code:'G70.0',desc:'Miastenia grave'},
+  {code:'G71.0',desc:'Distrofia muscular'},
+  {code:'G72.0',desc:'Miopatia induzida por drogas'},
+  {code:'G80.0',desc:'Paralisia cerebral espastica quadriplegica'},
+  {code:'G89.0',desc:'Dor central'},
+  {code:'G91.0',desc:'Hidrocefalia comunicante'},
+  {code:'G92',  desc:'Encefalopatia hepatica e toxica'},
+  {code:'G93.1',desc:'Lesao anoxica cerebral'},
+  {code:'G93.4',desc:'Encefalopatia nao especificada'},
+  {code:'G93.6',desc:'Edema cerebral'},
+
+  // ── DOENÇAS DO OLHO ──
+  {code:'H00.0',desc:'Hordéolo e outras inflamacoes profundas da palpebra'},
+  {code:'H10.0',desc:'Conjuntivite mucopurulenta'},
+  {code:'H10.1',desc:'Conjuntivite atopica aguda'},
+  {code:'H16.0',desc:'Ulcera de cornea'},
+  {code:'H25.0',desc:'Catarata senil cortical'},
+  {code:'H26.0',desc:'Catarata infantil e juvenil'},
+  {code:'H35.0',desc:'Retinopatia de fundo e alteracoes vasculares retinianas'},
+  {code:'H36.0',desc:'Retinopatia diabetica'},
+  {code:'H40.0',desc:'Suspeita de glaucoma'},
+  {code:'H40.1',desc:'Glaucoma primario de angulo aberto'},
+  {code:'H43.1',desc:'Hemorragia vitrea'},
+  {code:'H54.0',desc:'Cegueira ambos os olhos'},
+
+  // ── DOENÇAS DO OUVIDO ──
+  {code:'H60.0',desc:'Abscesso do ouvido externo'},
+  {code:'H65.0',desc:'Otite media aguda serosa'},
+  {code:'H66.0',desc:'Otite media supurativa aguda'},
+  {code:'H66.9',desc:'Otite media nao especificada'},
+  {code:'H72.0',desc:'Perfuracao central da membrana do timpano'},
+  {code:'H81.0',desc:'Doenca de Meniere'},
+  {code:'H90.0',desc:'Perda de audicao bilateral por conducao'},
+  {code:'H91.9',desc:'Perda de audicao nao especificada'},
+
+  // ── DOENÇAS DO APARELHO CIRCULATÓRIO ──
+  {code:'I05.0',desc:'Estenose mitral'},
+  {code:'I06.0',desc:'Estenose aortica reumatica'},
+  {code:'I08.0',desc:'Transtornos de valvas mitral e aortica'},
+  {code:'I10',  desc:'Hipertensao essencial (primaria)'},
+  {code:'I11.0',desc:'Doenca cardiaca hipertensiva com insuficiencia cardiaca'},
+  {code:'I11.9',desc:'Doenca cardiaca hipertensiva sem insuficiencia cardiaca'},
+  {code:'I12.0',desc:'Doenca renal hipertensiva com insuficiencia renal'},
+  {code:'I13.0',desc:'Doenca cardio-renal hipertensiva com insuficiencia cardiaca'},
+  {code:'I15.0',desc:'Hipertensao renovascular'},
+  {code:'I20.0',desc:'Angina instavel'},
+  {code:'I20.1',desc:'Angina pectoris com espasmo documentado'},
+  {code:'I20.9',desc:'Angina pectoris nao especificada'},
+  {code:'I21.0',desc:'Infarto agudo do miocardio transmural anterior'},
+  {code:'I21.1',desc:'Infarto agudo do miocardio transmural inferior'},
+  {code:'I21.4',desc:'Infarto agudo do miocardio subendocardico'},
+  {code:'I21.9',desc:'Infarto agudo do miocardio nao especificado'},
+  {code:'I22.0',desc:'Infarto do miocardio recorrente da parede anterior'},
+  {code:'I25.0',desc:'Doenca cardiovascular aterosclerotica'},
+  {code:'I25.1',desc:'Doenca aterosclerotica do coracao'},
+  {code:'I26.0',desc:'Embolia pulmonar com mencao de cor pulmonale agudo'},
+  {code:'I26.9',desc:'Embolia pulmonar sem mencao de cor pulmonale agudo'},
+  {code:'I27.0',desc:'Hipertensao pulmonar primaria'},
+  {code:'I27.2',desc:'Hipertensao pulmonar de outra origem'},
+  {code:'I30.0',desc:'Pericardite aguda idiopatica'},
+  {code:'I30.9',desc:'Pericardite aguda nao especificada'},
+  {code:'I31.3',desc:'Derrame pericardico'},
+  {code:'I31.9',desc:'Doenca do pericardio nao especificada'},
+  {code:'I33.0',desc:'Endocardite infecciosa aguda e subaguda'},
+  {code:'I34.0',desc:'Regurgitacao mitral'},
+  {code:'I35.0',desc:'Estenose aortica'},
+  {code:'I35.1',desc:'Insuficiencia aortica'},
+  {code:'I38',  desc:'Endocardite valva nao especificada'},
+  {code:'I42.0',desc:'Cardiomiopatia dilatada'},
+  {code:'I42.1',desc:'Cardiomiopatia obstrutiva hipertrofica'},
+  {code:'I42.2',desc:'Outras cardiomiopatias hipertroficas'},
+  {code:'I42.9',desc:'Cardiomiopatia nao especificada'},
+  {code:'I44.0',desc:'Bloqueio atrioventricular de primeiro grau'},
+  {code:'I44.2',desc:'Bloqueio atrioventricular total'},
+  {code:'I45.1',desc:'Outros bloqueios de ramo direito'},
+  {code:'I47.0',desc:'Reentrada de arritmia ventricular'},
+  {code:'I47.1',desc:'Taquicardia supraventricular'},
+  {code:'I47.2',desc:'Taquicardia ventricular'},
+  {code:'I48.0',desc:'Fibrilacao atrial paroxistica'},
+  {code:'I48.1',desc:'Fibrilacao atrial persistente'},
+  {code:'I48.2',desc:'Fibrilacao atrial cronica'},
+  {code:'I48.9',desc:'Fibrilacao e flutter atrial nao especificados'},
+  {code:'I49.0',desc:'Fibrilacao e flutter ventricular'},
+  {code:'I50.0',desc:'Insuficiencia cardiaca congestiva'},
+  {code:'I50.1',desc:'Insuficiencia ventricular esquerda'},
+  {code:'I50.9',desc:'Insuficiencia cardiaca nao especificada'},
+  {code:'I51.7',desc:'Cardiomegalia'},
+  {code:'I60.0',desc:'Hemorragia subaracnoide da arteria carotidia sifonica'},
+  {code:'I60.9',desc:'Hemorragia subaracnoide nao especificada'},
+  {code:'I61.0',desc:'Hemorragia cerebral subcortical'},
+  {code:'I61.9',desc:'Hemorragia cerebral nao especificada'},
+  {code:'I63.0',desc:'Infarto cerebral por trombose de arterias pre-cerebrais'},
+  {code:'I63.5',desc:'Infarto cerebral por oclusao nao especificada de arteria cerebral'},
+  {code:'I63.9',desc:'Infarto cerebral nao especificado'},
+  {code:'I64',  desc:'Acidente vascular cerebral nao especificado'},
+  {code:'I70.0',desc:'Aterosclerose da aorta'},
+  {code:'I70.2',desc:'Aterosclerose das arterias dos membros'},
+  {code:'I71.0',desc:'Disseccao da aorta'},
+  {code:'I71.4',desc:'Aneurisma abdominal da aorta sem mencao de ruptura'},
+  {code:'I74.0',desc:'Embolia e trombose da aorta abdominal'},
+  {code:'I80.0',desc:'Flebite e tromboflebite dos vasos superficiais dos membros inferiores'},
+  {code:'I80.1',desc:'Flebite e tromboflebite da veia femoral'},
+  {code:'I80.2',desc:'Flebite e tromboflebite de outros vasos profundos dos membros inferiores'},
+  {code:'I82.0',desc:'Sindrome de Budd-Chiari'},
+  {code:'I82.1',desc:'Tromboflebite migratoria'},
+  {code:'I82.9',desc:'Embolia e trombose venosas nao especificadas'},
+  {code:'I83.0',desc:'Varizes dos membros inferiores com ulcera'},
+  {code:'I83.9',desc:'Varizes dos membros inferiores sem ulcera'},
+  {code:'I84.0',desc:'Hemorroidas internas trombosadas'},
+  {code:'I85.0',desc:'Varizes esofagicas com hemorragia'},
+  {code:'I85.9',desc:'Varizes esofagicas sem hemorragia'},
+  {code:'I86.4',desc:'Varizes gastrica'},
+  {code:'I87.0',desc:'Sindrome pos-flebite'},
+  {code:'I89.0',desc:'Linfedema nao classificado em outra parte'},
+  {code:'I95.0',desc:'Hipotensao ortostática'},
+  {code:'I95.9',desc:'Hipotensao nao especificada'},
+  {code:'I98.2',desc:'Varizes esofagicas em doencas classificadas em outra parte'},
+
+  // ── DOENÇAS RESPIRATÓRIAS ──
+  {code:'J00',  desc:'Nasofaringite aguda (resfriado comum)'},
+  {code:'J01.0',desc:'Sinusite maxilar aguda'},
+  {code:'J01.9',desc:'Sinusite aguda nao especificada'},
+  {code:'J02.0',desc:'Faringite estreptococica'},
+  {code:'J02.9',desc:'Faringite aguda nao especificada'},
+  {code:'J03.0',desc:'Amigdalite estreptococica'},
+  {code:'J03.9',desc:'Amigdalite aguda nao especificada'},
+  {code:'J04.0',desc:'Laringite aguda'},
+  {code:'J05.0',desc:'Laringotraqueite aguda obstrutiva (crupe)'},
+  {code:'J06.9',desc:'Infeccao aguda das vias aereas superiores nao especificada'},
+  {code:'J09',  desc:'Influenza devida a virus identificado de influenza aviaria'},
+  {code:'J10.0',desc:'Influenza com pneumonia por virus influenza identificado'},
+  {code:'J10.1',desc:'Influenza com outras manifestacoes respiratorias'},
+  {code:'J11.0',desc:'Influenza com pneumonia virus nao identificado'},
+  {code:'J12.0',desc:'Pneumonia por adenovirus'},
+  {code:'J12.1',desc:'Pneumonia por virus respiratorio sincicial'},
+  {code:'J13',  desc:'Pneumonia por Streptococcus pneumoniae'},
+  {code:'J14',  desc:'Pneumonia por Haemophilus influenzae'},
+  {code:'J15.0',desc:'Pneumonia por Klebsiella pneumoniae'},
+  {code:'J15.1',desc:'Pneumonia por Pseudomonas'},
+  {code:'J15.2',desc:'Pneumonia por estafilococos'},
+  {code:'J15.4',desc:'Pneumonia por outros estreptococos'},
+  {code:'J15.6',desc:'Pneumonia por outros bacilos gram-negativos aerobios'},
+  {code:'J15.9',desc:'Pneumonia bacteriana nao especificada'},
+  {code:'J16.0',desc:'Pneumonia por Chlamydia'},
+  {code:'J17.0',desc:'Pneumonia em doencas bacterianas'},
+  {code:'J18.0',desc:'Broncopneumonia nao especificada'},
+  {code:'J18.1',desc:'Pneumonia lobar nao especificada'},
+  {code:'J18.9',desc:'Pneumonia nao especificada'},
+  {code:'J20.0',desc:'Bronquite aguda por Mycoplasma pneumoniae'},
+  {code:'J20.9',desc:'Bronquite aguda nao especificada'},
+  {code:'J21.0',desc:'Bronquiolite aguda por virus respiratorio sincicial'},
+  {code:'J22',  desc:'Infeccao aguda nao especificada das vias aereas inferiores'},
+  {code:'J32.0',desc:'Sinusite maxilar cronica'},
+  {code:'J35.0',desc:'Amigdalite cronica'},
+  {code:'J36',  desc:'Abscesso peritonsilar'},
+  {code:'J38.0',desc:'Paralisia das cordas vocais e da laringe'},
+  {code:'J40',  desc:'Bronquite nao especificada como aguda ou cronica'},
+  {code:'J41.0',desc:'Bronquite cronica simples'},
+  {code:'J42',  desc:'Bronquite cronica nao especificada'},
+  {code:'J43.0',desc:'Sindrome de MacLeod'},
+  {code:'J43.9',desc:'Enfisema nao especificado'},
+  {code:'J44.0',desc:'DPOC com infeccao respiratoria aguda'},
+  {code:'J44.1',desc:'DPOC com exacerbacao aguda nao especificada'},
+  {code:'J44.9',desc:'DPOC nao especificada'},
+  {code:'J45.0',desc:'Asma predominantemente alergica'},
+  {code:'J45.1',desc:'Asma nao-alergica'},
+  {code:'J45.9',desc:'Asma nao especificada'},
+  {code:'J46',  desc:'Estado de mal asmatico'},
+  {code:'J47',  desc:'Bronquiectasia'},
+  {code:'J60',  desc:'Pneumoconiose dos mineiros de carvao'},
+  {code:'J68.0',desc:'Bronquite e pneumonite devidas a solidos e liquidos'},
+  {code:'J69.0',desc:'Pneumonite de aspiracao devida a alimento e vomito'},
+  {code:'J70.0',desc:'Manifestacoes pulmonares agudas devidas a radiacao'},
+  {code:'J80',  desc:'Sindrome do desconforto respiratorio agudo (SDRA)'},
+  {code:'J81',  desc:'Edema pulmonar'},
+  {code:'J82',  desc:'Eosinofilia pulmonar'},
+  {code:'J84.0',desc:'Afeccoes alveolares e parieto-alveolares'},
+  {code:'J84.1',desc:'Outras doencas pulmonares intersticiais com fibrose'},
+  {code:'J84.9',desc:'Doenca pulmonar intersticial nao especificada'},
+  {code:'J85.0',desc:'Gangrena e necrose do pulmao'},
+  {code:'J85.1',desc:'Abscesso do pulmao com pneumonia'},
+  {code:'J85.2',desc:'Abscesso do pulmao sem pneumonia'},
+  {code:'J86.0',desc:'Piotorax com fistula'},
+  {code:'J86.9',desc:'Piotorax sem fistula'},
+  {code:'J90',  desc:'Derrame pleural'},
+  {code:'J91',  desc:'Derrame pleural em condicoes classificadas em outra parte'},
+  {code:'J93.0',desc:'Pneumotorax espontaneo por tensao'},
+  {code:'J93.1',desc:'Outro pneumotorax espontaneo'},
+  {code:'J93.9',desc:'Pneumotorax nao especificado'},
+  {code:'J94.0',desc:'Quilotorax'},
+  {code:'J94.2',desc:'Hemotorax'},
+  {code:'J95.0',desc:'Disfuncao da traqueostomia'},
+  {code:'J96.0',desc:'Insuficiencia respiratoria aguda'},
+  {code:'J96.1',desc:'Insuficiencia respiratoria cronica'},
+  {code:'J96.9',desc:'Insuficiencia respiratoria nao especificada'},
+  {code:'J98.0',desc:'Doencas do bronquio nao classificadas em outra parte'},
+  {code:'J98.1',desc:'Colapso pulmonar'},
+  {code:'J98.2',desc:'Enfisema intersticial'},
+
+  // ── DOENÇAS DIGESTIVAS ──
+  {code:'K20',  desc:'Esofagite'},
+  {code:'K21.0',desc:'Doenca de refluxo gastroesofagico com esofagite'},
+  {code:'K21.9',desc:'Doenca de refluxo gastroesofagico sem esofagite'},
+  {code:'K22.0',desc:'Acalasia do cardia'},
+  {code:'K22.1',desc:'Ulcera do esofago'},
+  {code:'K22.2',desc:'Obstrucao do esofago'},
+  {code:'K22.6',desc:'Sindrome de Mallory-Weiss'},
+  {code:'K25.0',desc:'Ulcera gastrica aguda com hemorragia'},
+  {code:'K25.3',desc:'Ulcera gastrica aguda sem hemorragia nem perfuracao'},
+  {code:'K25.9',desc:'Ulcera gastrica nao especificada'},
+  {code:'K26.0',desc:'Ulcera duodenal aguda com hemorragia'},
+  {code:'K26.9',desc:'Ulcera duodenal nao especificada'},
+  {code:'K27.9',desc:'Ulcera peptica nao especificada'},
+  {code:'K29.0',desc:'Gastrite hemorragica aguda'},
+  {code:'K29.1',desc:'Outras gastrites agudas'},
+  {code:'K29.5',desc:'Gastrite cronica nao especificada'},
+  {code:'K29.7',desc:'Gastrite nao especificada'},
+  {code:'K30',  desc:'Dispepsia'},
+  {code:'K31.0',desc:'Dilatacao aguda do estomago'},
+  {code:'K35.0',desc:'Apendicite aguda com peritonite'},
+  {code:'K35.1',desc:'Apendicite aguda com abscesso peritoneal'},
+  {code:'K35.9',desc:'Apendicite aguda nao especificada'},
+  {code:'K40.0',desc:'Hernia inguinal bilateral com obstrucao'},
+  {code:'K40.9',desc:'Hernia inguinal unilateral ou nao especificada'},
+  {code:'K41.9',desc:'Hernia femoral nao especificada'},
+  {code:'K42.0',desc:'Hernia umbilical com obstrucao'},
+  {code:'K43.0',desc:'Hernia ventral com obstrucao'},
+  {code:'K44.0',desc:'Hernia diafragmatica com obstrucao'},
+  {code:'K50.0',desc:'Doenca de Crohn do intestino delgado'},
+  {code:'K50.1',desc:'Doenca de Crohn do intestino grosso'},
+  {code:'K50.9',desc:'Doenca de Crohn nao especificada'},
+  {code:'K51.0',desc:'Enterocolite ulcerativa'},
+  {code:'K51.2',desc:'Proctite ulcerativa'},
+  {code:'K51.9',desc:'Colite ulcerativa nao especificada'},
+  {code:'K52.0',desc:'Gastroenterite e colite por radiacao'},
+  {code:'K52.1',desc:'Gastroenterite e colite toxica'},
+  {code:'K52.9',desc:'Gastroenterite e colite nao infecciosa nao especificada'},
+  {code:'K55.0',desc:'Doencas vasculares agudas do intestino'},
+  {code:'K56.0',desc:'Ileo paralitico'},
+  {code:'K56.2',desc:'Volvo'},
+  {code:'K56.6',desc:'Outras obstrucoes intestinais e as nao especificadas'},
+  {code:'K57.0',desc:'Doenca diverticular do intestino delgado com perfuracao'},
+  {code:'K57.3',desc:'Doenca diverticular do intestino grosso sem perfuracao'},
+  {code:'K57.9',desc:'Doenca diverticular do intestino nao especificada'},
+  {code:'K58.0',desc:'Sindrome do intestino irritavel com diarreia'},
+  {code:'K58.9',desc:'Sindrome do intestino irritavel sem diarreia'},
+  {code:'K59.0',desc:'Constipacao intestinal'},
+  {code:'K59.1',desc:'Diarreia funcional'},
+  {code:'K60.0',desc:'Fissura anal aguda'},
+  {code:'K61.0',desc:'Abscesso anal'},
+  {code:'K62.5',desc:'Hemorragia do reto e do anus'},
+  {code:'K63.0',desc:'Abscesso do intestino'},
+  {code:'K63.1',desc:'Perfuracao do intestino'},
+  {code:'K65.0',desc:'Peritonite aguda'},
+  {code:'K65.9',desc:'Peritonite nao especificada'},
+  {code:'K66.1',desc:'Hemoperitoneo'},
+  {code:'K70.0',desc:'Esteatose hepatica alcoolica'},
+  {code:'K70.1',desc:'Hepatite alcoolica'},
+  {code:'K70.2',desc:'Fibrose e esclerose hepatica alcoolica'},
+  {code:'K70.3',desc:'Cirrose hepatica alcoolica'},
+  {code:'K70.4',desc:'Insuficiencia hepatica alcoolica'},
+  {code:'K70.9',desc:'Doenca hepatica alcoolica nao especificada'},
+  {code:'K71.0',desc:'Doenca hepatica toxica com colestase'},
+  {code:'K71.6',desc:'Doenca hepatica toxica com hepatite'},
+  {code:'K71.7',desc:'Doenca hepatica toxica com fibrose e cirrose'},
+  {code:'K72.0',desc:'Insuficiencia hepatica aguda'},
+  {code:'K72.1',desc:'Insuficiencia hepatica cronica'},
+  {code:'K72.9',desc:'Insuficiencia hepatica nao especificada'},
+  {code:'K73.0',desc:'Hepatite cronica persistente'},
+  {code:'K73.1',desc:'Hepatite cronica lobular'},
+  {code:'K73.2',desc:'Hepatite cronica ativa'},
+  {code:'K73.9',desc:'Hepatite cronica nao especificada'},
+  {code:'K74.0',desc:'Fibrose hepatica'},
+  {code:'K74.1',desc:'Esclerose hepatica'},
+  {code:'K74.3',desc:'Cirrose biliar primaria'},
+  {code:'K74.4',desc:'Cirrose biliar secundaria'},
+  {code:'K74.5',desc:'Cirrose biliar nao especificada'},
+  {code:'K74.6',desc:'Cirrose hepatica nao especificada'},
+  {code:'K75.0',desc:'Abscesso hepatico'},
+  {code:'K75.1',desc:'Flebite da veia porta'},
+  {code:'K75.2',desc:'Hepatite reativa nao especifica'},
+  {code:'K75.3',desc:'Hepatite granulomatosa'},
+  {code:'K75.4',desc:'Hepatite autoimune'},
+  {code:'K75.9',desc:'Doenca inflamatoria do figado nao especificada'},
+  {code:'K76.0',desc:'Esteatose hepatica nao alcoolica (NASH)'},
+  {code:'K76.1',desc:'Congestao hepatica cronica'},
+  {code:'K76.2',desc:'Necrose hemorragica central do figado'},
+  {code:'K76.3',desc:'Infarto do figado'},
+  {code:'K76.4',desc:'Peliose hepatica'},
+  {code:'K76.5',desc:'Doenca hepatica veno-oclusiva'},
+  {code:'K76.6',desc:'Hipertensao portal'},
+  {code:'K76.7',desc:'Sindrome hepatorrenal'},
+  {code:'K76.8',desc:'Outras doencas especificadas do figado'},
+  {code:'K76.9',desc:'Doenca do figado nao especificada'},
+  {code:'K80.0',desc:'Calculose da vesicula biliar com colecistite aguda'},
+  {code:'K80.1',desc:'Calculose da vesicula biliar com outras colecistites'},
+  {code:'K80.2',desc:'Calculose da vesicula biliar sem colecistite'},
+  {code:'K80.5',desc:'Calculose do ducto biliar sem colangite nem colecistite'},
+  {code:'K81.0',desc:'Colecistite aguda'},
+  {code:'K81.1',desc:'Colecistite cronica'},
+  {code:'K82.0',desc:'Obstrucao da vesicula biliar'},
+  {code:'K83.0',desc:'Colangite'},
+  {code:'K83.1',desc:'Obstrucao do ducto biliar'},
+  {code:'K83.3',desc:'Fistula do ducto biliar'},
+  {code:'K85.0',desc:'Pancreatite aguda idiopatica'},
+  {code:'K85.1',desc:'Pancreatite aguda biliar'},
+  {code:'K85.2',desc:'Pancreatite aguda alcoolica'},
+  {code:'K85.3',desc:'Pancreatite aguda induzida por drogas'},
+  {code:'K85.9',desc:'Pancreatite aguda nao especificada'},
+  {code:'K86.0',desc:'Pancreatite cronica alcoolica'},
+  {code:'K86.1',desc:'Outras pancreatites cronicas'},
+  {code:'K86.2',desc:'Cisto do pancreas'},
+  {code:'K86.3',desc:'Pseudocisto do pancreas'},
+  {code:'K90.0',desc:'Doenca celiaca'},
+  {code:'K90.1',desc:'Espru tropical'},
+  {code:'K90.4',desc:'Mas-absorcao devida a intolerancia nao classificada em outra parte'},
+  {code:'K91.0',desc:'Vomitos apos cirurgia do trato gastrointestinal'},
+  {code:'K91.1',desc:'Sindrome do intestino curto'},
+  {code:'K91.5',desc:'Sindrome pos-colecistectomia'},
+  {code:'K92.0',desc:'Hematemese'},
+  {code:'K92.1',desc:'Melena'},
+  {code:'K92.2',desc:'Hemorragia gastrointestinal nao especificada'},
+
+  // ── DOENÇAS DA PELE ──
+  {code:'L00',  desc:'Sindrome da pele escaldada estafilococica'},
+  {code:'L01.0',desc:'Impetigo por Staphylococcus'},
+  {code:'L02.0',desc:'Abscesso cutaneo furuncolo e antrax da face'},
+  {code:'L02.9',desc:'Abscesso cutaneo furuncolo e antrax nao especificados'},
+  {code:'L03.0',desc:'Celulite dos dedos das maos e dos pes'},
+  {code:'L03.1',desc:'Celulite do membro superior'},
+  {code:'L03.3',desc:'Celulite do tronco'},
+  {code:'L03.9',desc:'Celulite nao especificada'},
+  {code:'L04.0',desc:'Linfadenite aguda da face cabeca e pescoco'},
+  {code:'L04.9',desc:'Linfadenite aguda nao especificada'},
+  {code:'L10.0',desc:'Penfigo vulgar'},
+  {code:'L12.0',desc:'Penfigoide bolhoso'},
+  {code:'L20.0',desc:'Prurigo de Besnier'},
+  {code:'L20.9',desc:'Dermatite atopica nao especificada'},
+  {code:'L21.0',desc:'Seborreia capitis'},
+  {code:'L23.0',desc:'Dermatite de contato alergica devida a metais'},
+  {code:'L25.9',desc:'Dermatite de contato nao especificada'},
+  {code:'L26',  desc:'Dermatite esfoliativa'},
+  {code:'L27.0',desc:'Erupcao generalizada da pele devida a drogas e medicamentos'},
+  {code:'L29.9',desc:'Prurido nao especificado'},
+  {code:'L30.9',desc:'Dermatite nao especificada'},
+  {code:'L40.0',desc:'Psoriase vulgar'},
+  {code:'L40.5',desc:'Artropatia psoriatica'},
+  {code:'L41.0',desc:'Pitiríase liquenoides e varioliforme aguda'},
+  {code:'L50.0',desc:'Urticaria alergica'},
+  {code:'L50.9',desc:'Urticaria nao especificada'},
+  {code:'L51.0',desc:'Eritema multiforme'},
+  {code:'L51.1',desc:'Sindrome de Stevens-Johnson'},
+  {code:'L51.2',desc:'Necrolise epidermica toxica'},
+  {code:'L52',  desc:'Eritema nodoso'},
+  {code:'L53.0',desc:'Eritema toxico'},
+  {code:'L57.0',desc:'Ceratose actinica'},
+  {code:'L60.0',desc:'Onicogrifose'},
+  {code:'L89.0',desc:'Ulcera de decubito do cotovelo'},
+  {code:'L89.1',desc:'Ulcera de decubito da regiao do sacro e coccix'},
+  {code:'L89.3',desc:'Ulcera de decubito do tornozelo'},
+  {code:'L89.9',desc:'Ulcera de decubito nao especificada'},
+  {code:'L94.0',desc:'Esclerodermia localizada'},
+  {code:'L97',  desc:'Ulcera do membro inferior nao classificada em outra parte'},
+
+  // ── MÚSCULO-ESQUELÉTICO ──
+  {code:'M00.0',desc:'Artrite estafilococica'},
+  {code:'M00.9',desc:'Artrite piogenica nao especificada'},
+  {code:'M01.3',desc:'Artrite na doenca de Lyme'},
+  {code:'M05.0',desc:'Sindrome de Felty'},
+  {code:'M05.3',desc:'Artrite reumatoide com comprometimento de outros orgaos'},
+  {code:'M05.9',desc:'Artrite reumatoide soropositiva nao especificada'},
+  {code:'M06.0',desc:'Artrite reumatoide soronegativa'},
+  {code:'M06.9',desc:'Artrite reumatoide nao especificada'},
+  {code:'M08.0',desc:'Artrite reumatoide juvenil'},
+  {code:'M10.0',desc:'Gota idiopatica'},
+  {code:'M10.1',desc:'Gota induzida por chumbo'},
+  {code:'M10.2',desc:'Gota induzida por drogas'},
+  {code:'M10.9',desc:'Gota nao especificada'},
+  {code:'M11.0',desc:'Condrocalcinose hereditaria'},
+  {code:'M13.9',desc:'Artrite nao especificada'},
+  {code:'M15.0',desc:'Poliartrose primaria'},
+  {code:'M16.0',desc:'Coxartrose primaria bilateral'},
+  {code:'M17.0',desc:'Gonartrose primaria bilateral'},
+  {code:'M19.9',desc:'Artrose nao especificada'},
+  {code:'M30.0',desc:'Poliarterite nodosa'},
+  {code:'M31.3',desc:'Granulomatose de Wegener'},
+  {code:'M31.6',desc:'Outras arterites de celulas gigantes'},
+  {code:'M32.0',desc:'Lupus eritematoso sistemico induzido por drogas'},
+  {code:'M32.1',desc:'Lupus eritematoso sistemico com comprometimento de orgaos'},
+  {code:'M32.9',desc:'Lupus eritematoso sistemico nao especificado'},
+  {code:'M33.0',desc:'Dermatomiosite juvenil'},
+  {code:'M33.2',desc:'Polimiosite'},
+  {code:'M34.0',desc:'Esclerose sistemica progressiva'},
+  {code:'M35.0',desc:'Sindrome sicca (Sjogren)'},
+  {code:'M35.1',desc:'Outras sindromes de superposicao'},
+  {code:'M40.0',desc:'Cifose postural'},
+  {code:'M41.0',desc:'Escoliose idiopatica infantil'},
+  {code:'M43.1',desc:'Espondilolistese'},
+  {code:'M45',  desc:'Espondilite anquilosante'},
+  {code:'M47.8',desc:'Outras espondiloses'},
+  {code:'M48.0',desc:'Estenose espinal'},
+  {code:'M50.0',desc:'Transtorno do disco cervical com mielopatia'},
+  {code:'M51.1',desc:'Transtornos dos discos lombares e dos outros discos intervertebrais com radiculopatia'},
+  {code:'M54.4',desc:'Lumbago com ciatica'},
+  {code:'M54.5',desc:'Dor lombar baixa'},
+  {code:'M60.0',desc:'Miosite infecciosa'},
+  {code:'M61.0',desc:'Miosite ossificante traumatica'},
+  {code:'M62.8',desc:'Outros transtornos especificados dos musculos'},
+  {code:'M65.0',desc:'Tenossinovite abscedante'},
+  {code:'M70.2',desc:'Hidartrose intermitente'},
+  {code:'M72.6',desc:'Fasciite necrosante'},
+  {code:'M75.0',desc:'Capsulite adesiva do ombro'},
+  {code:'M79.0',desc:'Reumatismo nao especificado'},
+  {code:'M79.3',desc:'Paniculite'},
+  {code:'M80.0',desc:'Osteoporose pos-menopausica com fratura patologica'},
+  {code:'M81.0',desc:'Osteoporose pos-menopausica'},
+  {code:'M84.0',desc:'Consolidacao deficiente de fratura'},
+  {code:'M86.0',desc:'Osteomielite hematogenica aguda'},
+  {code:'M86.1',desc:'Outras osteomielites agudas'},
+  {code:'M86.6',desc:'Outras osteomielites cronicas'},
+  {code:'M86.9',desc:'Osteomielite nao especificada'},
+  {code:'M87.0',desc:'Necrose asseptica idiopatica do osso'},
+  {code:'M90.5',desc:'Osteonecrosa em outras doencas'},
+
+  // ── DOENÇAS GENITURINÁRIAS ──
+  {code:'N00.0',desc:'Sindrome nefritica aguda com anomalias glomerulares minimas'},
+  {code:'N00.9',desc:'Sindrome nefritica aguda nao especificada'},
+  {code:'N02.9',desc:'Hematuria recidivante e persistente nao especificada'},
+  {code:'N03.9',desc:'Sindrome nefritica cronica nao especificada'},
+  {code:'N04.9',desc:'Sindrome nefrotica nao especificada'},
+  {code:'N05.9',desc:'Sindrome nefritica nao especificada'},
+  {code:'N08.0',desc:'Transtornos glomerulares no diabetes mellitus'},
+  {code:'N10',  desc:'Nefrite tubulo-intersticial aguda'},
+  {code:'N11.0',desc:'Pielonefrite cronica nao obstrutiva'},
+  {code:'N11.9',desc:'Nefrite tubulo-intersticial cronica nao especificada'},
+  {code:'N12',  desc:'Nefrite tubulo-intersticial nao especificada'},
+  {code:'N17.0',desc:'Insuficiencia renal aguda com necrose tubular'},
+  {code:'N17.1',desc:'Insuficiencia renal aguda com necrose cortical aguda'},
+  {code:'N17.9',desc:'Insuficiencia renal aguda nao especificada'},
+  {code:'N18.1',desc:'Doenca renal cronica estadio 1'},
+  {code:'N18.2',desc:'Doenca renal cronica estadio 2'},
+  {code:'N18.3',desc:'Doenca renal cronica estadio 3'},
+  {code:'N18.4',desc:'Doenca renal cronica estadio 4'},
+  {code:'N18.5',desc:'Doenca renal cronica estadio 5'},
+  {code:'N18.9',desc:'Doenca renal cronica nao especificada'},
+  {code:'N19',  desc:'Insuficiencia renal nao especificada'},
+  {code:'N20.0',desc:'Calculose do rim'},
+  {code:'N20.1',desc:'Calculose do ureter'},
+  {code:'N20.9',desc:'Calculose urinaria nao especificada'},
+  {code:'N23',  desc:'Colica renal nao especificada'},
+  {code:'N28.0',desc:'Isquemia e infarto renais'},
+  {code:'N28.1',desc:'Cisto de rim adquirido'},
+  {code:'N30.0',desc:'Cistite aguda'},
+  {code:'N30.1',desc:'Cistite intersticial cronica'},
+  {code:'N30.9',desc:'Cistite nao especificada'},
+  {code:'N34.0',desc:'Abscesso uretral'},
+  {code:'N34.1',desc:'Uretrite nao especifica'},
+  {code:'N34.2',desc:'Outras uretrites'},
+  {code:'N35.0',desc:'Estenose uretral pos-infecciosa'},
+  {code:'N39.0',desc:'Infeccao do trato urinario de localizacao nao especificada'},
+  {code:'N39.3',desc:'Incontinencia urinaria de estresse'},
+  {code:'N40',  desc:'Hiperplasia da prostata'},
+  {code:'N41.0',desc:'Prostatite aguda'},
+  {code:'N41.1',desc:'Prostatite cronica'},
+  {code:'N43.0',desc:'Hidrocele encistada'},
+  {code:'N43.3',desc:'Hidrocele nao especificada'},
+  {code:'N44',  desc:'Torcao do testiculo'},
+  {code:'N45.0',desc:'Orquite epididimite e epidiorquite com abscesso'},
+  {code:'N45.9',desc:'Orquite e epididimite nao especificadas'},
+  {code:'N46',  desc:'Infertilidade masculina'},
+  {code:'N48.1',desc:'Balanopostite'},
+  {code:'N70.0',desc:'Salpingite e ooforite agudas'},
+  {code:'N70.1',desc:'Salpingite e ooforite cronicas'},
+  {code:'N71.0',desc:'Doenca inflamatoria aguda do utero'},
+  {code:'N73.0',desc:'Parametrite e celulite pelvica agudas'},
+  {code:'N73.9',desc:'Doenca inflamatoria pelvica feminina nao especificada'},
+  {code:'N76.0',desc:'Vaginite aguda'},
+  {code:'N80.0',desc:'Endometriose do utero'},
+  {code:'N83.0',desc:'Cisto folicular do ovario'},
+  {code:'N83.2',desc:'Outros cistos ovaricos e os nao especificados'},
+  {code:'N92.0',desc:'Menstruacao excessiva e frequente com ciclo regular'},
+  {code:'N92.6',desc:'Menstruacao irregular nao especificada'},
+  {code:'N93.9',desc:'Sangramento uterino ou vaginal anormal nao especificado'},
+  {code:'N94.6',desc:'Dismenorreia nao especificada'},
+  {code:'N95.0',desc:'Sangramento pos-menopausico'},
+
+  // ── GRAVIDEZ E PARTO ──
+  {code:'O00.0',desc:'Gravidez abdominal'},
+  {code:'O00.1',desc:'Gravidez tubaria'},
+  {code:'O03.9',desc:'Aborto espontaneo incompleto sem complicacoes'},
+  {code:'O10.0',desc:'Hipertensao essencial pre-existente complicando a gravidez'},
+  {code:'O13',  desc:'Hipertensao gestacional'},
+  {code:'O14.0',desc:'Pre-eclampsia moderada'},
+  {code:'O14.1',desc:'Pre-eclampsia grave'},
+  {code:'O15.0',desc:'Eclampsia na gravidez'},
+  {code:'O20.0',desc:'Ameaca de aborto'},
+  {code:'O26.6',desc:'Doenca do figado na gravidez no parto e no puerperio'},
+  {code:'O30.0',desc:'Gestacao dupla'},
+  {code:'O34.2',desc:'Cuidados prestados a paciente com cicatriz uterina devida a cirurgia anterior'},
+  {code:'O42.0',desc:'Rotura prematura das membranas inicio do trabalho de parto 24 horas'},
+  {code:'O44.0',desc:'Placenta previa especificada sem hemorragia'},
+  {code:'O45.0',desc:'Descolamento prematuro da placenta com deficiencia de coagulacao'},
+  {code:'O60.0',desc:'Trabalho de parto pre-termo sem parto'},
+  {code:'O72.0',desc:'Hemorragia do terceiro estagio'},
+  {code:'O85',  desc:'Infeccao puerperal'},
+  {code:'O86.0',desc:'Infeccao de ferida cirurgica obstétrica'},
+  {code:'O87.1',desc:'Trombose venosa profunda no puerperio'},
+  {code:'O90.0',desc:'Ruptura de ferida de cesariana'},
+  {code:'O91.0',desc:'Infeccao do mamilo associada ao parto'},
+
+  // ── DOENÇAS PERINATAIS ──
+  {code:'P07.0',desc:'Peso extremamente baixo ao nascer'},
+  {code:'P22.0',desc:'Sindrome do desconforto respiratorio do recem-nascido'},
+  {code:'P36.0',desc:'Septicemia do recem-nascido por Streptococcus do grupo B'},
+  {code:'P36.9',desc:'Septicemia bacteriana nao especificada do recem-nascido'},
+  {code:'P55.0',desc:'Isoimunizacao Rh do recem-nascido'},
+  {code:'P59.0',desc:'Ictericia neonatal devida a prematuridade'},
+  {code:'P80.0',desc:'Sindrome do resfriamento do recem-nascido'},
+
+  // ── MALFORMAÇÕES CONGÊNITAS ──
+  {code:'Q20.0',desc:'Tronco arterial comum'},
+  {code:'Q21.0',desc:'Comunicacao interventricular'},
+  {code:'Q21.1',desc:'Comunicacao interatrial'},
+  {code:'Q21.3',desc:'Tetralogia de Fallot'},
+  {code:'Q25.0',desc:'Persistencia do canal arterial'},
+  {code:'Q25.1',desc:'Coartacao da aorta'},
+  {code:'Q33.0',desc:'Pulmao cistico congenito'},
+  {code:'Q39.0',desc:'Atresia de esofago sem fistula'},
+  {code:'Q40.0',desc:'Estenose hipertrofica congenita do piloro'},
+  {code:'Q44.0',desc:'Agenesia da vesicula biliar'},
+  {code:'Q44.2',desc:'Atresia das vias biliares'},
+  {code:'Q60.0',desc:'Agenesia renal unilateral'},
+  {code:'Q61.0',desc:'Rim policístico infantil'},
+  {code:'Q61.2',desc:'Rim policístico do adulto'},
+  {code:'Q85.0',desc:'Neurofibromatose'},
+  {code:'Q87.1',desc:'Sindromes de malformacoes congenitas com predominancia de nanismo'},
+  {code:'Q90.9',desc:'Sindrome de Down nao especificada'},
+  {code:'Q91.3',desc:'Sindrome de Edwards nao especificada'},
+
+  // ── LESÕES E ENVENENAMENTOS ──
+  {code:'R00.0',desc:'Taquicardia nao especificada'},
+  {code:'R00.1',desc:'Bradicardia nao especificada'},
+  {code:'R04.2',desc:'Hemoptise'},
+  {code:'R05',  desc:'Tosse'},
+  {code:'R06.0',desc:'Dispneia'},
+  {code:'R06.2',desc:'Respiracao ofegante'},
+  {code:'R07.0',desc:'Dor de garganta'},
+  {code:'R07.4',desc:'Dor toracica nao especificada'},
+  {code:'R10.0',desc:'Abdome agudo'},
+  {code:'R10.4',desc:'Outras dores abdominais e as nao especificadas'},
+  {code:'R11',  desc:'Nausea e vomitos'},
+  {code:'R12',  desc:'Pirose'},
+  {code:'R13',  desc:'Disfagia'},
+  {code:'R14',  desc:'Flatulencia e afeccoes correlatas'},
+  {code:'R15',  desc:'Incontinencia fecal'},
+  {code:'R16.0',desc:'Hepatomegalia nao classificada em outra parte'},
+  {code:'R16.1',desc:'Esplenomegalia nao classificada em outra parte'},
+  {code:'R16.2',desc:'Hepatoesplenomegalia'},
+  {code:'R17',  desc:'Ictericia nao especificada'},
+  {code:'R18',  desc:'Ascite'},
+  {code:'R19.0',desc:'Inchacos e massas intra-abdominais e pelvicas'},
+  {code:'R20.2',desc:'Parestesia da pele'},
+  {code:'R21',  desc:'Erupcao e outras afeccoes nao especificadas da pele'},
+  {code:'R25.1',desc:'Tremor nao especificado'},
+  {code:'R26.0',desc:'Marcha ataxica'},
+  {code:'R29.0',desc:'Tetania'},
+  {code:'R31',  desc:'Hematuria nao especificada'},
+  {code:'R32',  desc:'Incontinencia urinaria nao especificada'},
+  {code:'R33',  desc:'Retencao urinaria'},
+  {code:'R39.0',desc:'Extravasamento de urina'},
+  {code:'R40.0',desc:'Sonolencia'},
+  {code:'R40.1',desc:'Estupor'},
+  {code:'R40.2',desc:'Coma nao especificado'},
+  {code:'R41.3',desc:'Outras amnesias'},
+  {code:'R42',  desc:'Tontura e instabilidade'},
+  {code:'R43.0',desc:'Anosmia'},
+  {code:'R50.0',desc:'Febre com calafrios'},
+  {code:'R50.9',desc:'Febre nao especificada'},
+  {code:'R51',  desc:'Cefaleia'},
+  {code:'R52.0',desc:'Dor aguda'},
+  {code:'R52.1',desc:'Dor cronica intratavel'},
+  {code:'R52.9',desc:'Dor nao especificada'},
+  {code:'R53',  desc:'Mal-estar e fadiga'},
+  {code:'R54',  desc:'Senilidade'},
+  {code:'R55',  desc:'Sincope e colapso'},
+  {code:'R56.0',desc:'Convulsoes febreis'},
+  {code:'R56.8',desc:'Outras convulsoes e as nao especificadas'},
+  {code:'R57.0',desc:'Choque cardiogenico'},
+  {code:'R57.1',desc:'Choque hipovolemico'},
+  {code:'R57.8',desc:'Outras formas de choque'},
+  {code:'R57.9',desc:'Choque nao especificado'},
+  {code:'R58',  desc:'Hemorragia nao classificada em outra parte'},
+  {code:'R59.0',desc:'Aumento de volume localizado dos ganglios linfaticos'},
+  {code:'R59.1',desc:'Aumento de volume generalizado dos ganglios linfaticos'},
+  {code:'R60.0',desc:'Edema localizado'},
+  {code:'R60.1',desc:'Edema generalizado'},
+  {code:'R60.9',desc:'Edema nao especificado'},
+  {code:'R61.9',desc:'Hiperidrose nao especificada'},
+  {code:'R63.0',desc:'Anorexia'},
+  {code:'R63.1',desc:'Polidipsia'},
+  {code:'R63.3',desc:'Dificuldades de alimentacao e erros na administracao de dieta'},
+  {code:'R63.4',desc:'Perda de peso anormal'},
+  {code:'R64',  desc:'Caquexia'},
+  {code:'R65.0',desc:'Sindrome de resposta inflamatoria sistemica de origem infecciosa'},
+  {code:'R65.1',desc:'Sindrome de resposta inflamatoria sistemica de origem nao infecciosa'},
+  {code:'R68.8',desc:'Outros sintomas e sinais gerais especificados'},
+  {code:'R73.0',desc:'Glicose plasmatica anormal'},
+  {code:'R74.0',desc:'Elevacao dos niveis de transaminases e desidrogenase latica'},
+  {code:'R76.0',desc:'Reacao de Wassermann positiva falsa'},
+  {code:'R79.0',desc:'Nivel anormal de minerais no sangue'},
+
+  // ── LESÕES / TRAUMATISMOS ──
+  {code:'S00.0',desc:'Traumatismo superficial do couro cabeludo'},
+  {code:'S06.0',desc:'Concussao cerebral'},
+  {code:'S06.3',desc:'Lesao cerebral focal'},
+  {code:'S09.9',desc:'Traumatismo nao especificado da cabeca'},
+  {code:'S20.0',desc:'Contusao da mama'},
+  {code:'S22.0',desc:'Fratura de vertabra toracica'},
+  {code:'S32.0',desc:'Fratura de vertebra lombar'},
+  {code:'S42.0',desc:'Fratura da clavicula'},
+  {code:'S52.0',desc:'Fratura da extremidade superior do ulna'},
+  {code:'S62.0',desc:'Fratura do osso escafoide da mao'},
+  {code:'S72.0',desc:'Fratura do colo do femur'},
+  {code:'S72.1',desc:'Fratura pertrocanteriana'},
+  {code:'S82.0',desc:'Fratura da rotula'},
+  {code:'S82.1',desc:'Fratura da extremidade superior da tibia'},
+  {code:'S82.6',desc:'Fratura do maléolo lateral'},
+  {code:'T14.0',desc:'Traumatismo superficial de regiao do corpo nao especificada'},
+  {code:'T36.0',desc:'Intoxicacao por penicilinas'},
+  {code:'T39.0',desc:'Intoxicacao por salicilatos'},
+  {code:'T39.1',desc:'Intoxicacao por derivados do 4-aminofenol (paracetamol)'},
+  {code:'T40.0',desc:'Intoxicacao por opio'},
+  {code:'T42.4',desc:'Intoxicacao por benzodiazepinas'},
+  {code:'T45.0',desc:'Intoxicacao por antihistaminicos'},
+  {code:'T46.0',desc:'Intoxicacao por glicosideos cardiacos'},
+  {code:'T50.9',desc:'Intoxicacao por outras drogas e as nao especificadas'},
+  {code:'T58',  desc:'Efeito toxico do monoxido de carbono'},
+  {code:'T65.9',desc:'Efeito toxico de substancia nao especificada'},
+  {code:'T78.0',desc:'Choque anafilatico por adversidade alimentar'},
+  {code:'T78.1',desc:'Outras reacoes adversas aos alimentos'},
+  {code:'T78.2',desc:'Choque anafilatico nao especificado'},
+  {code:'T78.4',desc:'Alergia nao especificada'},
+  {code:'T80.0',desc:'Embolia gasosa apos infusao transfusao e injecao terapeutica'},
+  {code:'T80.1',desc:'Complicacoes vasculares apos infusao transfusao e injecao terapeutica'},
+  {code:'T80.2',desc:'Infeccoes apos infusao transfusao e injecao terapeutica'},
+  {code:'T81.0',desc:'Hemorragia e hematoma complicando procedimento'},
+  {code:'T81.4',desc:'Infeccao apos procedimento'},
+  {code:'T86.0',desc:'Rejeicao de transplante de medula ossea'},
+  {code:'T86.1',desc:'Falencia e rejeicao de transplante de rim'},
+  {code:'T86.2',desc:'Falencia e rejeicao de transplante de coracao'},
+  {code:'T86.3',desc:'Falencia e rejeicao de transplante de coracao e pulmao'},
+  {code:'T86.4',desc:'Falencia e rejeicao de enxerto hepatico'},
+  {code:'T86.8',desc:'Falencia e rejeicao de outros orgaos e tecidos transplantados'},
+  {code:'T86.9',desc:'Falencia e rejeicao de orgao e tecido transplantado nao especificado'},
+
+  // ── TRANSPLANTE E IMUNOSSUPRESSÃO ──
+  {code:'Z94.0',desc:'Status de transplante de rim'},
+  {code:'Z94.1',desc:'Status de transplante de coracao'},
+  {code:'Z94.2',desc:'Status de transplante de pulmao'},
+  {code:'Z94.3',desc:'Status de transplante de coracao e pulmao'},
+  {code:'Z94.4',desc:'Status de transplante de figado'},
+  {code:'Z94.5',desc:'Status de transplante de pele'},
+  {code:'Z94.6',desc:'Status de transplante de osso'},
+  {code:'Z94.7',desc:'Status de transplante de cornea'},
+  {code:'Z94.8',desc:'Status de outros transplantes de orgaos e tecidos'},
+  {code:'Z94.9',desc:'Status de transplante de orgao e tecido nao especificado'},
+  {code:'Z79.1',desc:'Uso prolongado de anticoagulantes'},
+  {code:'Z79.4',desc:'Uso prolongado de insulina'},
+  {code:'Z96.0',desc:'Presenca de implante urogenital'},
+  {code:'Z96.1',desc:'Presenca de implante intraocular de lente'},
+  {code:'Z96.6',desc:'Presenca de implantes ortopedicos articulares'},
+];
+
+(function(){
+var PASS_AMB='AmbulatoriTxHGF2026';
+var PASS_DIA='DiaristatTxHGF2026';
+var PASS_ADM='AdminTxHGF2026';
+var currentRole=null,selectedTipo=null,sbClient=null,statsPeriod='mes';
+
+var DEFAULT_DOCTORS=['Dra. Camila Bastos','Dra. Camila Veras','Dra. Renata Leitao','Dra. Rita Chelly','Dra. Ana de Lourdes','Dra. Ticiana','Dra. Veronica','Dr. Themistocles','Dr. Emanoel','Dr. Andre Macedo'];
+
+function lsGet(k){try{return JSON.parse(localStorage.getItem('atx_'+k));}catch(e){return null;}}
+function lsSet(k,v){localStorage.setItem('atx_'+k,JSON.stringify(v));}
+function getDoctors(){return lsGet('doctors')||DEFAULT_DOCTORS;}
+function getConfig(){return lsGet('config')||{};}
+function saveConfig(o){lsSet('config',Object.assign({},getConfig(),o));}
+function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(iso){if(!iso)return '-';try{var d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return iso;}}
+function fmtDateShort(iso){if(!iso)return '-';try{var d=new Date(iso);return d.toLocaleDateString('pt-BR');}catch(e){return iso;}}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');clearTimeout(t._t);t._t=setTimeout(function(){t.className='';},3500);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function get(id){return document.getElementById(id);}
+
+// Filtro de periodo
+function getDateFilter(period){
+  var now=new Date();
+  if(period==='mes') return new Date(now.getFullYear(),now.getMonth(),1);
+  if(period==='trim') return new Date(now.getFullYear(),now.getMonth()-2,1);
+  if(period==='ano') return new Date(now.getFullYear(),0,1);
+  return new Date(0);
+}
+
+function filterByPeriod(list,period,field){
+  var cutoff=getDateFilter(period);
+  return list.filter(function(item){return new Date(item[field||'created_at'])>=cutoff;});
+}
+
+function initSupabase(){
+  var cfg=getConfig();
+  if(cfg.sbUrl&&cfg.sbKey&&window.supabase){
+    try{sbClient=window.supabase.createClient(cfg.sbUrl,cfg.sbKey);return true;}catch(e){return false;}
+  }
+  return false;
+}
+
+get('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+get('btn-entrar').addEventListener('click',doLogin);
+
+function doLogin(){
+  var pass=get('login-pass').value;
+  get('login-error').style.display='none';
+  if(pass===PASS_ADM){currentRole='admin';startApp();}
+  else if(pass===PASS_DIA){currentRole='diarista';startApp();}
+  else if(pass===PASS_AMB){currentRole='ambulatorio';startApp();}
+  else{get('login-error').style.display='block';get('login-pass').value='';}
+}
+
+get('btn-sair').addEventListener('click',function(){
+  currentRole=null;sbClient=null;
+  get('app').style.display='none';
+  get('login-screen').style.display='flex';
+  get('login-pass').value='';
+});
+
+function startApp(){
+  get('login-screen').style.display='none';
+  get('app').style.display='flex';
+  var badge=get('role-badge');
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-plantao').style.display='flex';}
+  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-plantao').style.display='flex';}
+  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-plantao').style.display='none';}
+  initSupabase();
+  populateDoctorSelects();
+  loadFila();loadSessao();loadConfigFields();
+  if(sbClient)setupRealtime();
+}
+
+function populateDoctorSelects(){
+  var docs=getDoctors();
+  var opts=docs.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('');
+  get('f-medico').innerHTML=opts;get('s-medico').innerHTML=opts;
+}
+
+function setupRealtime(){
+  if(!sbClient)return;
+  try{sbClient.channel('changes').on('postgres_changes',{event:'*',schema:'public',table:'fila_internacao'},loadFila).on('postgres_changes',{event:'*',schema:'public',table:'sessao_clinica'},loadSessao).subscribe();}catch(e){}
+}
+
+get('tab-fila').addEventListener('click',function(){switchTab('fila');});
+get('tab-sessao').addEventListener('click',function(){switchTab('sessao');});
+get('tab-stats').addEventListener('click',function(){switchTab('stats');});
+get('tab-plantao').addEventListener('click',function(){switchTab('plantao');});
+get('tab-config').addEventListener('click',function(){switchTab('config');});
+
+function switchTab(tab){
+  ['fila','sessao','stats','plantao','config'].forEach(function(t){
+    get('panel-'+t).style.display=t===tab?'block':'none';
+    var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
+  });
+  if(tab==='stats')loadStats();
+  if(tab==='plantao')loadPlantao();
+}
+
+// Filtros de periodo
+document.querySelectorAll('.filter-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+    this.classList.add('active');
+    statsPeriod=this.dataset.period;
+    loadStats();
+  });
+});
+
+// TIPO INTERNAMENTO
+get('tipo-green').addEventListener('click',function(){selectTipo('green');});
+get('tipo-yellow').addEventListener('click',function(){selectTipo('yellow');});
+get('tipo-red').addEventListener('click',function(){selectTipo('red');});
+
+function selectTipo(tipo){
+  selectedTipo=tipo;
+  ['green','yellow','red'].forEach(function(t){get('tipo-'+t).className='tipo-opt'+(t===tipo?' sel-'+t:'');});
+  get('campo-procedimento').style.display=tipo==='green'?'block':'none';
+  get('campo-cid').style.display=(tipo==='yellow'||tipo==='red')?'block':'none';
+  get('f-procedimento').value='';get('f-cid-busca').value='';get('f-cid-code').value='';get('f-cid-desc').value='';
+  get('cid-selecionado').style.display='none';get('cid-dropdown').classList.remove('open');
+}
+
+// CID-10
+get('f-cid-busca').addEventListener('input',function(){buscaCID(this.value);});
+function buscaCID(q){
+  var dd=get('cid-dropdown');
+  if(!q||q.length<2){dd.classList.remove('open');return;}
+  q=q.toLowerCase();
+  var res=CID10.filter(function(c){return c.code.toLowerCase().indexOf(q)>=0||c.desc.toLowerCase().indexOf(q)>=0;}).slice(0,10);
+  if(!res.length){dd.classList.remove('open');return;}
+  dd.innerHTML=res.map(function(c){return '<div class="cid-item" data-code="'+esc(c.code)+'" data-desc="'+esc(c.desc)+'"><div class="cid-code">'+esc(c.code)+'</div><div class="cid-desc-text">'+esc(c.desc)+'</div></div>';}).join('');
+  dd.querySelectorAll('.cid-item').forEach(function(el){el.addEventListener('click',function(){selecionarCID(this.dataset.code,this.dataset.desc);});});
+  dd.classList.add('open');
+}
+function selecionarCID(code,desc){
+  get('f-cid-code').value=code;get('f-cid-desc').value=desc;
+  get('f-cid-busca').value=code+' - '+desc;
+  get('cid-dropdown').classList.remove('open');
+  var sel=get('cid-selecionado');sel.textContent='✓ '+code+' - '+desc;sel.style.display='block';
+}
+document.addEventListener('click',function(e){if(!e.target.closest('.cid-wrapper')){var dd=get('cid-dropdown');if(dd)dd.classList.remove('open');}});
+
+// FILA
+var COLOR_ORDER={red:0,yellow:1,green:2};
+var COLOR_LABELS={red:'Emergencia',yellow:'Sinais/Sintomas',green:'Exames/Proc.'};
+var COLOR_EMOJI={red:'🔴',yellow:'🟡',green:'🟢'};
+
+get('btn-novo-paciente').addEventListener('click',function(){openModal('modal-fila');});
+get('btn-cancelar-fila').addEventListener('click',function(){closeModal('modal-fila');clearFilaForm();});
+get('btn-submit-fila').addEventListener('click',submitFila);
+
+function loadFila(){
+  if(!sbClient){renderFila(getLocalFila());return;}
+  sbClient.from('fila_internacao').select('*').eq('status','pendente')
+    .then(function(r){renderFila(r.data||[]);}).catch(function(){renderFila(getLocalFila());});
+}
+function getLocalFila(){return(lsGet('fila')||[]).filter(function(p){return p.status==='pendente';});}
+
+function renderFila(list){
+  // Ordenar: cor primeiro (red=0,yellow=1,green=2), depois data mais antiga
+  list.sort(function(a,b){
+    var co=(COLOR_ORDER[a.color]||9)-(COLOR_ORDER[b.color]||9);
+    return co!==0?co:new Date(a.created_at)-new Date(b.created_at);
+  });
+  get('count-fila').textContent=list.length;
+  var c=get('fila-list');
+  if(!list.length){c.innerHTML='<div class="empty-state">Nenhum paciente na fila de internacao.</div>';return;}
+  var canResolve=(currentRole==='diarista'||currentRole==='admin');
+  c.innerHTML=list.map(function(p){
+    var extra=p.cid_code?'<span class="card-field"><strong>CID:</strong> '+esc(p.cid_code)+'</span>':(p.procedimento?'<span class="card-field"><strong>Proc.:</strong> '+esc(p.procedimento.substring(0,40))+(p.procedimento.length>40?'...':'')+'</span>':'');
+    var actions=canResolve?'<div class="card-actions"><button class="btn btn-success btn-sm" data-id="'+esc(p.id)+'" data-nome="'+esc(p.nome)+'">✓ Resolvido</button></div>':'';
+    return '<div class="patient-card '+p.color+'">'
+      +'<div class="card-top">'
+      +'<div><div class="card-name">'+esc(p.nome)+'</div>'
+      +'<div class="card-meta"><span class="meta-chip">'+esc(p.prontuario)+'</span><span class="meta-chip">'+fmtDateShort(p.created_at)+'</span><span class="meta-chip">'+esc(p.medico.split(' ').slice(0,2).join(' '))+'</span></div></div>'
+      +'<span class="color-badge '+p.color+'">'+COLOR_EMOJI[p.color]+' '+COLOR_LABELS[p.color]+'</span>'
+      +'</div>'
+      +'<div class="card-body">'
+      +'<span class="card-field"><strong>Mae:</strong> '+esc(p.mae)+'</span>'
+      +'<span class="card-field"><strong>Diag.:</strong> '+esc(p.diagnostico)+'</span>'
+      +extra
+      +'</div>'
+      +actions+'</div>';
+  }).join('');
+  c.querySelectorAll('.btn-success[data-id]').forEach(function(btn){btn.addEventListener('click',function(){openResolver(this.dataset.id,this.dataset.nome);});});
+}
+
+function openResolver(id,nome){get('resolver-id').value=id;get('resolver-text').textContent='Confirma que a situacao de "'+nome+'" foi resolvida?';openModal('modal-resolver');}
+get('btn-cancelar-resolver').addEventListener('click',function(){closeModal('modal-resolver');});
+get('btn-confirmar-resolver').addEventListener('click',function(){
+  var id=get('resolver-id').value;closeModal('modal-resolver');
+  var upd={status:'resolvido',resolved_at:new Date().toISOString()};
+  if(sbClient){sbClient.from('fila_internacao').update(upd).eq('id',id).then(function(r){if(r.error)showToast('Erro: '+r.error.message,'error');else{showToast('Caso resolvido!','success');loadFila();}});}
+  else{var fila=lsGet('fila')||[];var idx=fila.findIndex(function(p){return p.id==id;});if(idx!==-1){Object.assign(fila[idx],upd);}lsSet('fila',fila);showToast('Caso resolvido!','success');loadFila();}
+});
+
+function submitFila(){
+  var nome=get('f-nome').value.trim(),mae=get('f-mae').value.trim(),prontuario=get('f-prontuario').value.trim(),diagnostico=get('f-diagnostico').value.trim(),medico=get('f-medico').value;
+  var procedimento=get('f-procedimento').value.trim(),cidCode=get('f-cid-code').value,cidDesc=get('f-cid-desc').value;
+  if(!nome||!mae||!prontuario||!diagnostico||!selectedTipo){showToast('Preencha todos os campos e selecione o tipo.','error');return;}
+  if(selectedTipo==='green'&&!procedimento){showToast('Descreva o exame ou procedimento.','error');return;}
+  if((selectedTipo==='yellow'||selectedTipo==='red')&&!cidCode){showToast('Selecione o CID-10.','error');return;}
+  var rec={nome:nome,mae:mae,prontuario:prontuario,diagnostico:diagnostico,medico:medico,color:selectedTipo,procedimento:selectedTipo==='green'?procedimento:null,cid_code:cidCode||null,cid_desc:cidDesc||null,status:'pendente',created_at:new Date().toISOString()};
+  if(sbClient){sbClient.from('fila_internacao').insert([rec]).then(function(r){if(r.error){showToast('Erro: '+r.error.message,'error');return;}if(selectedTipo==='red')sendAlertEmail(rec);showToast('Paciente inserido!','success');closeModal('modal-fila');clearFilaForm();loadFila();});}
+  else{var fila=lsGet('fila')||[];rec.id=Date.now();fila.push(rec);lsSet('fila',fila);if(selectedTipo==='red')sendAlertEmail(rec);showToast('Paciente inserido!','success');closeModal('modal-fila');clearFilaForm();loadFila();}
+}
+
+function clearFilaForm(){
+  ['f-nome','f-mae','f-prontuario','f-diagnostico','f-procedimento','f-cid-busca'].forEach(function(id){get(id).value='';});
+  get('f-cid-code').value='';get('f-cid-desc').value='';get('cid-selecionado').style.display='none';
+  ['green','yellow','red'].forEach(function(t){get('tipo-'+t).className='tipo-opt';});
+  get('campo-procedimento').style.display='none';get('campo-cid').style.display='none';selectedTipo=null;
+}
+
+// SESSAO
+get('btn-novo-caso').addEventListener('click',function(){openModal('modal-sessao');});
+get('btn-cancelar-sessao').addEventListener('click',function(){closeModal('modal-sessao');});
+get('btn-submit-sessao').addEventListener('click',submitSessao);
+get('btn-cancelar-conduta').addEventListener('click',function(){closeModal('modal-conduta');});
+get('btn-submit-conduta').addEventListener('click',submitConduta);
+
+function loadSessao(){
+  if(!sbClient){renderSessao(lsGet('sessao')||[]);return;}
+  sbClient.from('sessao_clinica').select('*').order('created_at',{ascending:false}).then(function(r){renderSessao(r.data||[]);}).catch(function(){renderSessao(lsGet('sessao')||[]);});
+}
+
+function renderSessao(list){
+  var pend=list.filter(function(c){return c.status==='pendente';});
+  var resol=list.filter(function(c){return c.status==='resolvido';});
+  get('count-sessao').textContent=pend.length;
+  var c=get('sessao-list');
+  if(!list.length){c.innerHTML='<div class="empty-state">Nenhum caso para sessao clinica.</div>';return;}
+
+  var canResolve=(currentRole==='diarista'||currentRole==='admin');
+
+  function cardHtml(cc,res){
+    var resolveBtn=canResolve&&!res?'<button class="btn btn-success btn-sm sessao-conduta-btn" data-id="'+esc(cc.id)+'" data-nome="'+esc(cc.nome)+'" data-duvida="'+esc(cc.duvida)+'">✓ Registrar Conduta</button>':'';
+    var cienteBtn=res?'<button class="btn btn-ciente btn-sm sessao-ciente-btn" data-id="'+esc(cc.id)+'">✓ Ciente</button>':'';
+    return '<div class="sessao-card '+(res?'resolvido':'')+'">'
+      +'<div class="card-top"><div>'
+      +'<div class="card-name">'+esc(cc.nome)+'</div>'
+      +'<div class="card-meta"><span class="meta-chip">'+esc(cc.prontuario)+'</span><span class="meta-chip">'+fmtDateShort(cc.created_at)+'</span><span class="meta-chip">'+esc(cc.medico.split(' ').slice(0,2).join(' '))+'</span>'+(res?'<span class="meta-chip" style="color:var(--green-dark);border-color:var(--green-border);background:var(--green-bg)">✓ Resolvido</span>':'')+'</div>'
+      +'</div></div>'
+      +'<div class="card-body" style="display:block;">'
+      +'<div class="card-field"><strong>Resumo:</strong> '+esc(cc.resumo)+'</div>'
+      +'<div class="card-field"><strong>Duvida:</strong> '+esc(cc.duvida)+'</div>'
+      +(cc.conduta?'<div class="card-field" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);"><strong>Conduta:</strong> <span style="color:var(--green-dark)">'+esc(cc.conduta)+'</span></div>':'')
+      +'</div>'
+      +(resolveBtn||cienteBtn?'<div class="card-actions">'+resolveBtn+cienteBtn+'</div>':'')
+      +'</div>';
+  }
+
+  c.innerHTML=
+    (pend.length?'<div class="section-divider">Pendentes</div>'+pend.map(function(cc){return cardHtml(cc,false);}).join(''):'<div class="empty-state" style="margin-bottom:10px">Nenhum caso pendente.</div>')+
+    (resol.length?'<div class="section-divider" style="margin-top:16px">Aguardando Ciencia</div>'+resol.map(function(cc){return cardHtml(cc,true);}).join(''):'');
+
+  c.querySelectorAll('.sessao-conduta-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      get('conduta-id').value=this.dataset.id;
+      get('conduta-info').innerHTML='<strong>Paciente:</strong> '+esc(this.dataset.nome)+'<br><strong>Duvida:</strong> '+esc(this.dataset.duvida);
+      get('conduta-texto').value='';openModal('modal-conduta');
+    });
+  });
+
+  c.querySelectorAll('.sessao-ciente-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var id=this.dataset.id;
+      var upd={status:'ciente',ciente_at:new Date().toISOString()};
+      if(sbClient){
+        sbClient.from('sessao_clinica').update(upd).eq('id',id).then(function(r){
+          if(r.error)showToast('Erro: '+r.error.message,'error');
+          else{showToast('Ciente registrado!','success');loadSessao();}
+        });
+      } else {
+        var list=lsGet('sessao')||[];
+        var idx=list.findIndex(function(c){return c.id==id;});
+        if(idx!==-1)Object.assign(list[idx],upd);
+        lsSet('sessao',list);showToast('Ciente registrado!','success');loadSessao();
+      }
+    });
+  });
+}
+
+function submitSessao(){
+  var nome=get('s-nome').value.trim(),prontuario=get('s-prontuario').value.trim(),resumo=get('s-resumo').value.trim(),duvida=get('s-duvida').value.trim(),medico=get('s-medico').value;
+  if(!nome||!prontuario||!resumo||!duvida){showToast('Preencha todos os campos.','error');return;}
+  var rec={nome:nome,prontuario:prontuario,resumo:resumo,duvida:duvida,medico:medico,status:'pendente',created_at:new Date().toISOString()};
+  if(sbClient){sbClient.from('sessao_clinica').insert([rec]).then(function(r){if(r.error){showToast('Erro: '+r.error.message,'error');return;}showToast('Caso inserido!','success');closeModal('modal-sessao');['s-nome','s-prontuario','s-resumo','s-duvida'].forEach(function(id){get(id).value='';});loadSessao();});}
+  else{var list=lsGet('sessao')||[];rec.id=Date.now();list.push(rec);lsSet('sessao',list);showToast('Caso inserido!','success');closeModal('modal-sessao');['s-nome','s-prontuario','s-resumo','s-duvida'].forEach(function(id){get(id).value='';});loadSessao();}
+}
+
+function submitConduta(){
+  var id=get('conduta-id').value,conduta=get('conduta-texto').value.trim();
+  if(!conduta){showToast('Registre a conduta antes de resolver.','error');return;}
+  var upd={status:'resolvido',conduta:conduta,resolved_at:new Date().toISOString()};
+  if(sbClient){sbClient.from('sessao_clinica').update(upd).eq('id',id).then(function(r){if(r.error){showToast('Erro: '+r.error.message,'error');return;}showToast('Conduta registrada!','success');closeModal('modal-conduta');loadSessao();});}
+  else{var list=lsGet('sessao')||[];var idx=list.findIndex(function(c){return c.id==id;});if(idx!==-1)Object.assign(list[idx],upd);lsSet('sessao',list);showToast('Conduta registrada!','success');closeModal('modal-conduta');loadSessao();}
+}
+
+// ESTATISTICAS
+function loadStats(){
+  function render(filaAll,sessaoAll){
+    var p=statsPeriod;
+    var fila=filterByPeriod(filaAll,p,'created_at');
+    var sess=filterByPeriod(sessaoAll,p,'created_at');
+
+    var filaRes=fila.filter(function(x){return x.status==='resolvido'||x.status==='ciente';});
+    var filaPend=filaAll.filter(function(x){return x.status==='pendente';});
+    var reds=fila.filter(function(x){return x.color==='red';});
+    var yellows=fila.filter(function(x){return x.color==='yellow';});
+    var greens=fila.filter(function(x){return x.color==='green';});
+    var sessRes=sess.filter(function(x){return x.status==='resolvido'||x.status==='ciente';});
+    var sessCiente=sess.filter(function(x){return x.status==='ciente';});
+
+    // Tempo medio de resolucao
+    var tempos=filaRes.filter(function(x){return x.resolved_at;}).map(function(x){return (new Date(x.resolved_at)-new Date(x.created_at))/(1000*60*60);});
+    var tempoMedio=tempos.length?Math.round(tempos.reduce(function(a,b){return a+b;},0)/tempos.length):null;
+
+    // Por medico - fila
+    var medMap={};
+    fila.forEach(function(x){medMap[x.medico]=(medMap[x.medico]||0)+1;});
+    var medRank=Object.keys(medMap).map(function(k){return{nome:k,n:medMap[k]};}).sort(function(a,b){return b.n-a.n;});
+
+    // Por medico - sessao
+    var medSessMap={};
+    sess.forEach(function(x){medSessMap[x.medico]=(medSessMap[x.medico]||0)+1;});
+    var medSessRank=Object.keys(medSessMap).map(function(k){return{nome:k,n:medSessMap[k]};}).sort(function(a,b){return b.n-a.n;});
+
+    // CID ranking
+    var cidMap={};
+    fila.filter(function(x){return x.cid_code;}).forEach(function(x){var k=x.cid_code+'|||'+(x.cid_desc||'');cidMap[k]=(cidMap[k]||0)+1;});
+    var cidRank=Object.keys(cidMap).map(function(k){return[k,cidMap[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+
+    var periodoLabel={mes:'Mes Atual',trim:'Ultimos 3 Meses',ano:'Ano Atual',total:'Todo o Periodo'}[p];
+
+    var html='<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">Periodo: '+periodoLabel+'</div>';
+
+    // Cards resumo
+    html+='<div class="stats-grid">'
+      +'<div class="stat-card"><div class="stat-num">'+fila.length+'</div><div class="stat-label">Internamentos Registrados</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+filaRes.length+'</div><div class="stat-label">Resolvidos</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--yellow)">'+filaPend.length+'</div><div class="stat-label">Pendentes (atual)</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">'+reds.length+'</div><div class="stat-label">🔴 Emergencias</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--yellow)">'+yellows.length+'</div><div class="stat-label">🟡 Sinais/Sintomas</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+greens.length+'</div><div class="stat-label">🟢 Exames/Proc.</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+(tempoMedio!==null?tempoMedio+'h':'-')+'</div><div class="stat-label">Tempo Medio Resolucao</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+fila.length?Math.round(filaRes.length/fila.length*100)+'%':'-'+'</div><div class="stat-label">Taxa de Resolucao</div></div>'
+      +'</div>';
+
+    // Por medico - fila
+    if(medRank.length){
+      html+='<div class="settings-section"><div class="settings-title">👩‍⚕️ Internamentos por Medico</div>'
+        +'<table class="stats-table"><thead><tr><th>Medico</th><th>Internamentos</th></tr></thead><tbody>'
+        +medRank.map(function(m){return '<tr><td>'+esc(m.nome)+'</td><td><strong>'+m.n+'</strong></td></tr>';}).join('')
+        +'</tbody></table></div>';
+    }
+
+    // Comparativo origens
+    var total=fila.length||1;
+    var pctRed=Math.round(reds.length/total*100);
+    var pctYellow=Math.round(yellows.length/total*100);
+    var pctGreen=Math.round(greens.length/total*100);
+    html+='<div class="settings-section"><div class="settings-title">📊 Origem dos Internamentos</div>'
+      +'<div style="display:flex;flex-direction:column;gap:12px;">'
+      // Emergencia
+      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--red)">🔴 A Emergencia</span><span style="font-family:var(--mono);font-weight:600;">'+reds.length+' casos ('+pctRed+'%)</span></div>'
+      +'<div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--red);width:'+pctRed+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
+      // Sinais/Sintomas
+      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--yellow)">🟡 Sinais / Sintomas</span><span style="font-family:var(--mono);font-weight:600;">'+yellows.length+' casos ('+pctYellow+'%)</span></div>'
+      +'<div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--yellow);width:'+pctYellow+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
+      // Exames/Procedimentos
+      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--green-dark)">🟢 Exames / Procedimentos</span><span style="font-family:var(--mono);font-weight:600;">'+greens.length+' casos ('+pctGreen+'%)</span></div>'
+      +'<div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--green);width:'+pctGreen+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
+      +'<div style="margin-top:4px;font-size:11px;color:var(--text3);font-family:var(--mono);">Total no periodo: '+fila.length+' internamentos</div>'
+      +'</div></div>';
+
+    // CID ranking
+    if(cidRank.length){
+      html+='<div class="settings-section"><div class="settings-title">📋 Principais CIDs de Internamento</div>'
+        +'<table class="stats-table"><thead><tr><th>CID</th><th>Descricao</th><th>Casos</th></tr></thead><tbody>'
+        +cidRank.map(function(item){var parts=item[0].split('|||');return '<tr><td><strong style="color:var(--accent)">'+esc(parts[0])+'</strong></td><td>'+esc(parts[1])+'</td><td><strong>'+item[1]+'</strong></td></tr>';}).join('')
+        +'</tbody></table></div>';
+    }
+
+    // Sessao clinica
+    html+='<div class="settings-section"><div class="settings-title">🩺 Sessao Clinica</div>'
+      +'<div class="stats-grid" style="margin-bottom:12px">'
+      +'<div class="stat-card"><div class="stat-num">'+sess.length+'</div><div class="stat-label">Casos Inseridos</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+sessRes.length+'</div><div class="stat-label">Condutas Registradas</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--accent)">'+sessCiente.length+'</div><div class="stat-label">Cientes</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+(sess.length?Math.round(sessRes.length/sess.length*100)+'%':'-')+'</div><div class="stat-label">Taxa de Resolucao</div></div>'
+      +'</div>';
+
+    if(medSessRank.length){
+      html+='<table class="stats-table"><thead><tr><th>Medico Solicitante</th><th>Casos</th></tr></thead><tbody>'
+        +medSessRank.map(function(m){return '<tr><td>'+esc(m.nome)+'</td><td><strong>'+m.n+'</strong></td></tr>';}).join('')
+        +'</tbody></table>';
+    }
+    html+='</div>';
+
+    get('stats-content').innerHTML=html;
+  }
+
+  if(sbClient){
+    Promise.all([sbClient.from('fila_internacao').select('*'),sbClient.from('sessao_clinica').select('*')])
+      .then(function(r){render(r[0].data||[],r[1].data||[]);})
+      .catch(function(){render(lsGet('fila')||[],lsGet('sessao')||[]);});
+  } else {
+    render(lsGet('fila')||[],lsGet('sessao')||[]);
+  }
+}
+
+// ── PLANTAO ──
+var LEITOS=['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4'];
+var plantaoData={};
+var editingLeito=null;
+
+function loadPlantao(){
+  if(sbClient){
+    sbClient.from('plantao').select('*')
+      .then(function(r){
+        plantaoData={};
+        (r.data||[]).forEach(function(row){plantaoData[row.leito]=row;});
+        renderPlantao();
+      }).catch(function(){
+        plantaoData=lsGet('plantao')||{};
+        renderPlantao();
+      });
+  } else {
+    plantaoData=lsGet('plantao')||{};
+    renderPlantao();
+  }
+}
+
+function renderPlantao(){
+  var canEdit=(currentRole==='diarista'||currentRole==='admin');
+  var grid=get('plantao-grid');
+  grid.innerHTML=LEITOS.map(function(leito){
+    var d=plantaoData[leito]||{};
+    var paciente=d.paciente||'';
+    var texto=d.texto||'';
+    var meta=d.updated_at?'Atualizado: '+fmtDate(d.updated_at)+(d.medico?' por '+d.medico:''):'Sem registro';
+    var vazio=!paciente&&!texto;
+    return '<div class="leito-card" id="leito-card-'+leito+'">'
+      +'<div class="leito-header">'
+      +'<span class="leito-id">'+leito+'</span>'
+      +'<span class="leito-paciente'+(vazio?' vazio':'')+'" id="leito-pac-label-'+leito+'">'+(paciente||'Leito vazio')+'</span>'
+      +(canEdit?'<button class="btn btn-primary btn-sm" onclick="editarLeito(\''+leito+'\')">Editar</button>':'')
+      +'</div>'
+      +'<input type="text" class="leito-paciente-input" id="leito-pac-'+leito+'" value="'+esc(paciente)+'" placeholder="Nome do paciente" style="display:none" readonly>'
+      +'<textarea class="leito-texto" id="leito-txt-'+leito+'" placeholder="Pendencias, condutas, observacoes..." readonly>'+esc(texto)+'</textarea>'
+      +'<div class="leito-meta" id="leito-meta-'+leito+'">'+meta+'</div>'
+      +'<div class="leito-actions" id="leito-act-'+leito+'" style="display:none">'
+      +'<button class="btn btn-ghost btn-sm" onclick="cancelarLeito(\''+leito+'\')">Cancelar</button>'
+      +'<button class="btn btn-primary btn-sm" onclick="salvarLeito(\''+leito+'\')">Salvar</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function editarLeito(leito){
+  if(editingLeito&&editingLeito!==leito) cancelarLeito(editingLeito);
+  editingLeito=leito;
+  var lid=leitoId(leito);
+  var d=plantaoData[leito]||{};
+  var pacInput=get('leito-pac-'+lid);
+  var txtArea=get('leito-txt-'+lid);
+  var label=get('leito-pac-label-'+lid);
+  var actions=get('leito-act-'+lid);
+  pacInput.value=d.paciente||'';
+  pacInput.style.display='block';
+  label.style.display='none';
+  txtArea.value=d.texto||'';
+  txtArea.removeAttribute('readonly');
+  actions.style.display='flex';
+  pacInput.focus();
+}
+
+function cancelarLeito(leito){
+  editingLeito=null;
+  var lid=leitoId(leito);
+  var d=plantaoData[leito]||{};
+  var pacInput=get('leito-pac-'+lid);
+  var txtArea=get('leito-txt-'+lid);
+  var label=get('leito-pac-label-'+lid);
+  var actions=get('leito-act-'+lid);
+  pacInput.style.display='none';
+  label.style.display='';
+  txtArea.value=d.texto||'';
+  txtArea.setAttribute('readonly','');
+  actions.style.display='none';
+}
+
+function salvarLeito(leito){
+  var lid=leitoId(leito);
+  var paciente=get('leito-pac-'+lid).value.trim();
+  var texto=get('leito-txt-'+lid).value.trim();
+  var medico=currentRole==='admin'?'Admin':getDoctors()[0]||'Diarista';
+  // Tentar pegar nome do medico logado pelo localStorage
+  var cfg=getConfig();
+  var rec={leito:leito,paciente:paciente,texto:texto,medico:cfg.medicoNome||medico,updated_at:new Date().toISOString()};
+
+  if(sbClient){
+    sbClient.from('plantao').upsert([rec],{onConflict:'leito'})
+      .then(function(r){
+        if(r.error){showToast('Erro ao salvar: '+r.error.message,'error');return;}
+        plantaoData[leito]=rec;
+        editingLeito=null;
+        renderPlantao();
+        showToast('Leito '+leito+' atualizado!','success');
+      });
+  } else {
+    var local=lsGet('plantao')||{};
+    local[leito]=rec;
+    lsSet('plantao',local);
+    plantaoData[leito]=rec;
+    editingLeito=null;
+    renderPlantao();
+    showToast('Leito '+leito+' atualizado!','success');
+  }
+}
+
+// CONFIGURACOES
+function loadConfigFields(){
+  if(currentRole!=='admin')return;
+  var cfg=getConfig();
+  if(cfg.sbUrl)get('cfg-url').value=cfg.sbUrl;if(cfg.sbKey)get('cfg-key').value=cfg.sbKey;
+  if(cfg.ejsService)get('cfg-ejs-service').value=cfg.ejsService;if(cfg.ejsTemplate)get('cfg-ejs-template').value=cfg.ejsTemplate;
+  if(cfg.ejsPubkey)get('cfg-ejs-pubkey').value=cfg.ejsPubkey;if(cfg.alertEmail)get('cfg-alert-email').value=cfg.alertEmail;
+  renderDoctorList();
+}
+
+get('btn-salvar-supabase').addEventListener('click',function(){
+  var url=get('cfg-url').value.trim(),key=get('cfg-key').value.trim();
+  if(!url||!key){showToast('Preencha URL e Key.','error');return;}
+  saveConfig({sbUrl:url,sbKey:key});sbClient=null;
+  if(initSupabase()){setupRealtime();showToast('Supabase conectado!','success');loadFila();loadSessao();}
+  else showToast('Erro ao conectar.','error');
+});
+
+get('btn-salvar-email').addEventListener('click',function(){
+  saveConfig({ejsService:get('cfg-ejs-service').value.trim(),ejsTemplate:get('cfg-ejs-template').value.trim(),ejsPubkey:get('cfg-ejs-pubkey').value.trim(),alertEmail:get('cfg-alert-email').value.trim()});
+  showToast('Configuracoes de email salvas!','success');
+});
+
+get('btn-add-doctor').addEventListener('click',function(){
+  var name=get('new-doctor-name').value.trim();if(!name)return;
+  var docs=getDoctors();docs.push(name);lsSet('doctors',docs);
+  get('new-doctor-name').value='';renderDoctorList();populateDoctorSelects();showToast('Medico adicionado!','success');
+});
+
+function renderDoctorList(){
+  get('doctor-list').innerHTML=getDoctors().map(function(d,i){return '<div class="doctor-item"><span>'+esc(d)+'</span><button class="btn btn-danger btn-sm" data-idx="'+i+'">Remover</button></div>';}).join('');
+  get('doctor-list').querySelectorAll('button[data-idx]').forEach(function(btn){btn.addEventListener('click',function(){var docs2=getDoctors();docs2.splice(parseInt(this.dataset.idx),1);lsSet('doctors',docs2);renderDoctorList();populateDoctorSelects();});});
+}
+
+function sendAlertEmail(rec){
+  var cfg=getConfig();if(!cfg.ejsService||!cfg.ejsTemplate||!cfg.ejsPubkey||!cfg.alertEmail)return;
+  if(!window.emailjs)return;
+  window.emailjs.init(cfg.ejsPubkey);
+  window.emailjs.send(cfg.ejsService,cfg.ejsTemplate,{to_email:cfg.alertEmail,paciente:rec.nome,prontuario:rec.prontuario,diagnostico:rec.diagnostico,cid:rec.cid_code?rec.cid_code+' - '+rec.cid_desc:'Nao informado',medico:rec.medico,data:fmtDate(rec.created_at)})
+    .then(function(){showToast('🔴 Alerta enviado!','success');}).catch(function(){showToast('Alerta nao enviado.','error');});
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</body>
+</html>
