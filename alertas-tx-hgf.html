@@ -360,6 +360,26 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   </div>
 </div>
 
+<!-- MODAL: EDITAR LEITO -->
+<div class="modal-overlay" id="modal-leito">
+  <div class="modal">
+    <div class="modal-title" id="modal-leito-titulo">Editar Leito</div>
+    <input type="hidden" id="modal-leito-id">
+    <div class="form-row">
+      <label class="form-label">Nome do Paciente</label>
+      <input type="text" class="form-input" id="modal-leito-pac" placeholder="Nome do paciente neste leito">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Pendencias / Condutas / Observacoes</label>
+      <textarea class="form-textarea" id="modal-leito-txt" placeholder="Descreva as pendencias, condutas e observacoes para passagem de plantao..." style="min-height:160px"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-leito">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-leito">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1840,7 +1860,6 @@ function loadStats(){
 // ── PLANTAO ──
 var LEITOS=['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4'];
 var plantaoData={};
-var editingLeito=null;
 
 function loadPlantao(){
   if(sbClient){
@@ -1862,78 +1881,51 @@ function loadPlantao(){
 function renderPlantao(){
   var canEdit=(currentRole==='diarista'||currentRole==='admin');
   var grid=get('plantao-grid');
-  grid.innerHTML=LEITOS.map(function(leito){
+  var html='';
+  LEITOS.forEach(function(leito){
     var d=plantaoData[leito]||{};
     var paciente=d.paciente||'';
     var texto=d.texto||'';
     var meta=d.updated_at?'Atualizado: '+fmtDate(d.updated_at)+(d.medico?' por '+d.medico:''):'Sem registro';
-    var vazio=!paciente&&!texto;
-    return '<div class="leito-card" id="leito-card-'+leito+'">'
+    html+='<div class="leito-card">'
       +'<div class="leito-header">'
       +'<span class="leito-id">'+leito+'</span>'
-      +'<span class="leito-paciente'+(vazio?' vazio':'')+'" id="leito-pac-label-'+leito+'">'+(paciente||'Leito vazio')+'</span>'
-      +(canEdit?'<button class="btn btn-primary btn-sm" onclick="editarLeito(\''+leito+'\')">Editar</button>':'')
+      +'<span style="font-size:13px;font-weight:600;color:'+(paciente?'var(--text)':'var(--text3)')+';flex:1;margin:0 8px;">'+(paciente||'Leito vazio')+'</span>'
+      +(canEdit?'<button class="btn btn-primary btn-sm" style="white-space:nowrap" data-leito="'+leito+'">Editar</button>':'')
       +'</div>'
-      +'<input type="text" class="leito-paciente-input" id="leito-pac-'+lid+'" value="'+esc(paciente)+'" placeholder="Nome do paciente" style="display:none">'
-      +'<textarea class="leito-texto" id="leito-txt-'+leito+'" placeholder="Pendencias, condutas, observacoes..." readonly>'+esc(texto)+'</textarea>'
-      +'<div class="leito-meta" id="leito-meta-'+leito+'">'+meta+'</div>'
-      +'<div class="leito-actions" id="leito-act-'+leito+'" style="display:none">'
-      +'<button class="btn btn-ghost btn-sm" onclick="cancelarLeito(\''+leito+'\')">Cancelar</button>'
-      +'<button class="btn btn-primary btn-sm" onclick="salvarLeito(\''+leito+'\')">Salvar</button>'
-      +'</div>'
+      +'<div class="leito-meta">'+meta+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;min-height:80px;line-height:1.6;white-space:pre-wrap;">'+(texto||'<span style="color:var(--text3);font-style:italic">Sem informacoes registradas</span>')+'</div>'
       +'</div>';
-  }).join('');
+  });
+  grid.innerHTML=html;
+  grid.querySelectorAll('button[data-leito]').forEach(function(btn){
+    btn.addEventListener('click',function(){abrirModalLeito(this.dataset.leito);});
+  });
 }
 
-function editarLeito(leito){
-  if(editingLeito&&editingLeito!==leito) cancelarLeito(editingLeito);
-  editingLeito=leito;
-  var lid=leitoId(leito);
+function abrirModalLeito(leito){
   var d=plantaoData[leito]||{};
-  var pacInput=get('leito-pac-'+lid);
-  var txtArea=get('leito-txt-'+lid);
-  var label=get('leito-pac-label-'+lid);
-  var actions=get('leito-act-'+lid);
-  pacInput.value=d.paciente||'';
-  pacInput.removeAttribute('readonly');
-  pacInput.style.display='block';
-  label.style.display='none';
-  txtArea.value=d.texto||'';
-  txtArea.removeAttribute('readonly');
-  actions.style.display='flex';
-  setTimeout(function(){pacInput.focus();},50);
+  get('modal-leito-titulo').textContent='Leito '+leito;
+  get('modal-leito-id').value=leito;
+  get('modal-leito-pac').value=d.paciente||'';
+  get('modal-leito-txt').value=d.texto||'';
+  openModal('modal-leito');
+  setTimeout(function(){get('modal-leito-pac').focus();},100);
 }
 
-function cancelarLeito(leito){
-  editingLeito=null;
-  var lid=leitoId(leito);
-  var d=plantaoData[leito]||{};
-  var pacInput=get('leito-pac-'+lid);
-  var txtArea=get('leito-txt-'+lid);
-  var label=get('leito-pac-label-'+lid);
-  var actions=get('leito-act-'+lid);
-  pacInput.style.display='none';
-  label.style.display='';
-  txtArea.value=d.texto||'';
-  txtArea.setAttribute('readonly','');
-  actions.style.display='none';
-}
-
-function salvarLeito(leito){
-  var lid=leitoId(leito);
-  var paciente=get('leito-pac-'+lid).value.trim();
-  var texto=get('leito-txt-'+lid).value.trim();
-  var medico=currentRole==='admin'?'Admin':getDoctors()[0]||'Diarista';
-  // Tentar pegar nome do medico logado pelo localStorage
+get('btn-salvar-leito').addEventListener('click',function(){
+  var leito=get('modal-leito-id').value;
+  var paciente=get('modal-leito-pac').value.trim();
+  var texto=get('modal-leito-txt').value.trim();
   var cfg=getConfig();
-  var rec={leito:leito,paciente:paciente,texto:texto,medico:cfg.medicoNome||medico,updated_at:new Date().toISOString()};
-
+  var medico=cfg.medicoNome||(currentRole==='admin'?'Admin':'Diarista');
+  var rec={leito:leito,paciente:paciente,texto:texto,medico:medico,updated_at:new Date().toISOString()};
   if(sbClient){
     sbClient.from('plantao').upsert([rec],{onConflict:'leito'})
       .then(function(r){
-        if(r.error){showToast('Erro ao salvar: '+r.error.message,'error');return;}
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
         plantaoData[leito]=rec;
-        editingLeito=null;
+        closeModal('modal-leito');
         renderPlantao();
         showToast('Leito '+leito+' atualizado!','success');
       });
@@ -1942,11 +1934,13 @@ function salvarLeito(leito){
     local[leito]=rec;
     lsSet('plantao',local);
     plantaoData[leito]=rec;
-    editingLeito=null;
+    closeModal('modal-leito');
     renderPlantao();
     showToast('Leito '+leito+' atualizado!','success');
   }
-}
+});
+
+get('btn-cancelar-leito').addEventListener('click',function(){closeModal('modal-leito');});
 
 // CONFIGURACOES
 function loadConfigFields(){
