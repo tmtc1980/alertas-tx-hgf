@@ -164,6 +164,39 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .section-divider{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+
+/* FICHA ANESTESICA */
+.ficha-wrap{background:#1a6fa8;border-radius:var(--radius2);padding:20px;color:#fff;font-size:12px;}
+.ficha-header{text-align:center;margin-bottom:12px;border-bottom:2px solid rgba(255,255,255,.3);padding-bottom:10px;}
+.ficha-header h2{font-size:15px;font-weight:700;letter-spacing:.5px;margin-bottom:2px;}
+.ficha-header h3{font-size:13px;font-weight:400;opacity:.9;}
+.ficha-logo{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.8);float:right;margin-top:-40px;}
+.ficha-row{display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.ficha-field{display:flex;align-items:center;gap:4px;flex:1;min-width:120px;}
+.ficha-field label{font-size:11px;font-weight:600;white-space:nowrap;color:rgba(255,255,255,.85);}
+.ficha-input{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:3px 8px;color:#fff;font-size:12px;outline:none;flex:1;min-width:60px;}
+.ficha-input::placeholder{color:rgba(255,255,255,.4);}
+.ficha-input:focus{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.6);}
+.ficha-input[readonly]{background:rgba(255,255,255,.05);cursor:default;}
+.ficha-select{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:3px 8px;color:#fff;font-size:12px;outline:none;flex:1;}
+.ficha-select option{background:#1a6fa8;color:#fff;}
+.ficha-section{background:rgba(0,0,0,.15);border-radius:var(--radius);padding:10px;margin-bottom:10px;}
+.ficha-section-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:4px;}
+.ficha-table{width:100%;border-collapse:collapse;font-size:11px;}
+.ficha-table th{background:rgba(0,0,0,.2);padding:4px 8px;text-align:left;font-weight:600;color:rgba(255,255,255,.9);}
+.ficha-table td{padding:3px 8px;border-bottom:1px solid rgba(255,255,255,.1);vertical-align:middle;}
+.ficha-table tr:hover td{background:rgba(255,255,255,.05);}
+.ficha-cb{display:flex;align-items:center;gap:3px;}
+.ficha-cb input[type=checkbox]{width:14px;height:14px;cursor:pointer;}
+.ficha-cb input[type=radio]{width:14px;height:14px;cursor:pointer;}
+.ficha-obs-input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:2px 6px;color:#fff;font-size:11px;width:100%;outline:none;}
+.ficha-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap;}
+.btn-anestesia-edit{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:var(--radius);padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-anestesia-print{background:#fff;border:none;color:#1a6fa8;border-radius:var(--radius);padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+.ficha-locked{opacity:.7;pointer-events:none;}
+.ficha-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ficha-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+
 /* LEITOS PLANTAO */
 .leito-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
 .leito-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
@@ -210,7 +243,25 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .detail-full{grid-column:1/-1;}
 
 @media(max-width:600px){header{padding:0 12px;}.header-title{display:none;}main{padding:10px 12px;}.modal{padding:16px;}}
+
+@media print{
+  header,.tabs,.section-header,.ficha-actions{display:none!important;}
+  main{padding:0!important;}
+  body{background:white!important;}
+  #panel-anestesia{display:block!important;}
+  .ficha-wrap{border-radius:0!important;}
+}
+
+@media print{
+  header,.tabs,.section-header,.ficha-actions{display:none!important;}
+  main{padding:0!important;}
+  body{background:white!important;}
+  #panel-anestesia{display:block!important;}
+  .ficha-wrap{border-radius:0!important;}
+}
 </style>
+
+
 </head>
 <body>
 
@@ -242,6 +293,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-sessao">🩺 Sessao Clinica <span class="tab-count" id="count-sessao">0</span></div>
     <div class="tab" id="tab-stats">📊 Estatisticas</div>
     <div class="tab" id="tab-receptores">🫀 Lista de Receptores</div>
+    <div class="tab" id="tab-anestesia">📋 Ficha Pré-Anestésica</div>
     <div class="tab" id="tab-plantao" style="display:none">🛏️ Passagem de Plantao</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
@@ -290,6 +342,22 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
         <button class="grupo-btn" data-grupo="B">Grupo B</button>
       </div>
       <div id="receptores-list"></div>
+    </div>
+
+
+    <!-- ANESTESIA -->
+    <div id="panel-anestesia" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Ficha de Avaliação Pré-Anestésica</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" class="form-input" id="anestesia-busca-pront" placeholder="Prontuário..." style="width:160px;padding:6px 10px;font-size:12px;">
+          <button class="btn btn-primary" id="btn-buscar-ficha">Buscar</button>
+          <button class="btn btn-ghost" id="btn-nova-ficha">+ Nova Ficha</button>
+        </div>
+      </div>
+      <div id="anestesia-content">
+        <div class="empty-state">Digite o prontuário e clique em Buscar, ou clique em Nova Ficha.</div>
+      </div>
     </div>
 
     <!-- PLANTAO -->
@@ -568,6 +636,47 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <button class="btn btn-ghost" id="btn-editar-detalhe">✏️ Editar</button>
       <button class="btn btn-danger btn-sm" id="btn-remover-detalhe" style="display:none">Remover</button>
       <button class="btn btn-primary" id="btn-pdf-detalhe">📄 Gerar PDF</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: SENHA ANESTESISTA -->
+<div class="modal-overlay" id="modal-senha-anest">
+  <div class="modal" style="max-width:360px;text-align:center;">
+    <div class="modal-title">🔐 Acesso Restrito</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:16px;">Esta ficha é de preenchimento exclusivo do anestesista. Digite a senha para editar.</p>
+    <div class="form-row">
+      <input type="password" class="form-input" id="senha-anest-input" placeholder="Senha do anestesista" maxlength="20" style="text-align:center;font-size:18px;letter-spacing:4px;">
+    </div>
+    <div style="color:var(--red);font-size:12px;margin-bottom:10px;display:none;" id="senha-anest-erro">Senha incorreta.</div>
+    <div class="modal-footer" style="justify-content:center;">
+      <button class="btn btn-ghost" id="btn-cancelar-senha-anest">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirmar-senha-anest">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ALTERAR SENHA ANESTESISTA -->
+<div class="modal-overlay" id="modal-alterar-senha-anest">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-title">🔑 Alterar Senha do Anestesista</div>
+    <div class="form-row">
+      <label class="form-label">Senha Atual</label>
+      <input type="password" class="form-input" id="senha-anest-atual" placeholder="Senha atual">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Nova Senha</label>
+      <input type="password" class="form-input" id="senha-anest-nova" placeholder="Nova senha">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Confirmar Nova Senha</label>
+      <input type="password" class="form-input" id="senha-anest-confirma" placeholder="Confirme a nova senha">
+    </div>
+    <div style="color:var(--red);font-size:12px;margin-bottom:8px;display:none;" id="senha-anest-alt-erro"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-alt-senha">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-alt-senha">Salvar Nova Senha</button>
     </div>
   </div>
 </div>
@@ -1742,19 +1851,21 @@ function setupRealtime(){
 
 get('tab-fila').addEventListener('click',function(){switchTab('fila');});
 get('tab-receptores').addEventListener('click',function(){switchTab('receptores');});
+get('tab-anestesia').addEventListener('click',function(){switchTab('anestesia');});
 get('tab-sessao').addEventListener('click',function(){switchTab('sessao');});
 get('tab-stats').addEventListener('click',function(){switchTab('stats');});
 get('tab-plantao').addEventListener('click',function(){switchTab('plantao');});
 get('tab-config').addEventListener('click',function(){switchTab('config');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','plantao','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','plantao','config'].forEach(function(t){
     get('panel-'+t).style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
   if(tab==='stats')loadStats();
   if(tab==='plantao')loadPlantao();
   if(tab==='receptores'){grupoAtivo='O';loadReceptores();}
+  if(tab==='anestesia')initAnestesia();
 }
 
 // Filtros de periodo
@@ -2072,6 +2183,480 @@ function loadStats(){
 }
 
 
+
+// ── FICHA PRÉ-ANESTÉSICA ──
+var SENHA_ANEST_DEFAULT = '1234';
+var anestesiaEditando = false;
+var fichaAtual = null;
+var senhaAnestCallback = null;
+
+function getSenhaAnest(){ return lsGet('senha_anest') || SENHA_ANEST_DEFAULT; }
+
+function initAnestesia(){
+  get('anestesia-content').innerHTML = '<div class="empty-state">Digite o prontuário e clique em Buscar, ou clique em Nova Ficha.</div>';
+  fichaAtual = null;
+}
+
+get('btn-buscar-ficha').addEventListener('click', function(){
+  var pront = get('anestesia-busca-pront').value.trim();
+  if(!pront){showToast('Digite o prontuário.','error');return;}
+  buscarFicha(pront);
+});
+
+get('anestesia-busca-pront').addEventListener('keydown', function(e){
+  if(e.key==='Enter') get('btn-buscar-ficha').click();
+});
+
+get('btn-nova-ficha').addEventListener('click', function(){
+  pedirSenhaAnest(function(){
+    fichaAtual = null;
+    anestesiaEditando = true;
+    renderFichaForm(null, get('anestesia-busca-pront').value.trim());
+  });
+});
+
+function buscarFicha(pront){
+  if(!sbClient){
+    var local = lsGet('fichas_anest') || {};
+    fichaAtual = local[pront] || null;
+    renderFichaView(fichaAtual, pront);
+    return;
+  }
+  sbClient.from('ficha_anestesica').select('*').eq('prontuario', pront).limit(1)
+    .then(function(r){
+      fichaAtual = (r.data && r.data.length) ? r.data[0] : null;
+      renderFichaView(fichaAtual, pront);
+    }).catch(function(){
+      fichaAtual = null;
+      renderFichaView(null, pront);
+    });
+}
+
+function pedirSenhaAnest(callback){
+  senhaAnestCallback = callback;
+  get('senha-anest-input').value = '';
+  get('senha-anest-erro').style.display = 'none';
+  openModal('modal-senha-anest');
+  setTimeout(function(){get('senha-anest-input').focus();}, 100);
+}
+
+get('btn-cancelar-senha-anest').addEventListener('click', function(){closeModal('modal-senha-anest');});
+get('senha-anest-input').addEventListener('keydown', function(e){if(e.key==='Enter') get('btn-confirmar-senha-anest').click();});
+get('btn-confirmar-senha-anest').addEventListener('click', function(){
+  var s = get('senha-anest-input').value;
+  if(s === getSenhaAnest()){
+    closeModal('modal-senha-anest');
+    if(senhaAnestCallback) senhaAnestCallback();
+  } else {
+    get('senha-anest-erro').style.display = 'block';
+    get('senha-anest-input').value = '';
+    get('senha-anest-input').focus();
+  }
+});
+
+get('btn-cancelar-alt-senha').addEventListener('click', function(){closeModal('modal-alterar-senha-anest');});
+get('btn-salvar-alt-senha').addEventListener('click', function(){
+  var atual = get('senha-anest-atual').value;
+  var nova = get('senha-anest-nova').value;
+  var conf = get('senha-anest-confirma').value;
+  var err = get('senha-anest-alt-erro');
+  err.style.display = 'none';
+  if(atual !== getSenhaAnest()){err.textContent='Senha atual incorreta.';err.style.display='block';return;}
+  if(!nova||nova.length<4){err.textContent='Nova senha deve ter pelo menos 4 caracteres.';err.style.display='block';return;}
+  if(nova!==conf){err.textContent='As senhas não conferem.';err.style.display='block';return;}
+  lsSet('senha_anest', nova);
+  closeModal('modal-alterar-senha-anest');
+  showToast('Senha do anestesista alterada!','success');
+});
+
+function renderFichaView(f, pront){
+  var c = get('anestesia-content');
+  if(!f){
+  c.innerHTML = '<div class="empty-state">Nenhuma ficha encontrada para o prontu&aacute;rio <strong>'+esc(pront)+'</strong>.<br><br></div>';
+  var btnCriar=document.createElement('button');
+  btnCriar.className='btn btn-primary';
+  btnCriar.textContent='+ Criar Nova Ficha';
+  btnCriar.addEventListener('click',function(){get('btn-nova-ficha').click();});
+  c.querySelector('.empty-state').appendChild(btnCriar);
+    return;
+  }
+  var com = f.comorbidades || {};
+  var ef = f.exame_fisico || {};
+  var lab = f.exames_lab || {};
+  var seg = f.seguimentos || {};
+
+  function simNao(val){ return val==='S'?'SIM':val==='N'?'NÃO':(val||'-'); }
+
+  c.innerHTML = '<div class="ficha-wrap" id="ficha-print-area">'
+    // HEADER
+    +'<div class="ficha-header">'
+    +'<div class="ficha-logo">HGF</div>'
+    +'<div style="font-size:11px;font-weight:600;letter-spacing:1px;opacity:.8">SETOR DE TRANSPLANTES — UNIDADE DE TRANSPLANTE HEPÁTICO</div>'
+    +'<h2>FICHA DE AVALIAÇÃO PRÉ-ANESTÉSICA</h2>'
+    +'<div style="font-size:11px;opacity:.8">Prontuário: <strong>'+esc(f.prontuario)+'</strong> | Data: '+(f.data_ficha?fmtDateShort(f.data_ficha):'-')+'</div>'
+    +'</div>'
+    // IDENTIFICAÇÃO
+    +'<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;">'
+    +'<div><span style="font-size:10px;opacity:.7">NOME</span><div style="font-weight:600;">'+esc(f.nome||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">SEXO</span><div>'+esc(f.sexo||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">IDADE</span><div>'+esc(f.idade||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">TIPO SANG.</span><div>'+esc(f.tipo_sanguineo||'-')+'</div></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">'
+    +'<div><span style="font-size:10px;opacity:.7">DIAGNÓSTICO</span><div>'+esc(f.diagnostico||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">CIRURGIA PROPOSTA</span><div>'+esc(f.cirurgia_proposta||'-')+'</div></div>'
+    +'</div>'
+    // METS
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">ESTIMATIVA DA CAPACIDADE FUNCIONAL</div>'
+    +'<div style="text-align:center;font-size:13px;font-weight:600;">'+esc(f.mets||'-')+'</div>'
+    +'</div>'
+    // COMORBIDADES resumo
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">COMORBIDADES</div>'
+    +'<table class="ficha-table"><thead><tr><th>Condição</th><th>Resultado</th><th>Observação</th></tr></thead><tbody>'
+    + renderComorbRow(com,'ic','Insuficiência cardíaca ou valvopatia grave')
+    + renderComorbRow(com,'dm','Diabetes Mellitus')
+    + renderComorbRow(com,'angina','Angina ou Doença Arterial Coronariana')
+    + renderComorbRow(com,'has','HAS ou uso de anti-hipertensivos')
+    + renderComorbRow(com,'tabag','Tabagismo')
+    + renderComorbRow(com,'asma','Asma / TB / DPOC / Infecção Resp. < 30 dias')
+    + renderComorbRow(com,'tosse','Tosse persistente / Catarro / Falta de ar')
+    + renderComorbRow(com,'fraq','Fraqueza muscular / Miopatia / Sarcopenia')
+    + renderComorbRow(com,'tireoide','Disfunção da tireoide')
+    + renderComorbRow(com,'renal','Disfunção renal / Síndrome Hepato-renal')
+    + renderComorbRow(com,'ictericia','Icterícia atual')
+    + renderComorbRow(com,'ascite','Ascite / PBE / Paracentese prévia')
+    + renderComorbRow(com,'coag','Problema na coagulação')
+    + renderComorbRow(com,'hda','Hemorragia digestiva')
+    + renderComorbRow(com,'hemor_sem','Hemorragia sem trauma')
+    + renderComorbRow(com,'hemor_pos','Hemorragia grave/demorada pós-trauma')
+    + renderComorbRow(com,'transf','Já recebeu transfusão')
+    + renderComorbRow(com,'psiq','Distúrbio psiquiátrico ou neurológico')
+    + renderComorbRow(com,'encef','Encefalopatia prévia')
+    + renderComorbRow(com,'alergia','Alergias / Alergia a látex')
+    + renderComorbRow(com,'ciruranterior','Cirurgias intra-abdominais prévias')
+    + renderComorbRow(com,'efeito_anest','Efeitos adversos prévios em anestesias')
+    + renderComorbRow(com,'etilismo','Etilismo / Uso de drogas ilícitas')
+    + renderComorbRow(com,'internamento','Internamento recente (< 6 meses)')
+    + renderComorbRow(com,'analgesico','Analgésico/remédio natural nos últ. 14 dias')
+    +'</tbody></table>'
+    +'<div style="margin-top:6px;font-size:11px;"><strong>Medicações em uso:</strong> '+esc(com.medicacoes||'-')+'</div>'
+    +'</div>'
+    // EXAME FÍSICO
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">EXAME FÍSICO</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">'
+    +'<div><strong>Peso:</strong> '+esc(ef.peso||'-')+' | <strong>Altura:</strong> '+esc(ef.altura||'-')+'</div>'
+    +'<div><strong>IOT Difícil:</strong> '+esc(ef.iot_dificil||'-')+' | <strong>Mallampati:</strong> '+esc(ef.mallampati||'-')+'</div>'
+    +'<div><strong>Ex. CV:</strong> '+esc(ef.ex_cv||'-')+'</div>'
+    +'<div><strong>Ex. Resp:</strong> '+esc(ef.ex_resp||'-')+'</div>'
+    +'<div><strong>Ex. Abdome:</strong> '+esc(ef.ex_abdom||'-')+'</div>'
+    +'<div><strong>Edema:</strong> '+esc(ef.edema||'-')+'</div>'
+    +'</div>'
+    +'</div>'
+    // EXAMES LAB
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">EXAMES LABORATORIAIS</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:11px;">'
+    +'<div><strong>Hb:</strong> '+esc(lab.hb||'-')+'</div>'
+    +'<div><strong>Plaq:</strong> '+esc(lab.plaq||'-')+'</div>'
+    +'<div><strong>INR:</strong> '+esc(lab.inr||'-')+'</div>'
+    +'<div><strong>TTPa:</strong> '+esc(lab.ttpa||'-')+'</div>'
+    +'<div><strong>Na+:</strong> '+esc(lab.na||'-')+'</div>'
+    +'<div><strong>K+:</strong> '+esc(lab.k||'-')+'</div>'
+    +'<div><strong>Cr:</strong> '+esc(lab.cr||'-')+'</div>'
+    +'<div><strong>Glic:</strong> '+esc(lab.glic||'-')+'</div>'
+    +'<div><strong>Alb:</strong> '+esc(lab.alb||'-')+'</div>'
+    +'<div><strong>BT:</strong> '+esc(lab.bt||'-')+'</div>'
+    +'<div><strong>Fibrin:</strong> '+esc(lab.fibrin||'-')+'</div>'
+    +'<div><strong>Colest:</strong> '+esc(lab.colest||'-')+'</div>'
+    +'<div><strong>ECG:</strong> '+esc(lab.ecg||'-')+'</div>'
+    +'<div><strong>ECOTT:</strong> '+esc(lab.ecott||'-')+'</div>'
+    +'<div><strong>FEVE:</strong> '+esc(lab.feve||'-')+'</div>'
+    +'<div><strong>PSAP:</strong> '+esc(lab.psap||'-')+'</div>'
+    +'</div>'
+    +'<div style="margin-top:6px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:11px;">'
+    +'<div><strong>pH:</strong> '+esc(lab.ph||'-')+'</div>'
+    +'<div><strong>PaO2:</strong> '+esc(lab.pao2||'-')+'</div>'
+    +'<div><strong>PaCO2:</strong> '+esc(lab.paco2||'-')+'</div>'
+    +'<div><strong>SpO2:</strong> '+esc(lab.spo2||'-')+'</div>'
+    +'</div>'
+    +'</div>'
+    // SEGUIMENTOS
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">SEGUIMENTOS, PENDÊNCIAS E POTENCIAIS PROBLEMAS</div>'
+    +'<table class="ficha-table"><tbody>'
+    + renderSegRow(seg,'eritropoiese','Estímulo à eritropoiese IV ou VO (ferro + folato)')
+    + renderSegRow(seg,'hemoce','Encaminhar ao HEMOCE para pesquisa de anticorpos irregulares')
+    + renderSegRow(seg,'meias','Meias de compressão antitrombo/antiembólica')
+    + renderSegRow(seg,'swan','Cateter de Swan-Ganz / Volumeview')
+    + renderSegRow(seg,'segundo','Convocação de um segundo candidato receptor no dia do transplante')
+    + renderSegRow(seg,'manejo','Requer manejo perioperatório especial')
+    +'</tbody></table>'
+    +'</div>'
+    // OBS
+    +(f.observacoes?'<div class="ficha-section"><div class="ficha-section-title">OBSERVAÇÕES</div><div style="font-size:12px;">'+esc(f.observacoes)+'</div></div>':'')
+    +'<div class="ficha-actions">'
+    +'<button class="btn-anestesia-edit" id="btn-editar-ficha">✏️ Editar Ficha</button>'
+    +'<button class="btn-anestesia-edit" id="btn-alterar-senha-anest" style="background:rgba(255,200,0,.2);border-color:rgba(255,200,0,.5);">🔑 Alterar Senha</button>'
+    +'<button class="btn-anestesia-print" id="btn-imprimir-ficha">🖨️ Imprimir</button>'
+    +'</div>'
+    +'</div>';
+
+  get('btn-editar-ficha').addEventListener('click', function(){
+    pedirSenhaAnest(function(){
+      anestesiaEditando=true;
+      renderFichaForm(fichaAtual, fichaAtual.prontuario);
+    });
+  });
+  get('btn-alterar-senha-anest').addEventListener('click', function(){
+    get('senha-anest-atual').value='';get('senha-anest-nova').value='';get('senha-anest-confirma').value='';
+    get('senha-anest-alt-erro').style.display='none';
+    openModal('modal-alterar-senha-anest');
+  });
+  get('btn-imprimir-ficha').addEventListener('click', function(){
+    window.print();
+  });
+}
+
+function renderComorbRow(com, key, label){
+  var v=com[key]||{};
+  return '<tr><td>'+label+'</td><td style="font-weight:600;color:'+(v.val==='S'?'#ff9':(v.val==='N'?'rgba(255,255,255,.6)':'rgba(255,255,255,.4)'))+';">'+(v.val==='S'?'SIM':v.val==='N'?'NÃO':'-')+'</td><td style="color:rgba(255,255,255,.8)">'+esc(v.obs||'')+'</td></tr>';
+}
+function renderSegRow(seg, key, label){
+  var v=seg[key]||'';
+  return '<tr><td style="width:70%">'+label+'</td><td style="font-weight:600;color:'+(v==='S'?'#ff9':'rgba(255,255,255,.6)')+';">'+(v==='S'?'SIM':v==='N'?'NÃO':'-')+'</td></tr>';
+}
+
+function renderFichaForm(f, prontInicial){
+  var com = f ? (f.comorbidades||{}) : {};
+  var ef  = f ? (f.exame_fisico||{}) : {};
+  var lab = f ? (f.exames_lab||{}) : {};
+  var seg = f ? (f.seguimentos||{}) : {};
+
+  function inp(id, val, ph, w){
+    return '<input class="ficha-input" id="fi-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="width:'+(w||'100%')+'">';
+  }
+  function sel(id, val, opts){
+    return '<select class="ficha-select" id="fi-'+id+'">'+opts.map(function(o){return '<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';
+  }
+  function snField(key, sub){
+    var v=(com[key]||{})[sub||'val']||'';
+    return '<select class="ficha-select" id="fi-com-'+key+'-val" style="width:70px">'
+      +'<option value="">-</option>'
+      +'<option value="S"'+(v==='S'?' selected':'')+'>SIM</option>'
+      +'<option value="N"'+(v==='N'?' selected':'')+'>NÃO</option>'
+      +'</select>';
+  }
+  function obsField(key){
+    var v=(com[key]||{}).obs||'';
+    return '<input class="ficha-obs-input" id="fi-com-'+key+'-obs" value="'+esc(v)+'" placeholder="Obs...">';
+  }
+  function snSeg(key){
+    var v=seg[key]||'';
+    return '<select class="ficha-select" id="fi-seg-'+key+'" style="width:80px">'
+      +'<option value="">-</option>'
+      +'<option value="S"'+(v==='S'?' selected':'')+'>SIM</option>'
+      +'<option value="N"'+(v==='N'?' selected':'')+'>NÃO</option>'
+      +'</select>';
+  }
+
+  var comorbidas = [
+    ['ic','Insuficiência cardíaca ou valvopatia grave'],
+    ['dm','Diabetes Mellitus'],
+    ['angina','Angina ou Doença Arterial Coronariana'],
+    ['has','HAS ou uso de anti-hipertensivos'],
+    ['tabag','Tabagismo'],
+    ['asma','Asma / TB / DPOC / Infecção Resp. < 30 dias'],
+    ['tosse','Tosse persistente / Catarro / Falta de ar'],
+    ['fraq','Fraqueza muscular / Miopatia / Sarcopenia'],
+    ['tireoide','Disfunção da tireoide'],
+    ['renal','Disfunção renal / Síndrome Hepato-renal'],
+    ['ictericia','Icterícia atual'],
+    ['ascite','Ascite / PBE / Paracentese prévia'],
+    ['coag','Problema na coagulação'],
+    ['hda','Hemorragia digestiva'],
+    ['hemor_sem','Hemorragia sem trauma'],
+    ['hemor_pos','Hemorragia grave/demorada pós-trauma'],
+    ['transf','Já recebeu transfusão'],
+    ['psiq','Distúrbio psiquiátrico ou neurológico'],
+    ['encef','Encefalopatia prévia'],
+    ['alergia','Alergias / Alergia a látex'],
+    ['ciruranterior','Cirurgias intra-abdominais prévias'],
+    ['efeito_anest','Efeitos adversos prévios em anestesias'],
+    ['etilismo','Etilismo / Uso de drogas ilícitas'],
+    ['internamento','Internamento recente (< 6 meses)'],
+    ['analgesico','Analgésico/remédio natural nos últ. 14 dias'],
+  ];
+
+  var html = '<div class="ficha-wrap">'
+    +'<div class="ficha-header"><div class="ficha-logo">HGF</div>'
+    +'<div style="font-size:11px;font-weight:600;letter-spacing:1px;opacity:.8">SETOR DE TRANSPLANTES — UNIDADE DE TRANSPLANTE HEPÁTICO</div>'
+    +'<h2>FICHA DE AVALIAÇÃO PRÉ-ANESTÉSICA</h2></div>'
+    // IDENTIFICAÇÃO
+    +'<div class="ficha-section">'
+    +'<div class="ficha-row"><div class="ficha-field"><label>PRONTUÁRIO</label>'+inp('pront', f?f.prontuario:prontInicial,'')+'</div>'
+    +'<div class="ficha-field"><label>DATA</label><input type="date" class="ficha-input" id="fi-data" value="'+(f&&f.data_ficha?f.data_ficha:'')+'"></div></div>'
+    +'<div class="ficha-row"><div class="ficha-field" style="flex:3"><label>NOME</label>'+inp('nome',f?f.nome:'','Nome completo')+'</div>'
+    +'<div class="ficha-field"><label>SEXO</label>'+sel('sexo',f?f.sexo:'',['','M','F'])+'</div>'
+    +'<div class="ficha-field"><label>IDADE</label>'+inp('idade',f?f.idade:'','Anos','60px')+'</div>'
+    +'<div class="ficha-field"><label>TIPO SANG.</label>'+sel('tipo_sang',f?f.tipo_sanguineo:'',['','O','A','AB','B'])+'</div></div>'
+    +'<div class="ficha-row"><div class="ficha-field" style="flex:2"><label>DIAGNÓSTICO</label>'+inp('diagnostico',f?f.diagnostico:'','')+'</div>'
+    +'<div class="ficha-field"><label>CIRURGIA PROPOSTA</label>'+inp('cirurgia',f?f.cirurgia_proposta:'','Transplante hepático')+'</div></div>'
+    +'</div>'
+    // METS
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">ESTIMATIVA DA CAPACIDADE FUNCIONAL</div>'
+    +'<div style="display:flex;gap:12px;justify-content:center;">'
+    +'<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="mets" value="< 4 METs" '+((!f||!f.mets||f.mets==='< 4 METs')?'checked':'')+'> &lt; 4 METs (ou desconhecida)</label>'
+    +'<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="mets" value=">= 4 METs" '+(f&&f.mets==='>= 4 METs'?'checked':'')+'>  ≥ 4 METs</label>'
+    +'</div></div>'
+    // COMORBIDADES
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">COMORBIDADES</div>'
+    +'<table class="ficha-table"><thead><tr><th>Condição</th><th style="width:80px">S/N</th><th>Observação</th></tr></thead><tbody>'
+    + comorbidas.map(function(c){return '<tr><td>'+c[1]+'</td><td>'+snField(c[0])+'</td><td>'+obsField(c[0])+'</td></tr>';}).join('')
+    +'</tbody></table>'
+    +'<div style="margin-top:6px;"><label style="font-size:11px;font-weight:600;">MEDICAÇÕES EM USO:</label>'
+    +'<input class="ficha-obs-input" id="fi-medicacoes" value="'+esc(com.medicacoes||'')+'" placeholder="Liste as medicações em uso..." style="margin-top:3px;"></div>'
+    +'</div>'
+    // EXAME FÍSICO
+    +'<div class="ficha-section"><div class="ficha-section-title">EXAME FÍSICO</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+    +'<div class="ficha-field"><label>Peso (kg)</label>'+inp('ef-peso',ef.peso,'')+'</div>'
+    +'<div class="ficha-field"><label>Altura (cm)</label>'+inp('ef-altura',ef.altura,'')+'</div>'
+    +'<div class="ficha-field"><label>IOT Difícil?</label>'+sel('ef-iot',ef.iot_dificil,['','Sim','Não'])+'</div>'
+    +'<div class="ficha-field"><label>Mallampati</label>'+sel('ef-mallampati',ef.mallampati,['','1','2','3','4'])+'</div>'
+    +'<div class="ficha-field" style="grid-column:1/-1"><label>Ex. Cardiovascular</label>'+inp('ef-cv',ef.ex_cv,'')+'</div>'
+    +'<div class="ficha-field" style="grid-column:1/-1"><label>Ex. Respiratório</label>'+inp('ef-resp',ef.ex_resp,'')+'</div>'
+    +'<div class="ficha-field" style="grid-column:1/-1"><label>Ex. Abdominal</label>'+inp('ef-abdom',ef.ex_abdom,'')+'</div>'
+    +'<div class="ficha-field"><label>Edema de extremidades</label>'+sel('ef-edema',ef.edema,['','Sim','Não'])+'</div>'
+    +'<div class="ficha-field"><label>DAOP</label>'+sel('ef-daop',ef.daop,['','Sim','Não'])+'</div>'
+    +'</div></div>'
+    // EXAMES LAB
+    +'<div class="ficha-section"><div class="ficha-section-title">EXAMES LABORATORIAIS</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">'
+    +'<div class="ficha-field"><label>Hb</label>'+inp('lab-hb',lab.hb,'')+'</div>'
+    +'<div class="ficha-field"><label>Plaquetas</label>'+inp('lab-plaq',lab.plaq,'')+'</div>'
+    +'<div class="ficha-field"><label>INR</label>'+inp('lab-inr',lab.inr,'')+'</div>'
+    +'<div class="ficha-field"><label>TTPa(R)</label>'+inp('lab-ttpa',lab.ttpa,'')+'</div>'
+    +'<div class="ficha-field"><label>Na+</label>'+inp('lab-na',lab.na,'')+'</div>'
+    +'<div class="ficha-field"><label>K+</label>'+inp('lab-k',lab.k,'')+'</div>'
+    +'<div class="ficha-field"><label>Creatinina</label>'+inp('lab-cr',lab.cr,'')+'</div>'
+    +'<div class="ficha-field"><label>Glicose</label>'+inp('lab-glic',lab.glic,'')+'</div>'
+    +'<div class="ficha-field"><label>Albumina</label>'+inp('lab-alb',lab.alb,'')+'</div>'
+    +'<div class="ficha-field"><label>BT</label>'+inp('lab-bt',lab.bt,'')+'</div>'
+    +'<div class="ficha-field"><label>Fibrinogênio</label>'+inp('lab-fibrin',lab.fibrin,'')+'</div>'
+    +'<div class="ficha-field"><label>Colesterol T</label>'+inp('lab-colest',lab.colest,'')+'</div>'
+    +'<div class="ficha-field"><label>ECG</label>'+inp('lab-ecg',lab.ecg,'')+'</div>'
+    +'<div class="ficha-field"><label>ECOTT</label>'+inp('lab-ecott',lab.ecott,'')+'</div>'
+    +'<div class="ficha-field"><label>FEVE (%)</label>'+inp('lab-feve',lab.feve,'')+'</div>'
+    +'<div class="ficha-field"><label>PSAP</label>'+inp('lab-psap',lab.psap,'')+'</div>'
+    +'<div class="ficha-field"><label>pH (GASO)</label>'+inp('lab-ph',lab.ph,'')+'</div>'
+    +'<div class="ficha-field"><label>PaO2</label>'+inp('lab-pao2',lab.pao2,'')+'</div>'
+    +'<div class="ficha-field"><label>PaCO2</label>'+inp('lab-paco2',lab.paco2,'')+'</div>'
+    +'<div class="ficha-field"><label>SpO2 (%)</label>'+inp('lab-spo2',lab.spo2,'')+'</div>'
+    +'</div></div>'
+    // SEGUIMENTOS
+    +'<div class="ficha-section"><div class="ficha-section-title">SEGUIMENTOS E PENDÊNCIAS</div>'
+    +'<table class="ficha-table"><tbody>'
+    +'<tr><td>Estímulo à eritropoiese IV ou VO (ferro + folato)</td><td>'+snSeg('eritropoiese')+'</td></tr>'
+    +'<tr><td>Encaminhar ao HEMOCE (anticorpos irregulares)</td><td>'+snSeg('hemoce')+'</td></tr>'
+    +'<tr><td>Meias de compressão antitrombo/antiembólica</td><td>'+snSeg('meias')+'</td></tr>'
+    +'<tr><td>Cateter de Swan-Ganz / Volumeview</td><td>'+snSeg('swan')+'</td></tr>'
+    +'<tr><td>Convocação de segundo candidato receptor</td><td>'+snSeg('segundo')+'</td></tr>'
+    +'<tr><td>Requer manejo perioperatório especial</td><td>'+snSeg('manejo')+'</td></tr>'
+    +'</tbody></table></div>'
+    // OBS
+    +'<div class="ficha-section"><div class="ficha-section-title">OBSERVAÇÕES</div>'
+    +'<textarea class="ficha-obs-input" id="fi-obs" style="min-height:60px;width:100%">'+esc(f?f.observacoes||'':'')+'</textarea>'
+    +'</div>'
+    +'<div class="ficha-actions">'
+    +'<button class="btn-anestesia-edit" id="btn-cancelar-form-ficha">Cancelar</button>'
+    +'<button class="btn-anestesia-print" id="btn-salvar-form-ficha">💾 Salvar Ficha</button>'
+    +'</div></div>';
+
+  get('anestesia-content').innerHTML = html;
+
+  get('btn-cancelar-form-ficha').addEventListener('click', function(){
+    if(fichaAtual) renderFichaView(fichaAtual, fichaAtual.prontuario);
+    else initAnestesia();
+  });
+
+  get('btn-salvar-form-ficha').addEventListener('click', function(){
+    var pront = get('fi-pront').value.trim();
+    var nome  = get('fi-nome').value.trim();
+    if(!pront||!nome){showToast('Prontuário e nome são obrigatórios.','error');return;}
+
+    var com2={};
+    ['ic','dm','angina','has','tabag','asma','tosse','fraq','tireoide','renal','ictericia','ascite','coag','hda','hemor_sem','hemor_pos','transf','psiq','encef','alergia','ciruranterior','efeito_anest','etilismo','internamento','analgesico'].forEach(function(k){
+      var vEl=get('fi-com-'+k+'-val'), oEl=get('fi-com-'+k+'-obs');
+      com2[k]={val:vEl?vEl.value:'', obs:oEl?oEl.value:''};
+    });
+    com2.medicacoes = get('fi-medicacoes').value;
+
+    var metsEl = document.querySelector('input[name="mets"]:checked');
+
+    var rec={
+      prontuario:pront, nome:nome,
+      sexo:get('fi-sexo').value,
+      idade:get('fi-idade').value,
+      tipo_sanguineo:get('fi-tipo_sang').value,
+      diagnostico:get('fi-diagnostico').value,
+      cirurgia_proposta:get('fi-cirurgia').value,
+      data_ficha:get('fi-data').value||null,
+      mets:metsEl?metsEl.value:'',
+      comorbidades:com2,
+      exame_fisico:{
+        peso:get('fi-ef-peso').value, altura:get('fi-ef-altura').value,
+        iot_dificil:get('fi-ef-iot').value, mallampati:get('fi-ef-mallampati').value,
+        ex_cv:get('fi-ef-cv').value, ex_resp:get('fi-ef-resp').value,
+        ex_abdom:get('fi-ef-abdom').value, edema:get('fi-ef-edema').value,
+        daop:get('fi-ef-daop').value
+      },
+      exames_lab:{
+        hb:get('fi-lab-hb').value, plaq:get('fi-lab-plaq').value,
+        inr:get('fi-lab-inr').value, ttpa:get('fi-lab-ttpa').value,
+        na:get('fi-lab-na').value, k:get('fi-lab-k').value,
+        cr:get('fi-lab-cr').value, glic:get('fi-lab-glic').value,
+        alb:get('fi-lab-alb').value, bt:get('fi-lab-bt').value,
+        fibrin:get('fi-lab-fibrin').value, colest:get('fi-lab-colest').value,
+        ecg:get('fi-lab-ecg').value, ecott:get('fi-lab-ecott').value,
+        feve:get('fi-lab-feve').value, psap:get('fi-lab-psap').value,
+        ph:get('fi-lab-ph').value, pao2:get('fi-lab-pao2').value,
+        paco2:get('fi-lab-paco2').value, spo2:get('fi-lab-spo2').value
+      },
+      seguimentos:{
+        eritropoiese:get('fi-seg-eritropoiese').value,
+        hemoce:get('fi-seg-hemoce').value,
+        meias:get('fi-seg-meias').value,
+        swan:get('fi-seg-swan').value,
+        segundo:get('fi-seg-segundo').value,
+        manejo:get('fi-seg-manejo').value
+      },
+      observacoes:get('fi-obs').value,
+      updated_at:new Date().toISOString()
+    };
+
+    if(sbClient){
+      sbClient.from('ficha_anestesica').upsert([rec],{onConflict:'prontuario'}).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        fichaAtual=rec;
+        showToast('Ficha salva!','success');
+        buscarFicha(pront);
+      });
+    } else {
+      var local=lsGet('fichas_anest')||{};
+      local[pront]=rec; lsSet('fichas_anest',local);
+      fichaAtual=rec;
+      showToast('Ficha salva!','success');
+      renderFichaView(rec, pront);
+    }
+  });
+}
+
+
 // ── RECEPTORES ──
 var grupoAtivo = 'O';
 var receptoresData = [];
@@ -2333,7 +2918,8 @@ function gerarPDFReceptor(r){
     +'.field{margin-bottom:4px;} .label{font-size:10px;font-weight:bold;color:#8a9ab5;text-transform:uppercase;} .value{font-size:13px;color:#1a2535;}'
     +'.full{grid-column:1/-1;} .footer{margin-top:30px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
     +'.badge{display:inline-block;background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:4px;}'
-    +'@media print{body{padding:10px;}}</style></head><body>'
+    +'</style>'
+    +'</head><body>'
     +'<h1>Resumo Pré-Transplante — HGF</h1>'
     +'<h2>Programa de Transplante Hepático do Ceará</h2>'
     +'<div class="section"><div class="section-title">Identificação</div><div class="grid">'
