@@ -179,6 +179,36 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .leito-paciente-input[readonly]{background:var(--surface2);cursor:default;color:var(--text2);}
 .leito-actions{display:flex;gap:6px;justify-content:flex-end;}
 
+
+/* RECEPTORES */
+.receptor-grupos{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.grupo-btn{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:all .2s;font-family:var(--mono);}
+.grupo-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.receptor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;}
+.receptor-card:hover{border-color:var(--border2);box-shadow:var(--shadow2);}
+.receptor-card.inativo{opacity:.5;}
+.meld-badge{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:4px 10px;border-radius:6px;min-width:44px;text-align:center;flex-shrink:0;}
+.meld-badge.alto{background:var(--red);}
+.meld-badge.medio{background:var(--yellow);color:var(--text);}
+.meld-badge.baixo{background:var(--green-dark);}
+.receptor-info{flex:1;min-width:0;}
+.receptor-nome{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.receptor-sub{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.receptor-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
+.rbadge{font-size:10px;padding:1px 7px;border-radius:10px;font-family:var(--mono);font-weight:600;}
+.rbadge-green{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);}
+.rbadge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.rbadge-blue{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);}
+.rbadge-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.receptor-actions{display:flex;gap:6px;flex-shrink:0;}
+
+/* MODAL RECEPTOR DETALHE */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:12px;}
+.detail-field{font-size:13px;}
+.detail-label{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:2px;}
+.detail-value{color:var(--text);font-weight:500;}
+.detail-full{grid-column:1/-1;}
+
 @media(max-width:600px){header{padding:0 12px;}.header-title{display:none;}main{padding:10px 12px;}.modal{padding:16px;}}
 </style>
 </head>
@@ -211,6 +241,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab active" id="tab-fila">🏥 Fila de Internacao <span class="tab-count" id="count-fila">0</span></div>
     <div class="tab" id="tab-sessao">🩺 Sessao Clinica <span class="tab-count" id="count-sessao">0</span></div>
     <div class="tab" id="tab-stats">📊 Estatisticas</div>
+    <div class="tab" id="tab-receptores">🫀 Lista de Receptores</div>
     <div class="tab" id="tab-plantao" style="display:none">🛏️ Passagem de Plantao</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
@@ -240,6 +271,25 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
         <button class="filter-btn" data-period="total">Total</button>
       </div>
       <div id="stats-content"></div>
+    </div>
+
+
+    <!-- RECEPTORES -->
+    <div id="panel-receptores" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Lista de Receptores</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" class="form-input" id="receptores-busca" placeholder="Buscar por nome..." style="width:200px;padding:6px 10px;font-size:12px;">
+          <button class="btn btn-primary" id="btn-novo-receptor">+ Novo Receptor</button>
+        </div>
+      </div>
+      <div class="receptor-grupos">
+        <button class="grupo-btn active" data-grupo="O">Grupo O</button>
+        <button class="grupo-btn" data-grupo="A">Grupo A</button>
+        <button class="grupo-btn" data-grupo="AB">Grupo AB</button>
+        <button class="grupo-btn" data-grupo="B">Grupo B</button>
+      </div>
+      <div id="receptores-list"></div>
     </div>
 
     <!-- PLANTAO -->
@@ -356,6 +406,168 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="modal-footer">
       <button class="btn btn-ghost" id="btn-cancelar-resolver">Cancelar</button>
       <button class="btn btn-success" id="btn-confirmar-resolver">Confirmar - Resolvido</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: NOVO/EDITAR RECEPTOR -->
+<div class="modal-overlay" id="modal-receptor">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title" id="modal-receptor-titulo">Novo Receptor</div>
+    <input type="hidden" id="rec-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      <div class="form-row">
+        <label class="form-label">Grupo Sanguíneo *</label>
+        <select class="form-select" id="rec-grupo">
+          <option value="O">Grupo O</option>
+          <option value="A">Grupo A</option>
+          <option value="AB">Grupo AB</option>
+          <option value="B">Grupo B</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Posição na Fila</label>
+        <input type="number" class="form-input" id="rec-posicao" placeholder="Ex: 1">
+      </div>
+      <div class="form-row" style="grid-column:1/-1">
+        <label class="form-label">Nome do Paciente *</label>
+        <input type="text" class="form-input" id="rec-nome" placeholder="Nome completo">
+      </div>
+      <div class="form-row">
+        <label class="form-label">MELD *</label>
+        <input type="number" class="form-input" id="rec-meld" placeholder="Ex: 22">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Idade</label>
+        <input type="number" class="form-input" id="rec-idade" placeholder="Anos">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Validade do Exame</label>
+        <input type="date" class="form-input" id="rec-validade">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="rec-status">
+          <option value="Ativo">Ativo</option>
+          <option value="Inativo">Inativo</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Equipe</label>
+        <select class="form-select" id="rec-equipe">
+          <option value="HGF">HGF</option>
+          <option value="HSC">HSC</option>
+          <option value="HRU">HRU</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-row" style="grid-column:1/-1">
+        <label class="form-label">Diagnóstico *</label>
+        <input type="text" class="form-input" id="rec-diagnostico" placeholder="Ex: CH-OH, CH-HCV, CH-criptogênica...">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Priorização</label>
+        <select class="form-select" id="rec-priorizacao">
+          <option value="NÃO">NÃO</option>
+          <option value="Hepatocarcinoma">Hepatocarcinoma</option>
+          <option value="Ascite Refratária">Ascite Refratária</option>
+          <option value="Encefalopatia Crônica">Encefalopatia Crônica</option>
+          <option value="Prurido Intratável">Prurido Intratável</option>
+          <option value="Colangite de Repetição">Colangite de Repetição</option>
+          <option value="Tumor Neuroendócrino Não Ressecável">Tumor Neuroendócrino Não Ressecável</option>
+          <option value="Síndrome Hepatopulmonar">Síndrome Hepatopulmonar</option>
+          <option value="PAF">PAF</option>
+          <option value="Carcinoma Fibrolamelar">Carcinoma Fibrolamelar</option>
+          <option value="Hepatite Fulminante">Hepatite Fulminante</option>
+          <option value="Não Funcionamento do Enxerto">Não Funcionamento do Enxerto</option>
+          <option value="Trombose de Artéria Hepática">Trombose de Artéria Hepática</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Data da Priorização</label>
+        <input type="date" class="form-input" id="rec-data-priorizacao">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Child</label>
+        <select class="form-select" id="rec-child">
+          <option value="">-</option>
+          <option value="A5">A5</option><option value="A6">A6</option>
+          <option value="B7">B7</option><option value="B8">B8</option><option value="B9">B9</option>
+          <option value="C10">C10</option><option value="C11">C11</option><option value="C12">C12</option>
+          <option value="C13">C13</option><option value="C14">C14</option><option value="C15">C15</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Peso (kg)</label>
+        <input type="number" class="form-input" id="rec-peso" placeholder="Ex: 73">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Altura (cm)</label>
+        <input type="number" class="form-input" id="rec-altura" placeholder="Ex: 165">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Trombose</label>
+        <select class="form-select" id="rec-trombose">
+          <option value="NÃO">NÃO</option>
+          <option value="SIM">SIM</option>
+          <option value="Parcial">Parcial</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">AntiHbs</label>
+        <select class="form-select" id="rec-antihbs">
+          <option value="">-</option>
+          <option value="Positivo">Positivo</option>
+          <option value="Negativo">Negativo</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">ATB de Indução</label>
+        <input type="text" class="form-input" id="rec-atb" placeholder="Ex: Unasyn + Vancomicina">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Corticóide</label>
+        <select class="form-select" id="rec-corticoide">
+          <option value="">-</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Médico Assistente</label>
+        <select class="form-select" id="rec-medico"></select>
+      </div>
+      <div class="form-row" style="grid-column:1/-1">
+        <label class="form-label">Descompensações</label>
+        <input type="text" class="form-input" id="rec-descompensacoes" placeholder="Ex: HDA, Ascite, EH">
+      </div>
+      <div class="form-row" style="grid-column:1/-1">
+        <label class="form-label">Comorbidades</label>
+        <input type="text" class="form-input" id="rec-comorbidades" placeholder="Ex: DM2, HAS, DLP">
+      </div>
+      <div class="form-row" style="grid-column:1/-1">
+        <label class="form-label">Observações</label>
+        <textarea class="form-textarea" id="rec-observacoes" placeholder="Observações clínicas relevantes..." style="min-height:60px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar-receptor">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-receptor">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALHE RECEPTOR -->
+<div class="modal-overlay" id="modal-receptor-detalhe">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-title" id="detalhe-titulo">Receptor</div>
+    <div id="detalhe-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-fechar-detalhe">Fechar</button>
+      <button class="btn btn-ghost" id="btn-editar-detalhe">✏️ Editar</button>
+      <button class="btn btn-danger btn-sm" id="btn-remover-detalhe" style="display:none">Remover</button>
+      <button class="btn btn-primary" id="btn-pdf-detalhe">📄 Gerar PDF</button>
     </div>
   </div>
 </div>
@@ -1529,18 +1741,20 @@ function setupRealtime(){
 }
 
 get('tab-fila').addEventListener('click',function(){switchTab('fila');});
+get('tab-receptores').addEventListener('click',function(){switchTab('receptores');});
 get('tab-sessao').addEventListener('click',function(){switchTab('sessao');});
 get('tab-stats').addEventListener('click',function(){switchTab('stats');});
 get('tab-plantao').addEventListener('click',function(){switchTab('plantao');});
 get('tab-config').addEventListener('click',function(){switchTab('config');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','plantao','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','plantao','config'].forEach(function(t){
     get('panel-'+t).style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
   if(tab==='stats')loadStats();
   if(tab==='plantao')loadPlantao();
+  if(tab==='receptores'){grupoAtivo='O';loadReceptores();}
 }
 
 // Filtros de periodo
@@ -1856,6 +2070,306 @@ function loadStats(){
     render(lsGet('fila')||[],lsGet('sessao')||[]);
   }
 }
+
+
+// ── RECEPTORES ──
+var grupoAtivo = 'O';
+var receptoresData = [];
+var receptorEditandoId = null;
+
+var PRIORIZACOES = ['NÃO','Hepatocarcinoma','Ascite Refratária','Encefalopatia Crônica',
+  'Prurido Intratável','Colangite de Repetição','Tumor Neuroendócrino Não Ressecável',
+  'Síndrome Hepatopulmonar','PAF','Carcinoma Fibrolamelar','Hepatite Fulminante',
+  'Não Funcionamento do Enxerto','Trombose de Artéria Hepática'];
+
+// Grupo buttons
+document.querySelectorAll('.grupo-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.grupo-btn').forEach(function(b){b.classList.remove('active');});
+    this.classList.add('active');
+    grupoAtivo = this.dataset.grupo;
+    renderReceptores();
+  });
+});
+
+// Busca
+get('receptores-busca').addEventListener('input', function(){renderReceptores();});
+
+function loadReceptores(){
+  if(!sbClient){renderReceptores();return;}
+  sbClient.from('receptores').select('*').order('meld',{ascending:false})
+    .then(function(r){receptoresData=r.data||[];renderReceptores();})
+    .catch(function(){renderReceptores();});
+}
+
+function meldColor(meld){
+  if(!meld) return 'baixo';
+  if(meld>=25) return 'alto';
+  if(meld>=15) return 'medio';
+  return 'baixo';
+}
+
+function renderReceptores(){
+  var busca = get('receptores-busca').value.toLowerCase().trim();
+  var lista = receptoresData.filter(function(r){
+    var grupoOk = busca ? true : r.grupo === grupoAtivo;
+    var buscaOk = !busca || (r.nome||'').toLowerCase().indexOf(busca) >= 0;
+    return grupoOk && buscaOk;
+  });
+  lista.sort(function(a,b){return (b.meld||0)-(a.meld||0);});
+
+  var ativos = lista.filter(function(r){return r.status==='Ativo';});
+  var inativos = lista.filter(function(r){return r.status!=='Ativo';});
+
+  var c = get('receptores-list');
+  if(!lista.length){c.innerHTML='<div class="empty-state">Nenhum receptor cadastrado neste grupo.</div>';return;}
+
+  function cardHtml(r){
+    var pri = r.priorizacao && r.priorizacao!=='NÃO' ? '<span class="rbadge rbadge-red">'+esc(r.priorizacao)+'</span>' : '';
+    var trom = r.trombose==='SIM'||r.trombose==='Parcial' ? '<span class="rbadge rbadge-red">Trombose '+esc(r.trombose)+'</span>' : '';
+    var equipe = r.equipe ? '<span class="rbadge rbadge-gray">'+esc(r.equipe)+'</span>' : '';
+    var valid = r.validade_exame ? '<span class="rbadge rbadge-gray">Val: '+fmtDateShort(r.validade_exame)+'</span>' : '';
+    return '<div class="receptor-card'+(r.status!=='Ativo'?' inativo':'')+'" data-id="'+esc(r.id)+'">'
+      +'<div class="meld-badge '+meldColor(r.meld)+'">'+(r.meld||'-')+'</div>'
+      +'<div class="receptor-info">'
+      +'<div class="receptor-nome">'+(r.posicao?r.posicao+'. ':'')+esc(r.nome)+'</div>'
+      +'<div class="receptor-sub">'+esc(r.diagnostico||'-')+' · '+esc(r.medico||'-')+(r.idade?' · '+r.idade+' anos':'')+'</div>'
+      +'<div class="receptor-badges">'+pri+trom+equipe+valid+'</div>'
+      +'</div>'
+      +'</div>';
+  }
+
+  c.innerHTML =
+    ativos.map(cardHtml).join('') +
+    (inativos.length ? '<div class="section-divider" style="margin-top:12px">Inativos</div>'+inativos.map(cardHtml).join('') : '');
+
+  c.querySelectorAll('.receptor-card').forEach(function(card){
+    card.addEventListener('click',function(){abrirDetalheReceptor(this.dataset.id);});
+  });
+}
+
+function abrirDetalheReceptor(id){
+  var r = receptoresData.find(function(x){return x.id===id;});
+  if(!r) return;
+  get('detalhe-titulo').textContent = 'Receptor — Grupo '+r.grupo;
+  get('btn-remover-detalhe').style.display = currentRole==='admin' ? 'inline-flex' : 'none';
+  get('btn-remover-detalhe').dataset.id = id;
+  get('btn-editar-detalhe').dataset.id = id;
+  get('btn-pdf-detalhe').dataset.id = id;
+
+  function dv(label, val){
+    return val ? '<div class="detail-field"><div class="detail-label">'+label+'</div><div class="detail-value">'+esc(val)+'</div></div>' : '';
+  }
+  function dvFull(label, val){
+    return val ? '<div class="detail-field detail-full"><div class="detail-label">'+label+'</div><div class="detail-value">'+esc(val)+'</div></div>' : '';
+  }
+
+  get('detalhe-content').innerHTML =
+    '<div class="detail-grid">'
+    + dv('Status', r.status)
+    + dv('Equipe', r.equipe)
+    + dv('MELD', r.meld)
+    + dv('Child', r.child)
+    + dv('Posição', r.posicao)
+    + dv('Validade Exame', r.validade_exame ? fmtDateShort(r.validade_exame) : '')
+    + dv('Peso', r.peso ? r.peso+'kg' : '')
+    + dv('Altura', r.altura ? r.altura+'cm' : '')
+    + dvFull('Diagnóstico', r.diagnostico)
+    + dv('Priorização', r.priorizacao)
+    + dv('Data Priorização', r.data_priorizacao ? fmtDateShort(r.data_priorizacao) : '')
+    + dv('Trombose', r.trombose)
+    + dv('AntiHbs', r.antihbs)
+    + dv('ATB de Indução', r.atb_inducao)
+    + dv('Corticóide', r.corticoide)
+    + dvFull('Descompensações', r.descompensacoes)
+    + dvFull('Comorbidades', r.comorbidades)
+    + dv('Médico Assistente', r.medico)
+    + dvFull('Observações', r.observacoes)
+    + '</div>';
+
+  openModal('modal-receptor-detalhe');
+}
+
+get('btn-fechar-detalhe').addEventListener('click',function(){closeModal('modal-receptor-detalhe');});
+
+get('btn-editar-detalhe').addEventListener('click',function(){
+  closeModal('modal-receptor-detalhe');
+  var id=this.dataset.id;
+  var r=receptoresData.find(function(x){return x.id===id;});
+  if(r) abrirFormReceptor(r);
+});
+
+get('btn-remover-detalhe').addEventListener('click',function(){
+  var id=this.dataset.id;
+  if(!confirm('Remover este receptor da lista?')) return;
+  if(sbClient){
+    sbClient.from('receptores').delete().eq('id',id).then(function(){
+      closeModal('modal-receptor-detalhe');
+      receptoresData=receptoresData.filter(function(x){return x.id!==id;});
+      renderReceptores();
+      showToast('Receptor removido.','success');
+    });
+  } else {
+    receptoresData=receptoresData.filter(function(x){return x.id!==id;});
+    renderReceptores();
+    closeModal('modal-receptor-detalhe');
+    showToast('Receptor removido.','success');
+  }
+});
+
+// FORM
+get('btn-novo-receptor').addEventListener('click',function(){abrirFormReceptor(null);});
+get('btn-cancelar-receptor').addEventListener('click',function(){closeModal('modal-receptor');});
+
+function abrirFormReceptor(r){
+  receptorEditandoId = r ? r.id : null;
+  get('modal-receptor-titulo').textContent = r ? 'Editar Receptor' : 'Novo Receptor';
+  get('rec-id').value = r ? r.id : '';
+  get('rec-grupo').value = r ? r.grupo : grupoAtivo;
+  get('rec-posicao').value = r ? (r.posicao||'') : '';
+  get('rec-nome').value = r ? (r.nome||'') : '';
+  get('rec-meld').value = r ? (r.meld||'') : '';
+  get('rec-idade').value = r ? (r.idade||'') : '';
+  get('rec-validade').value = r ? (r.validade_exame||'') : '';
+  get('rec-status').value = r ? (r.status||'Ativo') : 'Ativo';
+  get('rec-equipe').value = r ? (r.equipe||'HGF') : 'HGF';
+  get('rec-diagnostico').value = r ? (r.diagnostico||'') : '';
+  get('rec-priorizacao').value = r ? (r.priorizacao||'NÃO') : 'NÃO';
+  get('rec-data-priorizacao').value = r ? (r.data_priorizacao||'') : '';
+  get('rec-child').value = r ? (r.child||'') : '';
+  get('rec-peso').value = r ? (r.peso||'') : '';
+  get('rec-altura').value = r ? (r.altura||'') : '';
+  get('rec-trombose').value = r ? (r.trombose||'NÃO') : 'NÃO';
+  get('rec-antihbs').value = r ? (r.antihbs||'') : '';
+  get('rec-atb').value = r ? (r.atb_inducao||'') : '';
+  get('rec-corticoide').value = r ? (r.corticoide||'') : '';
+  get('rec-descompensacoes').value = r ? (r.descompensacoes||'') : '';
+  get('rec-comorbidades').value = r ? (r.comorbidades||'') : '';
+  get('rec-observacoes').value = r ? (r.observacoes||'') : '';
+  // medico
+  var docs=getDoctors();
+  get('rec-medico').innerHTML=docs.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('');
+  if(r&&r.medico) get('rec-medico').value=r.medico;
+  openModal('modal-receptor');
+}
+
+get('btn-salvar-receptor').addEventListener('click',function(){
+  var nome=get('rec-nome').value.trim();
+  var meld=get('rec-meld').value;
+  var diag=get('rec-diagnostico').value.trim();
+  if(!nome||!diag){showToast('Preencha nome e diagnóstico.','error');return;}
+
+  var rec={
+    grupo:get('rec-grupo').value,
+    posicao:get('rec-posicao').value?parseInt(get('rec-posicao').value):null,
+    nome:nome, meld:meld?parseInt(meld):null,
+    idade:get('rec-idade').value?parseInt(get('rec-idade').value):null,
+    validade_exame:get('rec-validade').value||null,
+    status:get('rec-status').value,
+    equipe:get('rec-equipe').value,
+    diagnostico:diag,
+    priorizacao:get('rec-priorizacao').value,
+    data_priorizacao:get('rec-data-priorizacao').value||null,
+    child:get('rec-child').value||null,
+    peso:get('rec-peso').value?parseFloat(get('rec-peso').value):null,
+    altura:get('rec-altura').value?parseFloat(get('rec-altura').value):null,
+    trombose:get('rec-trombose').value,
+    antihbs:get('rec-antihbs').value||null,
+    atb_inducao:get('rec-atb').value.trim()||null,
+    corticoide:get('rec-corticoide').value||null,
+    medico:get('rec-medico').value,
+    descompensacoes:get('rec-descompensacoes').value.trim()||null,
+    comorbidades:get('rec-comorbidades').value.trim()||null,
+    observacoes:get('rec-observacoes').value.trim()||null,
+    updated_at:new Date().toISOString()
+  };
+
+  if(sbClient){
+    if(receptorEditandoId){
+      sbClient.from('receptores').update(rec).eq('id',receptorEditandoId).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        showToast('Receptor atualizado!','success');
+        closeModal('modal-receptor');
+        loadReceptores();
+      });
+    } else {
+      rec.created_at=new Date().toISOString();
+      sbClient.from('receptores').insert([rec]).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        showToast('Receptor cadastrado!','success');
+        closeModal('modal-receptor');
+        loadReceptores();
+      });
+    }
+  } else {
+    if(receptorEditandoId){
+      var idx=receptoresData.findIndex(function(x){return x.id===receptorEditandoId;});
+      if(idx!==-1) Object.assign(receptoresData[idx],rec);
+    } else {
+      rec.id=Date.now().toString();
+      rec.created_at=new Date().toISOString();
+      receptoresData.push(rec);
+    }
+    showToast('Receptor salvo!','success');
+    closeModal('modal-receptor');
+    renderReceptores();
+  }
+});
+
+// PDF
+get('btn-pdf-detalhe').addEventListener('click',function(){
+  var id=this.dataset.id;
+  var r=receptoresData.find(function(x){return x.id===id;});
+  if(r) gerarPDFReceptor(r);
+});
+
+function gerarPDFReceptor(r){
+  var now = new Date().toLocaleDateString('pt-BR');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>body{font-family:Arial,sans-serif;font-size:13px;color:#1a2535;padding:30px;max-width:700px;margin:0 auto;}'
+    +'h1{font-size:18px;color:#185FA5;margin-bottom:4px;}h2{font-size:13px;color:#4a5e78;font-weight:normal;margin-bottom:20px;}'
+    +'.section{margin-bottom:16px;} .section-title{font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;border-bottom:1px solid #dde3ed;padding-bottom:4px;margin-bottom:8px;}'
+    +'.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}'
+    +'.field{margin-bottom:4px;} .label{font-size:10px;font-weight:bold;color:#8a9ab5;text-transform:uppercase;} .value{font-size:13px;color:#1a2535;}'
+    +'.full{grid-column:1/-1;} .footer{margin-top:30px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
+    +'.badge{display:inline-block;background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:4px;}'
+    +'@media print{body{padding:10px;}}</style></head><body>'
+    +'<h1>Resumo Pré-Transplante — HGF</h1>'
+    +'<h2>Programa de Transplante Hepático do Ceará</h2>'
+    +'<div class="section"><div class="section-title">Identificação</div><div class="grid">'
+    +'<div class="field full"><div class="label">Paciente</div><div class="value" style="font-size:16px;font-weight:bold;">'+esc(r.nome)+'</div></div>'
+    +(r.idade?'<div class="field"><div class="label">Idade</div><div class="value">'+r.idade+' anos</div></div>':'')
+    +'<div class="field"><div class="label">Grupo Sanguíneo</div><div class="value">'+esc(r.grupo)+'</div></div>'
+    +(r.equipe?'<div class="field"><div class="label">Equipe</div><div class="value">'+esc(r.equipe)+'</div></div>':'')
+    +(r.medico?'<div class="field"><div class="label">Médico Assistente</div><div class="value">'+esc(r.medico)+'</div></div>':'')
+    +(r.status?'<div class="field"><div class="label">Status</div><div class="value">'+esc(r.status)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Dados Clínicos</div><div class="grid">'
+    +(r.meld?'<div class="field"><div class="label">MELD</div><div class="value" style="font-size:18px;font-weight:bold;color:#185FA5;">'+r.meld+'</div></div>':'')
+    +(r.child?'<div class="field"><div class="label">Child-Pugh</div><div class="value">'+esc(r.child)+'</div></div>':'')
+    +(r.peso?'<div class="field"><div class="label">Peso</div><div class="value">'+r.peso+' kg</div></div>':'')
+    +(r.altura?'<div class="field"><div class="label">Altura</div><div class="value">'+r.altura+' cm</div></div>':'')
+    +(r.diagnostico?'<div class="field full"><div class="label">Diagnóstico</div><div class="value">'+esc(r.diagnostico)+'</div></div>':'')
+    +(r.priorizacao&&r.priorizacao!=='NÃO'?'<div class="field full"><div class="label">Priorização</div><div class="value"><span class="badge">'+esc(r.priorizacao)+'</span>'+(r.data_priorizacao?' desde '+fmtDateShort(r.data_priorizacao):'')+'</div></div>':'')
+    +(r.trombose&&r.trombose!=='NÃO'?'<div class="field"><div class="label">Trombose</div><div class="value"><span class="badge">'+esc(r.trombose)+'</span></div></div>':'')
+    +(r.descompensacoes?'<div class="field full"><div class="label">Descompensações</div><div class="value">'+esc(r.descompensacoes)+'</div></div>':'')
+    +(r.comorbidades?'<div class="field full"><div class="label">Comorbidades</div><div class="value">'+esc(r.comorbidades)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Protocolo de Transplante</div><div class="grid">'
+    +(r.antihbs?'<div class="field"><div class="label">AntiHbs</div><div class="value">'+esc(r.antihbs)+'</div></div>':'')
+    +(r.atb_inducao?'<div class="field full"><div class="label">ATB de Indução</div><div class="value">'+esc(r.atb_inducao)+'</div></div>':'')
+    +(r.corticoide?'<div class="field"><div class="label">Corticóide</div><div class="value">'+esc(r.corticoide)+'</div></div>':'')
+    +'</div></div>'
+    +(r.observacoes?'<div class="section"><div class="section-title">Observações</div><div style="padding:8px;background:#f5f7fa;border-radius:6px;font-size:13px;">'+esc(r.observacoes)+'</div></div>':'')
+    +'<div class="footer">Documento gerado em '+now+' — Alertas Tx Hepático HGF</div>'
+    +'</body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},500);
+}
+
 
 // ── PLANTAO ──
 var LEITOS=['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4'];
