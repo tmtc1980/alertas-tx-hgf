@@ -3116,16 +3116,6 @@ function renderTabImuno(d,c){
     +dvRow('Alergia',im.alergia)
     +'</div>'
     +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
-    +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
-    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">MANUTENCAO</div>'
-    +dvRow('Tac/CsA',im.tac_csa)+dvRow('Iniciado em D',im.tac_inicio)
-    +dvRow('MMF/Myfortic',im.mmf)+dvRow('Iniciado em D',im.mmf_inicio)
-    +dvRow('Sirolimo/Everolimo',im.siro_ever)+dvRow('Iniciado em D',im.siro_inicio)
-    +dvRow('Corticosteroide',im.cortico)
-    +dvRow('Outros Medicamentos',im.outros)
-    +dvRow('Alergia Medicamentosa',im.alergia)
-    +'</div>'
   +(im.obs?'<div style="margin-top:12px;">'+dvRow('Observacoes',im.obs)+'</div>':'')
     +'</div>';
   var btnImuno=get('btn-editar-imuno');
