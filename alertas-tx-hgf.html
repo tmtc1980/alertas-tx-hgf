@@ -3517,13 +3517,29 @@ function abrirFormImagem(f,isPre){
     var data=get('img-data').value;
     if(!tipo||!data){showToast('Selecione o tipo e a data.','error');return;}
     var rec={tipo:tipo,data:data,local:get('img-local').value,medico:get('img-medico').value,resultado:get('img-resultado').value.trim()};
-    var dados=Object.assign({},f.dados||{});
-    dados.imagens=(dados.imagens||[]).concat([rec]);
-    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()});
-    folhaoAtivo.dados=dados;
-    closeModal('modal-imagem');
-    renderTabImagens(f,isPre,get('folhao-tab-content'));
-    showToast('Exame salvo!','success');
+    if(sbClient){
+      sbClient.from('folhoes').select('dados').eq('id',f.id).single()
+        .then(function(r){
+          var dadosAtuais=Object.assign({},(r.data&&r.data.dados)||f.dados||{});
+          dadosAtuais.imagens=(dadosAtuais.imagens||[]).concat([rec]);
+          return sbClient.from('folhoes').update({dados:dadosAtuais,updated_at:new Date().toISOString()}).eq('id',f.id)
+            .then(function(){
+              f.dados=dadosAtuais;
+              if(folhaoAtivo&&folhaoAtivo.id===f.id) folhaoAtivo.dados=dadosAtuais;
+              closeModal('modal-imagem');
+              renderTabImagens(f,isPre,get('folhao-tab-content'));
+              showToast('Exame salvo!','success');
+            });
+        });
+    } else {
+      var dados=Object.assign({},f.dados||{});
+      dados.imagens=(dados.imagens||[]).concat([rec]);
+      f.dados=dados;
+      folhaoAtivo.dados=dados;
+      closeModal('modal-imagem');
+      renderTabImagens(f,isPre,get('folhao-tab-content'));
+      showToast('Exame salvo!','success');
+    }
   });
 }
 
@@ -3647,11 +3663,27 @@ function abrirFormSorologias(f,isPre){
         novoSor[s]={receptor:rec?rec.value:'',doador:doa?doa.value:''};
       });
     }
-    var dados=Object.assign({},f.dados||{});
-    dados.sorologias=novoSor;
-    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
-    closeModal('modal-sorologias');
-    showToast('Sorologias salvas!','success');
+    if(sbClient){
+      sbClient.from('folhoes').select('dados').eq('id',f.id).single()
+        .then(function(r){
+          var dadosAtuais=Object.assign({},(r.data&&r.data.dados)||f.dados||{});
+          dadosAtuais.sorologias=novoSor;
+          return sbClient.from('folhoes').update({dados:dadosAtuais,updated_at:new Date().toISOString()}).eq('id',f.id);
+        }).then(function(){
+          f.dados=f.dados||{};
+          f.dados.sorologias=novoSor;
+          if(folhaoAtivo&&folhaoAtivo.id===f.id) folhaoAtivo.dados=f.dados;
+          closeModal('modal-sorologias');
+          showToast('Sorologias salvas!','success');
+          renderFolhaoContent();
+        });
+    } else {
+      var dados=Object.assign({},f.dados||{});
+      dados.sorologias=novoSor;
+      f.dados=dados;
+      closeModal('modal-sorologias');
+      showToast('Sorologias salvas!','success');
+    }
   });
 }
 
@@ -3753,11 +3785,27 @@ function abrirFormAntecedentes(f){
       if(texto&&texto.value.trim()) condutas.push({texto:texto.value.trim(),data:data?data.value:''});
     });
     novoAnt.condutas=condutas;
-    var dados=Object.assign({},f.dados||{});
-    dados.antecedentes=novoAnt;
-    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
-    closeModal('modal-antecedentes');
-    showToast('Antecedentes salvos!','success');
+    if(sbClient){
+      sbClient.from('folhoes').select('dados').eq('id',f.id).single()
+        .then(function(r){
+          var dadosAtuais=Object.assign({},(r.data&&r.data.dados)||f.dados||{});
+          dadosAtuais.antecedentes=novoAnt;
+          return sbClient.from('folhoes').update({dados:dadosAtuais,updated_at:new Date().toISOString()}).eq('id',f.id);
+        }).then(function(){
+          f.dados=f.dados||{};
+          f.dados.antecedentes=novoAnt;
+          if(folhaoAtivo&&folhaoAtivo.id===f.id) folhaoAtivo.dados=f.dados;
+          closeModal('modal-antecedentes');
+          showToast('Antecedentes salvos!','success');
+          renderFolhaoContent();
+        });
+    } else {
+      var dados=Object.assign({},f.dados||{});
+      dados.antecedentes=novoAnt;
+      f.dados=dados;
+      closeModal('modal-antecedentes');
+      showToast('Antecedentes salvos!','success');
+    }
   });
 }
 
@@ -4839,11 +4887,29 @@ function abrirFormDoador(f){
       tempo_anast:gv('tempo_anast'),vcava:gv('vcava'),vporta:gv('vporta'),
       ahep:gv('ahep'),via_biliar:gv('via_biliar')
     };
-    var dados=Object.assign({},f.dados||{});
-    dados.doador=novoDoc;
-    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
-    closeModal('modal-doador-form');
-    showToast('Dados do doador salvos!','success');
+    if(sbClient){
+      sbClient.from('folhoes').select('dados').eq('id',f.id).single()
+        .then(function(r){
+          var dadosAtuais=Object.assign({},(r.data&&r.data.dados)||f.dados||{});
+          dadosAtuais.doador=novoDoc;
+          return sbClient.from('folhoes').update({dados:dadosAtuais,updated_at:new Date().toISOString()}).eq('id',f.id);
+        }).then(function(){
+          f.dados=f.dados||{};
+          f.dados.doador=novoDoc;
+          if(folhaoAtivo&&folhaoAtivo.id===f.id) folhaoAtivo.dados=f.dados;
+          closeModal('modal-doador-form');
+          showToast('Dados do doador salvos!','success');
+          renderFolhaoContent();
+        }).catch(function(e){
+          showToast('Erro ao salvar.','error');
+        });
+    } else {
+      var dados=Object.assign({},f.dados||{});
+      dados.doador=novoDoc;
+      f.dados=dados;
+      closeModal('modal-doador-form');
+      showToast('Dados do doador salvos!','success');
+    }
   });
 }
 
@@ -4949,12 +5015,32 @@ function abrirFormImuno(f){
       ever_05:gv('ever_05'),ever_1:gv('ever_1'),ever_manha:gv('ever_manha'),ever_noite:gv('ever_noite'),
       cortico:gv('cortico'),outros:gv('outros'),alergia:gv('alergia'),obs:gv('obs')
     };
-    var dados=Object.assign({},f.dados||{});
-    dados.imuno=novoImuno;
-    dados.imuno_anterior=novoAnt;
-    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
-    closeModal('modal-imuno-form');
-    showToast('Imunossupressao salva!','success');
+    if(sbClient){
+      sbClient.from('folhoes').select('dados').eq('id',f.id).single()
+        .then(function(r){
+          var dadosAtuais=Object.assign({},(r.data&&r.data.dados)||f.dados||{});
+          dadosAtuais.imuno=novoImuno;
+          dadosAtuais.imuno_anterior=novoAnt;
+          return sbClient.from('folhoes').update({dados:dadosAtuais,updated_at:new Date().toISOString()}).eq('id',f.id);
+        }).then(function(){
+          f.dados=f.dados||{};
+          f.dados.imuno=novoImuno;
+          f.dados.imuno_anterior=novoAnt;
+          if(folhaoAtivo&&folhaoAtivo.id===f.id) folhaoAtivo.dados=f.dados;
+          closeModal('modal-imuno-form');
+          showToast('Imunossupressao salva!','success');
+          renderFolhaoContent();
+        }).catch(function(e){
+          showToast('Erro ao salvar.','error');
+        });
+    } else {
+      var dados=Object.assign({},f.dados||{});
+      dados.imuno=novoImuno;
+      dados.imuno_anterior=novoAnt;
+      f.dados=dados;
+      closeModal('modal-imuno-form');
+      showToast('Imunossupressao salva!','success');
+    }
   });
 }
 
