@@ -3328,6 +3328,7 @@ function abrirFormFolhao(f){
     +'<div class="form-row"><label class="form-label">Sexo</label><select class="form-select" id="ff-sexo"><option value="">-</option><option value="M"'+(d.sexo==='M'?' selected':'')+'>M</option><option value="F"'+(d.sexo==='F'?' selected':'')+'>F</option></select></div>'
     +'<div class="form-row"><label class="form-label">Idade</label><input type="text" class="form-input" id="ff-idade" value="'+esc(d.idade||'')+'"></div>'
     +'<div class="form-row"><label class="form-label">Cor</label><input type="text" class="form-input" id="ff-cor" value="'+esc(d.cor||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">CNS</label><input type="text" class="form-input" id="ff-cns" value="'+esc(d.cns||'')+'"></div>'
     +'<div class="form-row"><label class="form-label">CPF</label><input type="text" class="form-input" id="ff-cpf" value="'+esc(d.cpf||'')+'"></div>'
     +'<div class="form-row"><label class="form-label">Nome da Mae</label><input type="text" class="form-input" id="ff-mae" value="'+esc(d.nome_mae||'')+'"></div>'
     +'<div class="form-row"><label class="form-label">Matricula</label><input type="text" class="form-input" id="ff-mat" value="'+esc(d.matricula||'')+'"></div>'
@@ -3363,7 +3364,7 @@ function abrirFormFolhao(f){
       prontuario:pront, nome:nome, tipo:get('ff-tipo').value, status:f?(f.status||'ativo'):'ativo',
       dados:{
         data_nasc:get('ff-nasc').value, sexo:get('ff-sexo').value, idade:get('ff-idade').value,
-        cor:get('ff-cor').value, cpf:get('ff-cpf').value, nome_mae:get('ff-mae').value,
+        cor:get('ff-cor').value, cns:get('ff-cns')?get('ff-cns').value:'', cpf:get('ff-cpf').value, nome_mae:get('ff-mae').value,
         matricula:get('ff-mat').value, peso:get('ff-peso').value, altura:get('ff-altura').value,
         telefone:get('ff-tel').value, medico:get('ff-medico').value,
         abo:get('ff-abo').value, rh:get('ff-rh').value, meld:get('ff-meld').value,
@@ -3811,11 +3812,16 @@ function renderDocsGrid(grid, tipos, f, existentes){
       +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+t.nome+'</div>'
       +(data?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono);">Atualizado: '+data+'</div>':'<div style="font-size:11px;color:var(--text3);">Nao preenchido</div>')
       +'<div style="display:flex;gap:6px;margin-top:auto;">'
-      +'<button class="btn btn-primary btn-sm" style="flex:1;" onclick="abrirDocumento(\''+t.id+'\')">'+( existe?'Editar':'Preencher')+'</button>'
-      +(existe?'<button class="btn btn-ghost btn-sm" onclick="imprimirDocumento(\''+t.id+'\')">&#128438;</button>':'')
-      +'</div>'
-      +'</div>';
+      +'<button class="btn btn-primary btn-sm doc-abrir-btn" style="flex:1;" data-tipo="'+t.id+'">'+(existe?'Editar':'Preencher')+'</button>'
+      +(existe?'<button class="btn btn-ghost btn-sm doc-imprimir-btn" data-tipo="'+t.id+'">&#128438;</button>':'')
+      +'</div></div>';
   }).join('');
+  grid.querySelectorAll('.doc-abrir-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){abrirDocumento(this.dataset.tipo);});
+  });
+  grid.querySelectorAll('.doc-imprimir-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){imprimirDocumento(this.dataset.tipo);});
+  });
 }
 
 function abrirDocumento(tipo){
