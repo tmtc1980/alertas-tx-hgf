@@ -1,3 +1,437 @@
+
+
+function abrirAIHFullscreen(f, d, saved){
+  saved = saved||{};
+  var nome=f.nome||'', pront=f.prontuario||'', cns=d.cns||'', cpf=d.cpf||'';
+  var mae=d.nome_mae||'', tel=d.telefone||'', end=d.endereco||'';
+  var medico=d.medico||'', diag=d.etiologia||d.diagnostico||'';
+  var nasc=d.data_nasc?new Date(d.data_nasc+'T12:00:00').toLocaleDateString('pt-BR'):'';
+  var hoje=new Date().toLocaleDateString('pt-BR');
+
+  function fi(id,val,w){
+    return '<input type="text" class="aih-f" id="aihf-'+id+'" value="'+esc(saved[id]||val||'')+'" style="border:none;border-bottom:1px solid #666;width:'+(w||'100%')+';font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;font-family:Arial,sans-serif;">';
+  }
+  function fsel(id,val,opts){
+    return '<select class="aih-f" id="aihf-'+id+'" style="border:none;border-bottom:1px solid #666;width:100%;font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;">'+opts.map(function(o){return '<option value="'+o+'"'+((saved[id]||val)===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';
+  }
+  function fta(id,val,h){
+    return '<textarea class="aih-f" id="aihf-'+id+'" style="border:1px solid #666;width:100%;font-size:11px;padding:3px 5px;background:#fff;outline:none;color:#000;resize:vertical;min-height:'+(h||'50px')+';">'+esc(saved[id]||val||'')+'</textarea>';
+  }
+  var s='padding:6px 10px;border-bottom:1px solid #666;';
+  var lb='font-size:9px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase;';
+  var g2='display:grid;grid-template-columns:1fr 1fr;gap:0;';
+  var g3='display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;';
+
+  var html=''
+    +'<div style="border:2px solid #000;">'
+    +'<div style="background:#000;color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:bold;">LAUDO PARA SOLICITACAO DE AUTORIZACAO DE INTERNACAO HOSPITALAR - AIH</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">IDENTIFICACAO DO ESTABELECIMENTO</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome do estabelecimento</span><strong>Hospital Geral de Fortaleza - HGF</strong></div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CNES</span><strong>2497654</strong></div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">IDENTIFICACAO DO PACIENTE</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome do paciente*</span>'+fi('nome',nome)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Prontuario</span>'+fi('pront',pront)+'</div>'
+    +'</div>'
+    +'<div style="'+g3+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">CNS</span>'+fi('cns',cns)+'</div>'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Data de Nascimento</span>'+fi('nasc',saved.nasc||nasc)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Telefone</span>'+fi('tel',tel)+'</div>'
+    +'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome da Mae</span>'+fi('mae',mae)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CPF</span>'+fi('cpf',cpf)+'</div>'
+    +'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Endereco completo</span>'+fi('end',end)+'</div>'
+    +'<div style="'+g3+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Municipio</span>'+fi('municipio',saved.municipio||'Fortaleza')+'</div>'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">UF</span>'+fi('uf',saved.uf||'CE','60px')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CEP</span>'+fi('cep',saved.cep||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">JUSTIFICATIVA DA INTERNACAO</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Principais sinais e sintomas</span>'+fta('sinais',saved.sinais||'','60px')+'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Condicoes que justificam a internacao</span>'+fta('condicoes',saved.condicoes||'','60px')+'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Principais resultados de exames</span>'+fta('exames',saved.exames||'','50px')+'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Diagnostico inicial</span>'+fi('diag',diag)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CID-10 principal</span>'+fi('cid_princ',saved.cid_princ||'')+'</div>'
+    +'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">CID-10 secundario</span>'+fi('cid_sec',saved.cid_sec||'')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CID-10 causas assoc.</span>'+fi('cid_assoc',saved.cid_assoc||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">PROCEDIMENTO SOLICITADO</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Descricao do procedimento</span>'+fi('proc_desc',saved.proc_desc||'Transplante Hepatico')+'</div>'
+    +'<div style="'+g3+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Codigo do procedimento</span>'+fi('proc_cod',saved.proc_cod||'')+'</div>'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Clinica</span>'+fi('clinica',saved.clinica||'Cirurgia / Transplante')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Carater</span>'+fsel('carater',saved.carater||'Eletivo',['Eletivo','Urgencia'])+'</div>'
+    +'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome do profissional solicitante*</span>'+fi('prof_nome',medico)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CRM</span>'+fi('prof_crm',saved.prof_crm||'')+'</div>'
+    +'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Data da solicitacao</span>'+fi('data_sol',saved.data_sol||hoje)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">17. Assinatura e carimbo*</span><div style="height:30px;border-bottom:1px solid #aaa;"></div></div>'
+    +'</div>'
+    +'<div style="padding:3px 10px;font-size:9px;color:#888;">* CAMPOS OBRIGATORIOS</div>'
+    +'</div>';
+
+  get('aih-form-container').innerHTML=html;
+  get('aih-paciente-nome').textContent=nome+' — AIH';
+  get('aih-fullscreen').style.display='block';
+
+  get('aih-btn-voltar').onclick=function(){get('aih-fullscreen').style.display='none';};
+
+  function coletarAIH(){
+    var dados={};
+    document.querySelectorAll('.aih-f').forEach(function(el){
+      var id=el.id.replace('aihf-','');
+      dados[id]=el.value;
+    });
+    return dados;
+  }
+  function salvarAIH(imprimir){
+    var dados=coletarAIH();
+    var rec={folhao_id:f.id,prontuario:f.prontuario,tipo:'aih',dados:dados,updated_at:new Date().toISOString()};
+    if(sbClient){
+      sbClient.from('documentos_clinicos').delete().eq('folhao_id',f.id).eq('tipo','aih')
+        .then(function(){ return sbClient.from('documentos_clinicos').insert([rec]); })
+        .then(function(){
+          showToast('AIH salva!','success');
+          if(imprimir){ document.body.classList.add('aih-printing'); setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('aih-printing'); },1000); },300); }
+          else get('aih-fullscreen').style.display='none';
+        });
+    } else {
+      showToast('AIH salva!','success');
+      if(imprimir){ document.body.classList.add('aih-printing'); window.print(); document.body.classList.remove('aih-printing'); }
+      else get('aih-fullscreen').style.display='none';
+    }
+  }
+  get('aih-btn-salvar').onclick=function(){salvarAIH(false);};
+  get('aih-btn-imprimir').onclick=function(){salvarAIH(true);};
+  window.addEventListener('beforeprint',function(){if(get('aih-fullscreen').style.display!=='none') document.body.classList.add('aih-printing');});
+  window.addEventListener('afterprint',function(){document.body.classList.remove('aih-printing');});
+}
+
+function abrirAPACFullscreen(f, d, saved){
+  saved = saved||{};
+  var nome=f.nome||'', pront=f.prontuario||'', cns=d.cns||'', cpf=d.cpf||'';
+  var mae=d.nome_mae||'', tel=d.telefone||'', end=d.endereco||'';
+  var medico=d.medico||'', diag=d.etiologia||d.diagnostico||'';
+  var nasc=d.data_nasc?new Date(d.data_nasc+'T12:00:00').toLocaleDateString('pt-BR'):'';
+  var hoje=new Date().toLocaleDateString('pt-BR');
+
+  function fi(id,val,w){
+    return '<input type="text" class="apac-f" id="apacf-'+id+'" value="'+esc(saved[id]||val||'')+'" style="border:none;border-bottom:1px solid #666;width:'+(w||'100%')+';font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;font-family:Arial,sans-serif;">';
+  }
+  function fta(id,val,h){
+    return '<textarea class="apac-f" id="apacf-'+id+'" style="border:1px solid #666;width:100%;font-size:11px;padding:3px 5px;background:#fff;outline:none;color:#000;resize:vertical;min-height:'+(h||'50px')+';">'+esc(saved[id]||val||'')+'</textarea>';
+  }
+  var s='padding:6px 10px;border-bottom:1px solid #666;';
+  var lb='font-size:9px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase;';
+  var g2='display:grid;grid-template-columns:1fr 1fr;gap:0;';
+  var g3='display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;';
+
+  var html=''
+    +'<div style="border:2px solid #000;">'
+    +'<div style="background:#000;color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:bold;">APAC - AUTORIZACAO DE PROCEDIMENTOS AMBULATORIAIS</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;padding:2px;border-bottom:1px solid #666;">Hospital Geral de Fortaleza - HGF &nbsp;|&nbsp; CNES: 2497654</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">IDENTIFICACAO DO PACIENTE</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome do paciente*</span>'+fi('nome',nome)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Prontuario</span>'+fi('pront',pront)+'</div>'
+    +'</div>'
+    +'<div style="'+g3+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">CNS</span>'+fi('cns',cns)+'</div>'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Data de Nascimento</span>'+fi('nasc',saved.nasc||nasc)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Telefone</span>'+fi('tel',tel)+'</div>'
+    +'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome da Mae</span>'+fi('mae',mae)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CPF</span>'+fi('cpf',cpf)+'</div>'
+    +'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Endereco completo</span>'+fi('end',end)+'</div>'
+    +'<div style="'+g3+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Municipio</span>'+fi('municipio',saved.municipio||'Fortaleza')+'</div>'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">UF</span>'+fi('uf',saved.uf||'CE','60px')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CEP</span>'+fi('cep',saved.cep||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">PROCEDIMENTO SOLICITADO</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Codigo do procedimento principal</span>'+fi('proc_cod',saved.proc_cod||'')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Nome do procedimento principal</span>'+fi('proc_nome',saved.proc_nome||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">JUSTIFICATIVA</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Descricao do diagnostico / CID-10</span>'+fta('diag_desc',saved.diag_desc||diag,'60px')+'</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">CID-10 principal</span>'+fi('cid_princ',saved.cid_princ||'')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CID-10 secundario</span>'+fi('cid_sec',saved.cid_sec||'')+'</div>'
+    +'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #666;"><span style="'+lb+'">Observacoes</span>'+fta('obs',saved.obs||'','50px')+'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #666;">SOLICITACAO</div>'
+    +'<div style="'+g2+'border-bottom:1px solid #666;">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Nome do profissional solicitante*</span>'+fi('prof_nome',medico)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CRM</span>'+fi('prof_crm',saved.prof_crm||'')+'</div>'
+    +'</div>'
+    +'<div style="'+g2+'">'
+    +'<div style="'+s+'border-right:1px solid #666;"><span style="'+lb+'">Data da solicitacao</span>'+fi('data_sol',saved.data_sol||hoje)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Assinatura e carimbo*</span><div style="height:30px;border-bottom:1px solid #aaa;"></div></div>'
+    +'</div>'
+    +'<div style="padding:3px 10px;font-size:9px;color:#888;border-top:1px solid #666;">* CAMPOS OBRIGATORIOS</div>'
+    +'</div>';
+
+  get('apac-form-container').innerHTML=html;
+  get('apac-paciente-nome').textContent=nome+' — APAC';
+  get('apac-fullscreen').style.display='block';
+
+  get('apac-btn-voltar').onclick=function(){get('apac-fullscreen').style.display='none';};
+
+  function coletarAPAC(){
+    var dados={};
+    document.querySelectorAll('.apac-f').forEach(function(el){
+      var id=el.id.replace('apacf-','');
+      dados[id]=el.value;
+    });
+    return dados;
+  }
+  function salvarAPAC(imprimir){
+    var dados=coletarAPAC();
+    var rec={folhao_id:f.id,prontuario:f.prontuario,tipo:'apac',dados:dados,updated_at:new Date().toISOString()};
+    if(sbClient){
+      sbClient.from('documentos_clinicos').delete().eq('folhao_id',f.id).eq('tipo','apac')
+        .then(function(){ return sbClient.from('documentos_clinicos').insert([rec]); })
+        .then(function(){
+          showToast('APAC salva!','success');
+          if(imprimir){ document.body.classList.add('apac-printing'); setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('apac-printing'); },1000); },300); }
+          else get('apac-fullscreen').style.display='none';
+        });
+    } else {
+      showToast('APAC salva!','success');
+      if(imprimir){ document.body.classList.add('apac-printing'); window.print(); document.body.classList.remove('apac-printing'); }
+      else get('apac-fullscreen').style.display='none';
+    }
+  }
+  get('apac-btn-salvar').onclick=function(){salvarAPAC(false);};
+  get('apac-btn-imprimir').onclick=function(){salvarAPAC(true);};
+  window.addEventListener('beforeprint',function(){if(get('apac-fullscreen').style.display!=='none') document.body.classList.add('apac-printing');});
+  window.addEventListener('afterprint',function(){document.body.classList.remove('apac-printing');});
+}
+
+
+
+function abrirAIHFullscreen(f, d, saved){
+  saved = saved||{};
+  var nome=f.nome||'', pront=f.prontuario||'', cns=d.cns||'', cpf=d.cpf||'';
+  var mae=d.nome_mae||'', tel=d.telefone||'', end=d.endereco||'';
+  var diag=d.etiologia||d.diagnostico||'', medico=d.medico||'';
+  var now=new Date(), hoje=now.toLocaleDateString('pt-BR');
+
+  function fi(id,val,ph,w){
+    return '<input type="text" class="aih-f" id="aihf-'+id+'" value="'+esc(saved[id]||val||'')+'" placeholder="'+(ph||'')+'" style="border:none;border-bottom:1px solid #666;width:'+(w||'100%')+';font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;">';
+  }
+  function fsel(id,val,opts){
+    return '<select class="aih-f" id="aihf-'+id+'" style="border:none;border-bottom:1px solid #666;font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;width:100%;">'
+      +opts.map(function(o){return '<option value="'+o+'"'+((saved[id]||val)===o?' selected':'')+'>'+o+'</option>';}).join('')
+      +'</select>';
+  }
+  function fta(id,val,h){
+    return '<textarea class="aih-f" id="aihf-'+id+'" style="border:1px solid #888;width:100%;font-size:11px;padding:4px;outline:none;color:#000;resize:vertical;min-height:'+(h||'50px')+';">'+esc(saved[id]||val||'')+'</textarea>';
+  }
+  var s='padding:6px 10px;border-bottom:1px solid #999;';
+  var lb='font-size:9px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase;';
+
+  var nascAIH=saved.nasc||d.data_nasc||'';
+
+  var html=''
+    +'<div style="background:#000;color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:bold;text-transform:uppercase;">LAUDO PARA SOLICITACAO DE AUTORIZACAO DE INTERNACAO HOSPITALAR - AIH</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">IDENTIFICACAO DO ESTABELECIMENTO</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome do estabelecimento solicitante</span><strong>Hospital Geral de Fortaleza - HGF</strong></div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CNES</span><strong>2497654</strong></div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">IDENTIFICACAO DO PACIENTE</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 140px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome do Paciente</span>'+fi('nome',nome)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Prontuario</span>'+fi('pront',pront)+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 140px 80px 80px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">CNS</span>'+fi('cns',cns)+'</div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Data de Nascimento</span><input type="date" class="aih-f" id="aihf-nasc" value="'+nascAIH+'" style="border:none;border-bottom:1px solid #666;font-size:11px;padding:2px;background:transparent;outline:none;color:#000;width:100%;"></div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Genero</span>'+fsel('genero',d.sexo||'',['','M','F','NB','Outro'])+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Cor</span>'+fsel('cor',d.cor||'',['','B','P','A','Outro'])+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 160px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome da Mae</span>'+fi('mae',mae)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Telefone</span>'+fi('tel',tel)+'</div>'
+    +'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Endereco</span>'+fi('end',end)+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 60px 100px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Municipio</span>'+fi('municipio',saved.municipio||'Fortaleza')+'</div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">UF</span>'+fi('uf',saved.uf||'CE','','50px')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CEP</span>'+fi('cep',saved.cep||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">JUSTIFICATIVA DA INTERNACAO</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Principais sinais e sintomas</span>'+fta('sinais',saved.sinais||'','50px')+'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Condicoes que justificam a internacao</span>'+fta('condicoes',saved.condicoes||'','50px')+'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Principais resultados de exames</span>'+fta('exames',saved.exames||'','40px')+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 100px 100px 100px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Diagnostico inicial</span>'+fi('diag',diag)+'</div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">CID10 principal</span>'+fi('cid_princ',saved.cid_princ||'')+'</div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">CID10 secundario</span>'+fi('cid_sec',saved.cid_sec||'')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CID10 causas assoc.</span>'+fi('cid_assoc',saved.cid_assoc||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">PROCEDIMENTO SOLICITADO</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 120px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Descricao do procedimento</span>'+fi('proc_desc',saved.proc_desc||'Transplante Hepatico')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Codigo</span>'+fi('proc_cod',saved.proc_cod||'')+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 120px 100px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Clinica</span>'+fi('clinica',saved.clinica||'Cirurgia Geral / Transplante')+'</div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Carater</span>'+fsel('carater',saved.carater||'Eletivo',['Eletivo','Urgencia'])+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Data da solicitacao</span><div style="font-size:11px;font-weight:bold;">'+hoje+'</div></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 200px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome do profissional solicitante</span>'+fi('prof_nome',medico)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CRM</span>'+fi('prof_crm',saved.prof_crm||'')+'</div>'
+    +'</div>'
+    +'<div style="padding:4px 10px;font-size:9px;color:#888;border-top:1px solid #999;background:#fafafa;">Hospital Geral de Fortaleza (HGF) - CNPJ: 07.954.571/0014-29 | Rua Avila Goulart, 900 - Papicu, Fortaleza, CE</div>';
+
+  get('aih-form-container').innerHTML=html;
+  get('aih-paciente-nome').textContent=nome+' — AIH';
+  get('aih-fullscreen').style.display='block';
+
+  function coletarAIH(){
+    var dados={};
+    document.querySelectorAll('.aih-f').forEach(function(el){
+      var id=el.id.replace('aihf-','');
+      if(el.type==='checkbox') dados[id]=el.checked;
+      else dados[id]=el.value;
+    });
+    return dados;
+  }
+  function salvarAIH(imprimir){
+    var dados=coletarAIH();
+    var rec={folhao_id:f.id,prontuario:f.prontuario,tipo:'aih',dados:dados,updated_at:new Date().toISOString()};
+    if(sbClient){
+      sbClient.from('documentos_clinicos').delete().eq('folhao_id',f.id).eq('tipo','aih')
+        .then(function(){ return sbClient.from('documentos_clinicos').insert([rec]); })
+        .then(function(){
+          showToast('AIH salva!','success');
+          if(imprimir){ document.body.classList.add('aih-printing'); setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('aih-printing'); },1000); },300); }
+          else get('aih-fullscreen').style.display='none';
+        }).catch(function(){ showToast('Erro ao salvar.','error'); });
+    } else {
+      showToast('AIH salva!','success');
+      if(imprimir){ document.body.classList.add('aih-printing'); setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('aih-printing'); },1000); },300); }
+      else get('aih-fullscreen').style.display='none';
+    }
+  }
+  get('aih-btn-voltar').onclick=function(){ get('aih-fullscreen').style.display='none'; };
+  get('aih-btn-salvar').onclick=function(){ salvarAIH(false); };
+  get('aih-btn-imprimir').onclick=function(){ salvarAIH(true); };
+  window.addEventListener('beforeprint',function(){ if(get('aih-fullscreen').style.display!=='none') document.body.classList.add('aih-printing'); });
+  window.addEventListener('afterprint',function(){ document.body.classList.remove('aih-printing'); });
+}
+
+function abrirAPACFullscreen(f, d, saved){
+  saved=saved||{};
+  var nome=f.nome||'', pront=f.prontuario||'', cns=d.cns||'', cpf=d.cpf||'';
+  var mae=d.nome_mae||'', tel=d.telefone||'', end=d.endereco||'';
+  var diag=d.etiologia||d.diagnostico||'', medico=d.medico||'';
+  var now=new Date(), hoje=now.toLocaleDateString('pt-BR');
+
+  function fi(id,val,ph,w){
+    return '<input type="text" class="apac-f" id="apacf-'+id+'" value="'+esc(saved[id]||val||'')+'" placeholder="'+(ph||'')+'" style="border:none;border-bottom:1px solid #666;width:'+(w||'100%')+';font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;">';
+  }
+  function fta(id,val,h){
+    return '<textarea class="apac-f" id="apacf-'+id+'" style="border:1px solid #888;width:100%;font-size:11px;padding:4px;outline:none;color:#000;resize:vertical;min-height:'+(h||'50px')+';">'+esc(saved[id]||val||'')+'</textarea>';
+  }
+  var s='padding:6px 10px;border-bottom:1px solid #999;';
+  var lb='font-size:9px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase;';
+
+  var nascAPAC=saved.nasc||d.data_nasc||'';
+
+  var html=''
+    +'<div style="background:#000;color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:bold;text-transform:uppercase;">APAC - AUTORIZACAO DE PROCEDIMENTOS AMBULATORIAIS</div>'
+    +'<div style="text-align:center;padding:4px;border-bottom:1px solid #999;font-size:10px;"><strong>Hospital Geral de Fortaleza - HGF</strong> &nbsp;&nbsp; CNES: 2497654</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">IDENTIFICACAO DO PACIENTE</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 140px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome do Paciente</span>'+fi('nome',nome)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Prontuario</span>'+fi('pront',pront)+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 160px 160px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">CNS</span>'+fi('cns',cns)+'</div>'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Data de Nascimento</span><input type="date" class="apac-f" id="apacf-nasc" value="'+nascAPAC+'" style="border:none;border-bottom:1px solid #666;font-size:11px;padding:2px;background:transparent;outline:none;color:#000;width:100%;"></div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Telefone</span>'+fi('tel',tel)+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 140px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome da Mae</span>'+fi('mae',mae)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CPF/CNS</span>'+fi('doc',saved.doc||cpf||cns)+'</div>'
+    +'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Endereco</span>'+fi('end',end)+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 60px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Municipio</span>'+fi('municipio',saved.municipio||'Fortaleza')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">UF</span>'+fi('uf',saved.uf||'CE','','50px')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">PROCEDIMENTO SOLICITADO</div>'
+    +'<div style="display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Codigo proc. principal</span>'+fi('proc_cod',saved.proc_cod||'')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Nome do proc. principal</span>'+fi('proc_nome',saved.proc_nome||'')+'</div>'
+    +'</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">JUSTIFICATIVA</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Descricao do diagnostico</span>'+fta('diag_desc',saved.diag_desc||diag,'50px')+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">CID10 principal</span>'+fi('cid_princ',saved.cid_princ||'')+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CID10 secundario</span>'+fi('cid_sec',saved.cid_sec||'')+'</div>'
+    +'</div>'
+    +'<div style="'+s+'border-bottom:1px solid #999;"><span style="'+lb+'">Observacoes</span>'+fta('obs',saved.obs||'','40px')+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 200px;border-bottom:1px solid #999;">'
+    +'<div style="'+s+'border-right:1px solid #999;"><span style="'+lb+'">Nome do profissional solicitante</span>'+fi('prof_nome',medico)+'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">CRM</span>'+fi('prof_crm',saved.prof_crm||'')+'</div>'
+    +'</div>'
+    +'<div style="'+s+'"><span style="'+lb+'">Data da solicitacao</span><div style="font-size:11px;font-weight:bold;">'+hoje+'</div></div>'
+    +'<div style="padding:4px 10px;font-size:9px;color:#888;border-top:1px solid #999;background:#fafafa;">Hospital Geral de Fortaleza (HGF) - CNPJ: 07.954.571/0014-29 | Rua Avila Goulart, 900 - Papicu, Fortaleza, CE</div>';
+
+  get('apac-form-container').innerHTML=html;
+  get('apac-paciente-nome').textContent=nome+' — APAC';
+  get('apac-fullscreen').style.display='block';
+
+  function coletarAPAC(){
+    var dados={};
+    document.querySelectorAll('.apac-f').forEach(function(el){
+      var id=el.id.replace('apacf-','');
+      dados[id]=el.value;
+    });
+    return dados;
+  }
+  function salvarAPAC(imprimir){
+    var dados=coletarAPAC();
+    var rec={folhao_id:f.id,prontuario:f.prontuario,tipo:'apac',dados:dados,updated_at:new Date().toISOString()};
+    if(sbClient){
+      sbClient.from('documentos_clinicos').delete().eq('folhao_id',f.id).eq('tipo','apac')
+        .then(function(){ return sbClient.from('documentos_clinicos').insert([rec]); })
+        .then(function(){
+          showToast('APAC salva!','success');
+          if(imprimir){ document.body.classList.add('apac-printing'); setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('apac-printing'); },1000); },300); }
+          else get('apac-fullscreen').style.display='none';
+        }).catch(function(){ showToast('Erro ao salvar.','error'); });
+    } else {
+      showToast('APAC salva!','success');
+      if(imprimir){ document.body.classList.add('apac-printing'); setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('apac-printing'); },1000); },300); }
+      else get('apac-fullscreen').style.display='none';
+    }
+  }
+  get('apac-btn-voltar').onclick=function(){ get('apac-fullscreen').style.display='none'; };
+  get('apac-btn-salvar').onclick=function(){ salvarAPAC(false); };
+  get('apac-btn-imprimir').onclick=function(){ salvarAPAC(true); };
+  window.addEventListener('beforeprint',function(){ if(get('apac-fullscreen').style.display!=='none') document.body.classList.add('apac-printing'); });
+  window.addEventListener('afterprint',function(){ document.body.classList.remove('apac-printing'); });
+}
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -301,6 +735,22 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 @media(max-width:600px){header{padding:0 12px;}.header-title{display:none;}main{padding:10px 12px;}.modal{padding:16px;}}
 
 @media print{
+  /* AIH printing */
+  body.aih-printing #app > *:not(#aih-fullscreen){display:none!important;}
+  body.aih-printing #aih-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;padding:0!important;}
+  body.aih-printing #aih-fullscreen > div{max-width:100%!important;padding:0!important;margin:0!important;}
+  body.aih-printing #aih-fullscreen > div > div:first-child{display:none!important;}
+  body.aih-printing #aih-form-container{border:none!important;width:100%!important;}
+  body.aih-printing #aih-form-container > div:first-child{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body.aih-printing #aih-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+  /* APAC printing */
+  body.apac-printing #app > *:not(#apac-fullscreen){display:none!important;}
+  body.apac-printing #apac-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;padding:0!important;}
+  body.apac-printing #apac-fullscreen > div{max-width:100%!important;padding:0!important;margin:0!important;}
+  body.apac-printing #apac-fullscreen > div > div:first-child{display:none!important;}
+  body.apac-printing #apac-form-container{border:none!important;width:100%!important;}
+  body.apac-printing #apac-form-container > div:first-child{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body.apac-printing #apac-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
   /* Regras gerais */
   header,.tabs,.section-header,.ficha-actions{display:none!important;}
   main{padding:0!important;}
@@ -350,7 +800,21 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
   }
-  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  /* AIH impressão */
+  body.aih-printing #app > *:not(#aih-fullscreen){display:none!important;}
+  body.aih-printing #aih-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.aih-printing #aih-fullscreen > div > div:first-child{display:none!important;}
+  body.aih-printing #aih-form-container{border:none!important;width:100%!important;}
+  body.aih-printing #aih-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.aih-printing #aih-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+  /* APAC impressão */
+  body.apac-printing #app > *:not(#apac-fullscreen){display:none!important;}
+  body.apac-printing #apac-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.apac-printing #apac-fullscreen > div > div:first-child{display:none!important;}
+  body.apac-printing #apac-form-container{border:none!important;width:100%!important;}
+  body.apac-printing #apac-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.apac-printing #apac-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+    body.lme-printing #lme-form-container div[style*="background:#ddd"],
   body.lme-printing #lme-form-container div[style*="background:#ccc"]{
     background:#ccc!important;
     -webkit-print-color-adjust:exact!important;
@@ -359,7 +823,21 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   body.lme-printing #lme-form-container{
     border:2px solid #000!important;
   }
-  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  /* AIH impressão */
+  body.aih-printing #app > *:not(#aih-fullscreen){display:none!important;}
+  body.aih-printing #aih-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.aih-printing #aih-fullscreen > div > div:first-child{display:none!important;}
+  body.aih-printing #aih-form-container{border:none!important;width:100%!important;}
+  body.aih-printing #aih-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.aih-printing #aih-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+  /* APAC impressão */
+  body.apac-printing #app > *:not(#apac-fullscreen){display:none!important;}
+  body.apac-printing #apac-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.apac-printing #apac-fullscreen > div > div:first-child{display:none!important;}
+  body.apac-printing #apac-form-container{border:none!important;width:100%!important;}
+  body.apac-printing #apac-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.apac-printing #apac-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+    body.lme-printing #lme-form-container div[style*="background:#ddd"],
   body.lme-printing #lme-form-container div[style*="background:#ccc"]{
     background:#ccc!important;
     -webkit-print-color-adjust:exact!important;
@@ -417,7 +895,21 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
   }
-  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  /* AIH impressão */
+  body.aih-printing #app > *:not(#aih-fullscreen){display:none!important;}
+  body.aih-printing #aih-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.aih-printing #aih-fullscreen > div > div:first-child{display:none!important;}
+  body.aih-printing #aih-form-container{border:none!important;width:100%!important;}
+  body.aih-printing #aih-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.aih-printing #aih-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+  /* APAC impressão */
+  body.apac-printing #app > *:not(#apac-fullscreen){display:none!important;}
+  body.apac-printing #apac-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.apac-printing #apac-fullscreen > div > div:first-child{display:none!important;}
+  body.apac-printing #apac-form-container{border:none!important;width:100%!important;}
+  body.apac-printing #apac-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.apac-printing #apac-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+    body.lme-printing #lme-form-container div[style*="background:#ddd"],
   body.lme-printing #lme-form-container div[style*="background:#ccc"]{
     background:#ccc!important;
     -webkit-print-color-adjust:exact!important;
@@ -426,7 +918,21 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   body.lme-printing #lme-form-container{
     border:2px solid #000!important;
   }
-  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  /* AIH impressão */
+  body.aih-printing #app > *:not(#aih-fullscreen){display:none!important;}
+  body.aih-printing #aih-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.aih-printing #aih-fullscreen > div > div:first-child{display:none!important;}
+  body.aih-printing #aih-form-container{border:none!important;width:100%!important;}
+  body.aih-printing #aih-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.aih-printing #aih-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+  /* APAC impressão */
+  body.apac-printing #app > *:not(#apac-fullscreen){display:none!important;}
+  body.apac-printing #apac-fullscreen{position:static!important;overflow:visible!important;background:#fff!important;}
+  body.apac-printing #apac-fullscreen > div > div:first-child{display:none!important;}
+  body.apac-printing #apac-form-container{border:none!important;width:100%!important;}
+  body.apac-printing #apac-form-container div[style*="background:#000"]{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact!important;}
+  body.apac-printing #apac-form-container div[style*="background:#ddd"]{background:#ccc!important;-webkit-print-color-adjust:exact!important;}
+    body.lme-printing #lme-form-container div[style*="background:#ddd"],
   body.lme-printing #lme-form-container div[style*="background:#ccc"]{
     background:#ccc!important;
     -webkit-print-color-adjust:exact!important;
@@ -914,6 +1420,75 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 
 
 
+
+<!-- AIH FULLSCREEN -->
+<div id="aih-fullscreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#f0f2f5;overflow-y:auto;">
+  <div style="max-width:900px;margin:0 auto;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--surface);padding:12px 16px;border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button id="aih-btn-voltar" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);">← Voltar</button>
+        <div><div style="font-size:14px;font-weight:700;color:var(--text);" id="aih-paciente-nome">AIH</div></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="aih-btn-salvar" style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);font-weight:600;">Salvar</button>
+        <button id="aih-btn-imprimir" style="padding:8px 16px;background:var(--accent);border:none;border-radius:var(--radius);cursor:pointer;font-size:13px;color:#fff;font-weight:600;">Salvar e Imprimir</button>
+      </div>
+    </div>
+    <div id="aih-form-container" style="background:#fff;border-radius:var(--radius);border:2px solid #000;overflow:hidden;font-family:Arial,sans-serif;font-size:11px;color:#000;"></div>
+  </div>
+</div>
+
+<!-- APAC FULLSCREEN -->
+<div id="apac-fullscreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#f0f2f5;overflow-y:auto;">
+  <div style="max-width:900px;margin:0 auto;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--surface);padding:12px 16px;border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button id="apac-btn-voltar" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);">← Voltar</button>
+        <div><div style="font-size:14px;font-weight:700;color:var(--text);" id="apac-paciente-nome">APAC</div></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="apac-btn-salvar" style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);font-weight:600;">Salvar</button>
+        <button id="apac-btn-imprimir" style="padding:8px 16px;background:var(--accent);border:none;border-radius:var(--radius);cursor:pointer;font-size:13px;color:#fff;font-weight:600;">Salvar e Imprimir</button>
+      </div>
+    </div>
+    <div id="apac-form-container" style="background:#fff;border-radius:var(--radius);border:2px solid #000;overflow:hidden;font-family:Arial,sans-serif;font-size:11px;color:#000;"></div>
+  </div>
+</div>
+
+
+<!-- AIH FULLSCREEN -->
+<div id="aih-fullscreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#f0f2f5;overflow-y:auto;">
+  <div style="max-width:900px;margin:0 auto;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--surface);padding:12px 16px;border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button id="aih-btn-voltar" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);">← Voltar</button>
+        <div style="font-size:14px;font-weight:700;color:var(--text);" id="aih-paciente-nome">AIH</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="aih-btn-salvar" style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);font-weight:600;">Salvar</button>
+        <button id="aih-btn-imprimir" style="padding:8px 16px;background:var(--accent);border:none;border-radius:var(--radius);cursor:pointer;font-size:13px;color:#fff;font-weight:600;">Salvar e Imprimir</button>
+      </div>
+    </div>
+    <div id="aih-form-container" style="background:#fff;border-radius:var(--radius);border:1px solid #ccc;overflow:hidden;font-family:Arial,sans-serif;font-size:11px;color:#000;"></div>
+  </div>
+</div>
+
+<!-- APAC FULLSCREEN -->
+<div id="apac-fullscreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#f0f2f5;overflow-y:auto;">
+  <div style="max-width:900px;margin:0 auto;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--surface);padding:12px 16px;border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button id="apac-btn-voltar" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);">← Voltar</button>
+        <div style="font-size:14px;font-weight:700;color:var(--text);" id="apac-paciente-nome">APAC</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="apac-btn-salvar" style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text);font-weight:600;">Salvar</button>
+        <button id="apac-btn-imprimir" style="padding:8px 16px;background:var(--accent);border:none;border-radius:var(--radius);cursor:pointer;font-size:13px;color:#fff;font-weight:600;">Salvar e Imprimir</button>
+      </div>
+    </div>
+    <div id="apac-form-container" style="background:#fff;border-radius:var(--radius);border:1px solid #ccc;overflow:hidden;font-family:Arial,sans-serif;font-size:11px;color:#000;"></div>
+  </div>
+</div>
 
 <!-- LME FULLSCREEN -->
 <div id="lme-fullscreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#f0f2f5;overflow-y:auto;">
@@ -4163,66 +4738,14 @@ function renderFormDocumento(tipo, f, d, ant, imuno, saved){
       +'<div>'+row('Outros', inp('outros_just', saved.outros_just||'','Especificar...'))+'</div>'
       +'</div>';
   } else if(tipo==='aih'){
-    html = '<div class="modal-title">AIH - Laudo para Solicitacao de Internacao</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">'
-      +row('Nome do Paciente', inp('nome', saved.nome||nome))
-      +row('Prontuario', inp('pront', saved.pront||pront))
-      +row('CNS', inp('cns', saved.cns||cns))
-      +'<div style="margin-bottom:8px;">'+lbl('Data de Nascimento')+'<input type="date" class="form-input doc-field" id="df-nasc" value="'+(saved.nasc||d.data_nasc||'')+'" style="padding:5px 8px;font-size:12px;"></div>'
-      +row('Nome da Mae', inp('mae', saved.mae||mae))
-      +row('Telefone', inp('tel', saved.tel||tel))
-      +row('Genero', sel('genero', saved.genero||d.sexo||'', ['','M','F','NB','Outro']))
-      +row('Cor', sel('cor', saved.cor||d.cor||'', ['','B','P','A','Outro']))
-      +'<div style="grid-column:1/-1;">'+row('Endereco', inp('end', saved.end||end))+'</div>'
-      +row('Municipio', inp('municipio', saved.municipio||'Fortaleza'))
-      +row('UF', inp('uf', saved.uf||'CE', '', '80px'))
-      +row('CEP', inp('cep', saved.cep||''))
-      +'<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">'
-      +'<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;">JUSTIFICATIVA DA INTERNACAO</div></div>'
-      +'<div style="grid-column:1/-1;">'+row('Principais sinais e sintomas', ta('sinais', saved.sinais||'','','80px'))+'</div>'
-      +'<div style="grid-column:1/-1;">'+row('Condicoes que justificam a internacao', ta('condicoes', saved.condicoes||'','','80px'))+'</div>'
-      +'<div style="grid-column:1/-1;">'+row('Principais resultados de exames', ta('exames', saved.exames||'','','60px'))+'</div>'
-      +row('Diagnostico inicial', inp('diag', saved.diag||diag))
-      +row('CID10 principal', inp('cid_princ', saved.cid_princ||''))
-      +row('CID10 secundario', inp('cid_sec', saved.cid_sec||''))
-      +row('CID10 causas assoc.', inp('cid_assoc', saved.cid_assoc||''))
-      +'<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">'
-      +'<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;">PROCEDIMENTO SOLICITADO</div></div>'
-      +'<div style="grid-column:1/-1;">'+row('Descricao do procedimento', inp('proc_desc', saved.proc_desc||'Transplante Hepatico'))+'</div>'
-      +row('Codigo', inp('proc_cod', saved.proc_cod||''))
-      +row('Clinica', inp('clinica', saved.clinica||'Cirurgia Geral / Transplante'))
-      +row('Carater', sel('carater', saved.carater||'Eletivo', ['Eletivo','Urgencia']))
-      +'<div style="grid-column:1/-1;">'+row('Nome do profissional solicitante', inp('prof_nome', saved.prof_nome||medico))+'</div>'
-      +row('CRM', inp('prof_crm', saved.prof_crm||''))
-      +'</div>';
-  } else if(tipo==='apac'){
-    html = '<div class="modal-title">APAC - Autorizacao de Procedimentos Ambulatoriais</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">'
-      +row('Nome do Paciente', inp('nome', saved.nome||nome))
-      +row('Prontuario', inp('pront', saved.pront||pront))
-      +row('CNS', inp('cns', saved.cns||cns))
-      +'<div style="margin-bottom:8px;">'+lbl('Data de Nascimento')+'<input type="date" class="form-input doc-field" id="df-nasc" value="'+(saved.nasc||d.data_nasc||'')+'" style="padding:5px 8px;font-size:12px;"></div>'
-      +row('Nome da Mae', inp('mae', saved.mae||mae))
-      +row('Telefone', inp('tel', saved.tel||tel))
-      +'<div style="grid-column:1/-1;">'+row('Endereco', inp('end', saved.end||end))+'</div>'
-      +row('Municipio', inp('municipio', saved.municipio||'Fortaleza'))
-      +row('UF', inp('uf', saved.uf||'CE'))
-      +'<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">'
-      +'<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;">PROCEDIMENTO SOLICITADO</div></div>'
-      +row('Codigo proc. principal', inp('proc_cod', saved.proc_cod||''))
-      +'<div style="grid-column:1/-1;">'+row('Nome do proc. principal', inp('proc_nome', saved.proc_nome||''))+'</div>'
-      +'<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">'
-      +'<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;">JUSTIFICATIVA</div></div>'
-      +'<div style="grid-column:1/-1;">'+row('Descricao do diagnostico', ta('diag_desc', saved.diag_desc||diag,'','60px'))+'</div>'
-      +row('CID10 principal', inp('cid_princ', saved.cid_princ||''))
-      +row('CID10 secundario', inp('cid_sec', saved.cid_sec||''))
-      +'<div style="grid-column:1/-1;">'+row('Observacoes', ta('obs', saved.obs||'','','60px'))+'</div>'
-      +'<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">'
-      +'<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;">SOLICITACAO</div></div>'
-      +'<div style="grid-column:1/-1;">'+row('Nome do profissional solicitante', inp('prof_nome', saved.prof_nome||medico))+'</div>'
-      +row('CRM', inp('prof_crm', saved.prof_crm||''))
-      +'</div>';
-  } else if(tipo==='lme'){
+    abrirAIHFullscreen(f, d, saved);
+    return;
+
+} else if(tipo==='apac'){
+    abrirAPACFullscreen(f, d, saved);
+    return;
+
+} else if(tipo==='lme'){
     // Abrir tela dedicada LME em vez de modal
     abrirLMEFullscreen(f, d, imuno, saved);
     return; // Não continuar para o modal
