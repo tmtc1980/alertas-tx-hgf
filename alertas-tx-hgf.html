@@ -3525,7 +3525,19 @@ function abrirFormSorologias(f,isPre){
           +'<td style="padding:4px 8px;color:var(--text2);font-weight:500;">'+ex+'</td>'
           +cols.map(function(col){
             var id='sor_'+ex.replace(/[^a-z0-9]/gi,'_')+'_'+col;
-            return '<td style="padding:3px 5px;"><input type="text" class="form-input" id="'+id+'" value="'+esc(vals[col]||'')+'" style="padding:4px 6px;font-size:11px;"></td>';
+            // fix: usar array JS
+            var dropdownExames=['Anti-HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','FAN','Anti-mitocon.','Anti-musc. liso','IST','PPD'];
+            var useDropdown=dropdownExames.indexOf(ex)>=0;
+            var v=vals[col]||'';
+            if(useDropdown){
+              return '<td style="padding:3px 5px;"><select class="form-select" id="'+id+'" style="padding:4px 6px;font-size:11px;"><option value="">-</option>'
+                +'<option value="Reagente"'+(v==='Reagente'?' selected':'')+'>Reagente</option>'
+                +'<option value="Nao Reagente"'+(v==='Nao Reagente'?' selected':'')+'>Nao Reagente</option>'
+                +'<option value="Indeterminado"'+(v==='Indeterminado'?' selected':'')+'>Indeterminado</option>'
+                +'</select></td>';
+            } else {
+              return '<td style="padding:3px 5px;"><input type="text" class="form-input" id="'+id+'" value="'+esc(v)+'" style="padding:4px 6px;font-size:11px;" placeholder="valor..."></td>';
+            }
           }).join('')
           +'</tr>';
       }).join('')
