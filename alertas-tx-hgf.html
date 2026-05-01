@@ -4220,11 +4220,7 @@ function renderFormDocumento(tipo, f, d, ant, imuno, saved){
     +'<button class="btn btn-primary" id="btn-salvar-doc">Salvar</button>'
     +'</div>';
 
-  html += '<div class="modal-footer">'
-    +'<button class="btn btn-ghost" id="btn-cancelar-doc">Cancelar</button>'
-    +'<button class="btn btn-ghost" id="btn-salvar-imprimir-doc">Salvar e Imprimir</button>'
-    +'<button class="btn btn-primary" id="btn-salvar-doc">Salvar</button>'
-    +'</div>';
+  
 
   get('modal-documento').querySelector('.modal').innerHTML = html;
   get('modal-documento').dataset.tipo = tipo;
