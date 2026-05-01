@@ -787,6 +787,17 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   </div>
 </div>
 
+
+<!-- MODAL: ANTECEDENTES -->
+<div class="modal-overlay" id="modal-antecedentes">
+  <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;"></div>
+</div>
+
+<!-- MODAL: SOROLOGIAS -->
+<div class="modal-overlay" id="modal-sorologias">
+  <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;"></div>
+</div>
+
 <!-- MODAL: EDITAR LEITO -->
 <div class="modal-overlay" id="modal-leito">
   <div class="modal">
@@ -2984,7 +2995,9 @@ function renderTabIdentificacao(f,d,isPre,c){
 
 function renderTabAntecedentes(d,c){
   var ant=d.antecedentes||{};
-  c.innerHTML='<div class="settings-title" style="margin-bottom:10px;">Antecedentes Pessoais</div>'
+  // Botão editar no topo
+  var editBtn='<div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><button class="btn btn-primary btn-sm" id="btn-editar-antecedentes">Editar Antecedentes</button></div>';
+  c.innerHTML=editBtn+'<div class="settings-title" style="margin-bottom:10px;">Antecedentes Pessoais</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
     +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
     +dvRow('Transfusao',ant.transfusao)+dvRow('HAS',ant.has)+dvRow('DM',ant.dm)
@@ -3006,6 +3019,8 @@ function renderTabAntecedentes(d,c){
     +'<div class="settings-title" style="margin:10px 0;">Condutas Relevantes</div>'
     +(ant.condutas?ant.condutas.map(function(c,i){return dvRow((i+1)+'.',c.texto+(c.data?' ('+fmtDateShort(c.data)+')':''));}).join(''):'<div style="color:var(--text3);font-size:12px;">Nenhuma conduta registrada.</div>')
     +'</div></div>';
+  var btnAnt=get('btn-editar-antecedentes');
+  if(btnAnt) btnAnt.addEventListener('click',function(){abrirFormAntecedentes(folhaoAtivo);});
 }
 
 function renderTabDoador(d,c){
@@ -3492,7 +3507,187 @@ function abrirFormEvolucao(f){
 }
 
 function abrirFormSorologias(f,isPre){
-  showToast('Funcao em desenvolvimento.','error');
+  var d=f.dados||{};
+  var sor=d.sorologias||{};
+  var html='<div class="modal-title">Editar Sorologias</div>';
+
+  if(isPre){
+    var exames=['Anti-HCV','PCR-HCV Qualit.','PCR-HCV Quant.','Genotipo HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Carga Viral HBV','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','alfa-1-Antitrip.','FAN','Anti-mitocon.','Anti-musc. liso','Ceruloplasmin.','Cobre serico','PSA','Ferritina','IST','PPD','Sat. Transferrina'];
+    var cols=['Data1','Data2','Data3'];
+    html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      +'<thead><tr style="background:var(--surface2);">'
+      +'<th style="padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);min-width:140px;">Exame</th>'
+      +cols.map(function(col){return '<th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);min-width:100px;">'+col+'</th>';}).join('')
+      +'</tr></thead><tbody>'
+      +exames.map(function(ex,i){
+        var vals=sor[ex]||{};
+        return '<tr'+(i%2?' style="background:var(--surface2);"':'')+'>'
+          +'<td style="padding:4px 8px;color:var(--text2);font-weight:500;">'+ex+'</td>'
+          +cols.map(function(col){
+            var id='sor_'+ex.replace(/[^a-z0-9]/gi,'_')+'_'+col;
+            return '<td style="padding:3px 5px;"><input type="text" class="form-input" id="'+id+'" value="'+esc(vals[col]||'')+'" style="padding:4px 6px;font-size:11px;"></td>';
+          }).join('')
+          +'</tr>';
+      }).join('')
+      +'</tbody></table></div>';
+  } else {
+    var sorPosExames=['HVB','HVC','CMV','TOXO','VDRL','Chagas','EBV','HIV'];
+    html+='<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      +'<thead><tr style="background:var(--surface2);">'
+      +'<th style="padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);">Sorologia</th>'
+      +'<th style="padding:6px 10px;text-align:center;border-bottom:1px solid var(--border);">Receptor</th>'
+      +'<th style="padding:6px 10px;text-align:center;border-bottom:1px solid var(--border);">Doador</th>'
+      +'</tr></thead><tbody>'
+      +sorPosExames.map(function(s){
+        var sr=sor[s]||{};
+        return '<tr style="border-bottom:0.5px solid var(--border);">'
+          +'<td style="padding:6px 10px;color:var(--text2);">'+s+'</td>'
+          +'<td style="padding:4px 6px;"><input type="text" class="form-input" id="sor_'+s+'_rec" value="'+esc(sr.receptor||'')+'" style="padding:4px 6px;font-size:12px;text-align:center;"></td>'
+          +'<td style="padding:4px 6px;"><input type="text" class="form-input" id="sor_'+s+'_doa" value="'+esc(sr.doador||'')+'" style="padding:4px 6px;font-size:12px;text-align:center;"></td>'
+          +'</tr>';
+      }).join('')
+      +'</tbody></table>';
+  }
+
+  html+='<div class="modal-footer"><button class="btn btn-ghost" id="btn-cancelar-sor">Cancelar</button><button class="btn btn-primary" id="btn-salvar-sor">Salvar</button></div>';
+
+  get('modal-sorologias').querySelector('.modal').innerHTML=html;
+  openModal('modal-sorologias');
+
+  get('btn-cancelar-sor').addEventListener('click',function(){closeModal('modal-sorologias');});
+  get('btn-salvar-sor').addEventListener('click',function(){
+    var novoSor=Object.assign({},sor);
+    if(isPre){
+      var exames=['Anti-HCV','PCR-HCV Qualit.','PCR-HCV Quant.','Genotipo HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Carga Viral HBV','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','alfa-1-Antitrip.','FAN','Anti-mitocon.','Anti-musc. liso','Ceruloplasmin.','Cobre serico','PSA','Ferritina','IST','PPD','Sat. Transferrina'];
+      var cols=['Data1','Data2','Data3'];
+      exames.forEach(function(ex){
+        var vals={};
+        cols.forEach(function(col){
+          var id='sor_'+ex.replace(/[^a-z0-9]/gi,'_')+'_'+col;
+          var el=get(id);
+          if(el&&el.value.trim()) vals[col]=el.value.trim();
+        });
+        novoSor[ex]=vals;
+      });
+    } else {
+      ['HVB','HVC','CMV','TOXO','VDRL','Chagas','EBV','HIV'].forEach(function(s){
+        var rec=get('sor_'+s+'_rec');
+        var doa=get('sor_'+s+'_doa');
+        novoSor[s]={receptor:rec?rec.value:'',doador:doa?doa.value:''};
+      });
+    }
+    var dados=Object.assign({},f.dados||{});
+    dados.sorologias=novoSor;
+    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
+    closeModal('modal-sorologias');
+    showToast('Sorologias salvas!','success');
+  });
+}
+
+// ── FORMULARIO ANTECEDENTES ──
+function abrirFormAntecedentes(f){
+  var d=f.dados||{};
+  var ant=d.antecedentes||{};
+  var docs=getDoctors();
+
+  function inp(id,val,ph){return '<input type="text" class="form-input" id="'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="font-size:12px;padding:7px 10px;">';}
+  function ta(id,val,ph){return '<textarea class="form-textarea" id="'+id+'" placeholder="'+(ph||'')+'" style="font-size:12px;min-height:60px;">'+esc(val||'')+'</textarea>';}
+  function sn(id,val){return '<select class="form-select" id="'+id+'" style="font-size:12px;padding:7px 10px;"><option value="">-</option><option value="Sim"'+(val==='Sim'?' selected':'')+'>Sim</option><option value="Nao"'+(val==='Nao'?' selected':'')+'>Nao</option></select>';}
+
+  var html='<div class="modal-title">Editar Antecedentes Pessoais</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">'
+    +'<div class="form-row"><label class="form-label">Transfusao Sanguinea</label>'+sn('ant-transf',ant.transfusao)+'</div>'
+    +'<div class="form-row"><label class="form-label">Alergias</label>'+inp('ant-alergia',ant.alergias)+'</div>'
+    +'<div class="form-row"><label class="form-label">HAS</label>'+sn('ant-has',ant.has)+'</div>'
+    +'<div class="form-row"><label class="form-label">Sangramento/Trombose</label>'+inp('ant-sangr',ant.sangramento)+'</div>'
+    +'<div class="form-row"><label class="form-label">Diabetes Mellitus</label>'+sn('ant-dm',ant.dm)+'</div>'
+    +'<div class="form-row"><label class="form-label">Cirurgias Previas</label>'+inp('ant-cir',ant.cirurgias)+'</div>'
+    +'<div class="form-row"><label class="form-label">Tabagismo</label>'+sn('ant-tab',ant.tabagismo)+'</div>'
+    +'<div class="form-row"><label class="form-label">Medicacoes em Uso</label>'+inp('ant-med',ant.medicacoes)+'</div>'
+    +'<div class="form-row"><label class="form-label">Etilismo</label>'+sn('ant-etil',ant.etilismo)+'</div>'
+    +'<div class="form-row"><label class="form-label">Abstinencia</label>'+inp('ant-abst',ant.abstinencia)+'</div>'
+    +'<div class="form-row"><label class="form-label">Uso de Drogas</label>'+sn('ant-drog',ant.drogas)+'</div>'
+    +'<div class="form-row"><label class="form-label">Dislipidemia</label>'+sn('ant-disl',ant.dislipidemia)+'</div>'
+    +'<div class="form-row"><label class="form-label">Historia Familiar</label>'+inp('ant-hfam',ant.hist_familiar)+'</div>'
+    +'<div class="form-row"><label class="form-label">Outras Informacoes</label>'+inp('ant-outras',ant.outras)+'</div>'
+    +'</div>'
+    +'<div class="settings-title" style="margin:12px 0 8px;">Vacinacao</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0 12px;">'
+    +'<div class="form-row"><label class="form-label">DT</label>'+inp('ant-vac-dt',ant.vac_dt)+'</div>'
+    +'<div class="form-row"><label class="form-label">Hep B</label>'+inp('ant-vac-hepb',ant.vac_hepb)+'</div>'
+    +'<div class="form-row"><label class="form-label">Hep A</label>'+inp('ant-vac-hepa',ant.vac_hepa)+'</div>'
+    +'<div class="form-row"><label class="form-label">Pneumococo</label>'+inp('ant-vac-pneumo',ant.vac_pneumo)+'</div>'
+    +'<div class="form-row"><label class="form-label">MMR</label>'+inp('ant-vac-mmr',ant.vac_mmr)+'</div>'
+    +'<div class="form-row"><label class="form-label">HiB</label>'+inp('ant-vac-hib',ant.vac_hib)+'</div>'
+    +'<div class="form-row"><label class="form-label">Varicela</label>'+inp('ant-vac-varic',ant.vac_varicela)+'</div>'
+    +'<div class="form-row"><label class="form-label">Anti-HBs pos-vac</label>'+inp('ant-antihbs',ant.antihbs_pos)+'</div>'
+    +'</div>'
+    +'<div class="settings-title" style="margin:12px 0 8px;">Exame Fisico</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0 12px;">'
+    +'<div class="form-row"><label class="form-label">PA</label>'+inp('ant-pa',ant.pa)+'</div>'
+    +'<div class="form-row"><label class="form-label">FC</label>'+inp('ant-fc',ant.fc)+'</div>'
+    +'<div class="form-row"><label class="form-label">FR</label>'+inp('ant-fr',ant.fr)+'</div>'
+    +'<div class="form-row"><label class="form-label">Temperatura</label>'+inp('ant-temp',ant.temp)+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">'
+    +'<div class="form-row"><label class="form-label">Geral</label>'+inp('ant-geral',ant.geral)+'</div>'
+    +'<div class="form-row"><label class="form-label">Abdome</label>'+inp('ant-abdom',ant.abdome)+'</div>'
+    +'<div class="form-row"><label class="form-label">Neuro</label>'+inp('ant-neuro',ant.neuro)+'</div>'
+    +'<div class="form-row"><label class="form-label">Pele e Extremidades</label>'+inp('ant-pele',ant.pele)+'</div>'
+    +'<div class="form-row" style="grid-column:1/-1"><label class="form-label">Observacoes Exame Fisico</label>'+ta('ant-obs-ef',ant.obs_ef)+'</div>'
+    +'</div>'
+    +'<div class="settings-title" style="margin:12px 0 8px;">Condutas Relevantes</div>'
+    +'<div id="condutas-list">'
+    +(ant.condutas&&ant.condutas.length?ant.condutas.map(function(c,i){
+      return '<div style="display:flex;gap:8px;margin-bottom:6px;" class="conduta-row">'
+        +'<input type="text" class="form-input" value="'+esc(c.texto||'')+'" placeholder="Conduta..." style="flex:1;font-size:12px;" data-field="texto">'
+        +'<input type="date" class="form-input" value="'+esc(c.data||'')+'" style="width:130px;font-size:12px;" data-field="data">'
+        +'</div>';
+    }).join(''):''
+    )+'</div>'
+    +'<button class="btn btn-ghost btn-sm" id="btn-add-conduta" style="margin-top:6px;">+ Adicionar Conduta</button>'
+    +'<div class="modal-footer"><button class="btn btn-ghost" id="btn-cancelar-ant">Cancelar</button><button class="btn btn-primary" id="btn-salvar-ant">Salvar</button></div>';
+
+  get('modal-antecedentes').querySelector('.modal').innerHTML=html;
+  openModal('modal-antecedentes');
+
+  get('btn-add-conduta').addEventListener('click',function(){
+    var div=document.createElement('div');
+    div.className='conduta-row';
+    div.style.cssText='display:flex;gap:8px;margin-bottom:6px;';
+    div.innerHTML='<input type="text" class="form-input" placeholder="Conduta..." style="flex:1;font-size:12px;" data-field="texto"><input type="date" class="form-input" style="width:130px;font-size:12px;" data-field="data">';
+    get('condutas-list').appendChild(div);
+  });
+
+  get('btn-cancelar-ant').addEventListener('click',function(){closeModal('modal-antecedentes');});
+  get('btn-salvar-ant').addEventListener('click',function(){
+    function gv(id){var el=get(id);return el?el.value.trim():'';}
+    var novoAnt={
+      transfusao:gv('ant-transf'),alergias:gv('ant-alergia'),has:gv('ant-has'),
+      sangramento:gv('ant-sangr'),dm:gv('ant-dm'),cirurgias:gv('ant-cir'),
+      tabagismo:gv('ant-tab'),medicacoes:gv('ant-med'),etilismo:gv('ant-etil'),
+      abstinencia:gv('ant-abst'),drogas:gv('ant-drog'),dislipidemia:gv('ant-disl'),
+      hist_familiar:gv('ant-hfam'),outras:gv('ant-outras'),
+      vac_dt:gv('ant-vac-dt'),vac_hepb:gv('ant-vac-hepb'),vac_hepa:gv('ant-vac-hepa'),
+      vac_pneumo:gv('ant-vac-pneumo'),vac_mmr:gv('ant-vac-mmr'),vac_hib:gv('ant-vac-hib'),
+      vac_varicela:gv('ant-vac-varic'),antihbs_pos:gv('ant-antihbs'),
+      pa:gv('ant-pa'),fc:gv('ant-fc'),fr:gv('ant-fr'),temp:gv('ant-temp'),
+      geral:gv('ant-geral'),abdome:gv('ant-abdom'),neuro:gv('ant-neuro'),
+      pele:gv('ant-pele'),obs_ef:gv('ant-obs-ef')
+    };
+    var condutas=[];
+    document.querySelectorAll('.conduta-row').forEach(function(row){
+      var texto=row.querySelector('[data-field="texto"]');
+      var data=row.querySelector('[data-field="data"]');
+      if(texto&&texto.value.trim()) condutas.push({texto:texto.value.trim(),data:data?data.value:''});
+    });
+    novoAnt.condutas=condutas;
+    var dados=Object.assign({},f.dados||{});
+    dados.antecedentes=novoAnt;
+    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
+    closeModal('modal-antecedentes');
+    showToast('Antecedentes salvos!','success');
+  });
 }
 
 
