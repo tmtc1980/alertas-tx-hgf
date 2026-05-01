@@ -4473,62 +4473,116 @@ function gerarHTMLImpressao(tipo,dados,d,f){
 
   } else if(tipo==='lme'){
     var dataSol = dados.data_sol ? new Date(dados.data_sol+'T12:00:00').toLocaleDateString('pt-BR') : hoje;
-    function tc(w,txt,label,bold){return '<td style="width:'+(w||'auto')+';padding:3px 5px;border:1px solid #333;vertical-align:top;">'+(label?'<div style="font-size:8px;color:#666;">'+label+'</div>':'')+'<div style="font-size:11px;'+(bold?'font-weight:bold;':'')+'">'+esc(txt||'')+'</div></td>';}
-    var medsRowsHtml = [0,1,2,3,4,5].map(function(i){
-      var med=dados['med_'+i]||'';
-      return '<tr style="border-bottom:1px solid #ccc;">'
-        +'<td style="padding:2px 4px;text-align:center;border-right:1px solid #ccc;font-size:11px;">'+(i+1)+'</td>'
-        +'<td style="padding:2px 5px;border-right:1px solid #ccc;font-size:11px;">'+esc(med)+'</td>'
-        +[1,2,3,4,5,6].map(function(m){return '<td style="padding:2px 3px;text-align:center;border-right:1px solid #ccc;font-size:11px;">'+esc(dados['qtd_'+i+'_'+m]||'')+'</td>';}).join('')
+    var medsRows2 = [0,1,2,3,4,5].map(function(i){
+      var med = dados['med_'+i]||'';
+      return '<tr>'
+        +'<td style="width:22px;text-align:center;padding:3px;border:1px solid #999;font-size:10px;">'+(i+1)+'</td>'
+        +'<td style="padding:3px 5px;border:1px solid #999;font-size:10px;">'+esc(med)+'</td>'
+        +[1,2,3,4,5,6].map(function(m){return '<td style="width:38px;text-align:center;padding:3px;border:1px solid #999;font-size:10px;">'+esc(dados['qtd_'+i+'_'+m]||'')+'</td>';}).join('')
         +'</tr>';
     }).join('');
-    return base+'<div class="page" style="width:210mm;font-family:Arial,sans-serif;font-size:11px;">'
-      +'<div style="text-align:center;border-bottom:1px solid #333;padding-bottom:5px;margin-bottom:5px;">'
-      +'<div style="font-size:9px;color:#555;">Sistema Unico de Saude | Ministerio da Saude | Secretaria de Estado da Saude</div>'
-      +'<div style="font-weight:bold;font-size:12px;">COMPONENTE ESPECIALIZADO DA ASSISTENCIA FARMACEUTICA</div>'
-      +'<div style="font-weight:bold;">LAUDO DE SOLICITACAO, AVALIACAO E AUTORIZACAO DE MEDICAMENTO(S)</div>'
-      +'<div style="font-weight:bold;">SOLICITACAO DE MEDICAMENTO(S)</div>'
+    function lmeCell(label, val, w, span){
+      return '<td colspan="'+(span||1)+'" style="padding:3px 5px;border:1px solid #999;vertical-align:top;'+(w?'width:'+w+';':'')+'">'
+        +'<div style="font-size:8px;color:#555;margin-bottom:1px;">'+label+'</div>'
+        +'<div style="font-size:10px;">'+esc(val||'')+'</div>'
+        +'</td>';
+    }
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+      +'<style>'
+      +'*{margin:0;padding:0;box-sizing:border-box;}'
+      +'body{font-family:Arial,sans-serif;font-size:10px;color:#000;background:#fff;}'
+      +'@page{size:A4;margin:10mm;}'
+      +'@media print{body{-webkit-print-color-adjust:exact;}}'
+      +'table{width:100%;border-collapse:collapse;}'
+      +'</style></head><body>'
+      +'<div style="padding:5mm;">'
+      // CABEÇALHO
+      +'<div style="text-align:center;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:5px;">'
+      +'<div style="font-size:8px;color:#444;">Sistema Unico de Saude | Ministerio da Saude | Secretaria de Estado da Saude</div>'
+      +'<div style="font-size:12px;font-weight:bold;text-transform:uppercase;margin:2px 0;">Componente Especializado da Assistencia Farmaceutica</div>'
+      +'<div style="font-size:11px;font-weight:bold;">Laudo de Solicitacao, Avaliacao e Autorizacao de Medicamento(s)</div>'
+      +'<div style="font-size:11px;font-weight:bold;">SOLICITACAO DE MEDICAMENTO(S)</div>'
       +'</div>'
-      +'<div style="background:#e8e8e8;text-align:center;font-size:10px;font-weight:bold;padding:2px;border:1px solid #333;margin-bottom:0;">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MEDICO SOLICITANTE</div>'
-      +'<table style="width:100%;border-collapse:collapse;margin-bottom:0;">'
+      +'<div style="background:#ccc;text-align:center;font-size:9px;font-weight:bold;padding:2px;border:1px solid #000;margin-bottom:0;">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MEDICO SOLICITANTE</div>'
+      // LINHA CNES / NOME / PESO / ALTURA
+      +'<table style="border:1px solid #999;border-bottom:none;">'
       +'<tr>'
-      +tc('140px','2497654','1. Numero do CNES',true)
-      +tc('auto','Hospital Geral de Fortaleza - HGF','2. Nome do estabelecimento',false)
-      +tc('80px',dados.peso?dados.peso+'kg':'','5. Peso',false)
-      +tc('80px',dados.altura?dados.altura+'cm':'','6. Altura',false)
+      +'<td style="width:140px;padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">1. Numero do CNES</div><div style="font-size:10px;font-weight:bold;">2497654</div></td>'
+      +'<td style="padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">2. Nome do estabelecimento</div><div style="font-size:10px;">Hospital Geral de Fortaleza - HGF</div></td>'
+      +'<td style="width:70px;padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">5. Peso (kg)</div><div style="font-size:10px;">'+esc(dados.peso||'')+'</div></td>'
+      +'<td style="width:70px;padding:3px 5px;"><div style="font-size:8px;color:#555;">6. Altura (cm)</div><div style="font-size:10px;">'+esc(dados.altura||'')+'</div></td>'
       +'</tr>'
-      +'<tr>'+tc('100%',dados.nome||'','3. Nome completo do Paciente*',false)+'</tr>'
-      +'<tr>'+tc('100%',dados.mae||'','4. Nome da Mae do Paciente*',false)+'</tr>'
       +'</table>'
-      +'<table style="width:100%;border-collapse:collapse;border:1px solid #333;">'
-      +'<thead><tr style="background:#e8e8e8;">'
-      +'<th style="padding:2px 4px;border-right:1px solid #333;width:20px;font-size:10px;">#</th>'
-      +'<th style="padding:2px 5px;border-right:1px solid #333;font-size:10px;">7. Medicamento(s)*</th>'
-      +'<th colspan="6" style="padding:2px 5px;text-align:center;font-size:10px;">8. Quantidade solicitada* (por mes)</th>'
+      // NOME PACIENTE
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#555;">3. Nome completo do Paciente*</div><div style="font-size:10px;">'+esc(dados.nome||'')+'</div></td></tr>'
+      +'</table>'
+      // NOME MAE
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#555;">4. Nome da Mae do Paciente*</div><div style="font-size:10px;">'+esc(dados.mae||'')+'</div></td></tr>'
+      +'</table>'
+      // TABELA MEDICAMENTOS
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<thead>'
+      +'<tr style="background:#ddd;">'
+      +'<th style="width:22px;padding:3px;border:1px solid #999;font-size:9px;text-align:center;">#</th>'
+      +'<th style="padding:3px 5px;border:1px solid #999;font-size:9px;text-align:left;">7. Medicamento(s)*</th>'
+      +'<th colspan="6" style="padding:3px;border:1px solid #999;font-size:9px;text-align:center;">8. Quantidade solicitada* (por mes)</th>'
       +'</tr>'
-      +'<tr style="background:#f5f5f5;"><th style="border-right:1px solid #333;"></th><th style="border-right:1px solid #333;"></th>'
-      +[1,2,3,4,5,6].map(function(m){return '<th style="padding:2px 3px;text-align:center;border-right:1px solid #ccc;font-size:9px;width:40px;">'+m+'o mes</th>';}).join('')
-      +'</tr></thead><tbody>'+medsRowsHtml+'</tbody></table>'
-      +'<table style="width:100%;border-collapse:collapse;border:1px solid #333;border-top:none;">'
-      +'<tr>'+tc('100px',dados.cid||'','9. CID-10*',false)+tc('auto',dados.diag||'','10. Diagnostico*',false)+'</tr>'
-      +'<tr><td colspan="2" style="padding:3px 5px;border:1px solid #333;"><div style="font-size:9px;color:#666;">11. Anamnese*</div><div style="min-height:40px;font-size:11px;">'+esc(dados.anamnese||'')+'</div></td></tr>'
-      +'<tr><td colspan="2" style="padding:3px 5px;border:1px solid #333;font-size:11px;">12. Tratamento previo: <strong>'+(dados.trat_previo==='sim'?'SIM - '+esc(dados.trat_previo_desc||''):'NAO')+'</strong></td></tr>'
+      +'<tr style="background:#eee;">'
+      +'<th style="border:1px solid #999;"></th><th style="border:1px solid #999;"></th>'
+      +[1,2,3,4,5,6].map(function(m){return '<th style="width:38px;padding:2px;border:1px solid #999;font-size:8px;text-align:center;">'+m+'o mes</th>';}).join('')
+      +'</tr>'
+      +'</thead><tbody>'
+      +medsRows2
+      +'</tbody></table>'
+      // CID E DIAGNOSTICO
+      +'<table style="border:1px solid #999;border-bottom:none;">'
       +'<tr>'
-      +tc('auto',dados.prof_nome||'','14. Nome do medico solicitante*',false)
-      +tc('120px',dados.prof_cns||'','15. CNS do medico',false)
-      +tc('100px',dataSol,'16. Data da solicitacao*',false)
+      +'<td style="width:100px;padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">9. CID-10*</div><div style="font-size:10px;">'+esc(dados.cid||'')+'</div></td>'
+      +'<td style="padding:3px 5px;"><div style="font-size:8px;color:#555;">10. Diagnostico*</div><div style="font-size:10px;">'+esc(dados.diag||'')+'</div></td>'
       +'</tr>'
-      +'<tr><td colspan="3" style="padding:15px 5px;border:1px solid #333;font-size:10px;text-align:right;">17. Assinatura e carimbo do medico: _________________________</td></tr>'
       +'</table>'
-      +'<div style="background:#e8e8e8;text-align:center;font-size:10px;font-weight:bold;padding:2px;border:1px solid #333;border-top:none;">CAMPOS ABAIXO PREENCHIDOS PELO PACIENTE / MAE / RESPONSAVEL</div>'
-      +'<table style="width:100%;border-collapse:collapse;border:1px solid #333;border-top:none;">'
-      +'<tr>'+tc('50%',dados.raca||'','19. Raca/Cor/Etnia',false)+tc('50%',dados.telefone||'','20. Telefone(s)',false)+'</tr>'
-      +'<tr>'+tc('50%',dados.paciente_doc||'','21. CPF ou CNS do paciente',false)+tc('50%',dados.email||'','22. Correio eletronico',false)+'</tr>'
-      +'<tr><td colspan="2" style="padding:3px 5px;border:1px solid #333;font-size:9px;color:#666;">23. Assinatura do responsavel pelo preenchimento: ______________________</td></tr>'
+      // ANAMNESE
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr><td style="padding:3px 5px;min-height:40px;"><div style="font-size:8px;color:#555;">11. Anamnese*</div><div style="font-size:10px;min-height:35px;">'+esc(dados.anamnese||'')+'</div></td></tr>'
       +'</table>'
-      +'<div style="font-size:9px;color:#666;margin-top:3px;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>'
-      +'</div></body></html>';
-  }
+      // TRATAMENTO PREVIO
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#555;">12. Paciente realizou tratamento previo ou esta em tratamento da doenca?*</div>'
+      +'<div style="font-size:10px;margin-top:2px;"><strong>'+(dados.trat_previo==='sim'?'SIM - '+esc(dados.trat_previo_desc||''):'NAO')+'</strong></div>'
+      +'</td></tr>'
+      +'</table>'
+      // MEDICO
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr>'
+      +'<td style="padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">14. Nome do medico solicitante*</div><div style="font-size:10px;">'+esc(dados.prof_nome||'')+'</div></td>'
+      +'<td style="width:130px;padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">15. CNS do medico</div><div style="font-size:10px;">'+esc(dados.prof_cns||'')+'</div></td>'
+      +'<td style="width:100px;padding:3px 5px;"><div style="font-size:8px;color:#555;">16. Data da solicitacao*</div><div style="font-size:10px;">'+dataSol+'</div></td>'
+      +'</tr>'
+      +'</table>'
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr><td style="padding:15px 5px;text-align:right;font-size:9px;">17. Assinatura e carimbo do medico*: _________________________________</td></tr>'
+      +'</table>'
+      // CAMPOS PACIENTE
+      +'<div style="background:#ccc;text-align:center;font-size:9px;font-weight:bold;padding:2px;border:1px solid #999;">CAMPOS ABAIXO PREENCHIDOS PELO PACIENTE / MAE / RESPONSAVEL</div>'
+      +'<table style="border:1px solid #999;border-bottom:none;">'
+      +'<tr>'
+      +'<td style="width:50%;padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">19. Raca/Cor/Etnia</div><div style="font-size:10px;">'+esc(dados.raca||'')+'</div></td>'
+      +'<td style="padding:3px 5px;"><div style="font-size:8px;color:#555;">20. Telefone(s)</div><div style="font-size:10px;">'+esc(dados.telefone||'')+'</div></td>'
+      +'</tr>'
+      +'</table>'
+      +'<table style="border:1px solid #999;">'
+      +'<tr>'
+      +'<td style="width:50%;padding:3px 5px;border-right:1px solid #999;"><div style="font-size:8px;color:#555;">21. CPF ou CNS do paciente</div><div style="font-size:10px;">'+esc(dados.paciente_doc||'')+'</div></td>'
+      +'<td style="padding:3px 5px;"><div style="font-size:8px;color:#555;">22. Correio eletronico</div><div style="font-size:10px;">'+esc(dados.email||'')+'</div></td>'
+      +'</tr>'
+      +'<tr><td colspan="2" style="padding:15px 5px;text-align:right;font-size:9px;border-top:1px solid #999;">23. Assinatura do responsavel pelo preenchimento: ______________________</td></tr>'
+      +'</table>'
+      +'<div style="font-size:8px;color:#666;margin-top:3px;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>'
+      +'</div>'
+      +'</body></html>';
+    }
 
   return base+'<div class="page"><p>Documento nao disponivel.</p></div></body></html>';
 }
