@@ -4780,12 +4780,7 @@ function sendAlertEmail(rec){
 }
 
 document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
-})();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-</body>
-</html><script>
+
 // Injected: abrirFormDoador e abrirFormImuno
 function abrirFormDoador(f){
   var d=f.dados||{};
@@ -4950,4 +4945,10 @@ function abrirFormImuno(f){
     showToast('Imunossupressao salva!','success');
   });
 }
+
+})();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</body>
+</html>
