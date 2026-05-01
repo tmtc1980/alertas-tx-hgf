@@ -789,6 +789,17 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 
 
 
+
+<!-- MODAL: DOADOR FORM -->
+<div class="modal-overlay" id="modal-doador-form">
+  <div class="modal" style="max-width:680px;max-height:92vh;overflow-y:auto;"></div>
+</div>
+
+<!-- MODAL: IMUNO FORM -->
+<div class="modal-overlay" id="modal-imuno-form">
+  <div class="modal" style="max-width:780px;max-height:92vh;overflow-y:auto;"></div>
+</div>
+
 <!-- MODAL: DOCUMENTO CLINICO -->
 <div class="modal-overlay" id="modal-documento">
   <div class="modal" style="max-width:720px;max-height:92vh;overflow-y:auto;"></div>
@@ -3053,7 +3064,10 @@ function renderTabAntecedentes(d,c){
 
 function renderTabDoador(d,c){
   var doc=d.doador||{};
-  c.innerHTML='<div class="settings-title" style="margin-bottom:10px;">Dados do Doador</div>'
+  c.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
+    +'<button class="btn btn-primary btn-sm" id="btn-editar-doador">Editar Dados do Doador</button>'
+    +'</div>'
+    +'<div class="settings-title" style="margin-bottom:10px;">Dados do Doador</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
     +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
     +dvRow('Nome',doc.nome)+dvRow('Idade',doc.idade)+dvRow('Sexo',doc.sexo)
@@ -3074,7 +3088,34 @@ function renderTabDoador(d,c){
 
 function renderTabImuno(d,c){
   var im=d.imuno||{};
-  c.innerHTML='<div class="settings-title" style="margin-bottom:10px;">Esquema de Imunossupressao</div>'
+  var imAnterior=d.imuno_anterior||{};
+  c.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
+    +'<button class="btn btn-primary btn-sm" id="btn-editar-imuno">Editar Imunossupressao</button>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">'
+    // IMUNO ANTERIOR
+    +'<div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--text2);background:var(--surface2);padding:6px 10px;border-radius:var(--radius);margin-bottom:10px;">IMUNOSSUPRESSAO ANTERIOR</div>'
+    +dvRow('Tac/CsA',imAnterior.tac_csa)
+    +dvRow('MMF/Myfortic',imAnterior.mmf)
+    +dvRow('Sirolimo/Everolimo',imAnterior.siro_ever)
+    +dvRow('Ciclosporina',imAnterior.ciclosporina)
+    +dvRow('Corticosteroide',imAnterior.cortico)
+    +dvRow('Outros',imAnterior.outros)
+    +dvRow('Alergia',imAnterior.alergia)
+    +'</div>'
+    // IMUNO ATUAL
+    +'<div>'
+    +'<div style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:6px 10px;border-radius:var(--radius);margin-bottom:10px;">IMUNOSSUPRESSAO ATUAL ★</div>'
+    +dvRow('Tac/CsA',im.tac_csa)
+    +dvRow('MMF/Myfortic',im.mmf)
+    +dvRow('Sirolimo/Everolimo',im.siro_ever)
+    +dvRow('Ciclosporina',im.ciclosporina)
+    +dvRow('Corticosteroide',im.cortico)
+    +dvRow('Outros',im.outros)
+    +dvRow('Alergia',im.alergia)
+    +'</div>'
+    +'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
     +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
     +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">MANUTENCAO</div>'
@@ -3085,21 +3126,10 @@ function renderTabImuno(d,c){
     +dvRow('Outros Medicamentos',im.outros)
     +dvRow('Alergia Medicamentosa',im.alergia)
     +'</div>'
-    +'<div style="padding-left:16px;">'
-    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">SOROLOGIAS</div>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:12px;">'
-    +'<thead><tr style="background:var(--surface2);"><th style="padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);">Sorologia</th><th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);">Receptor</th><th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);">Doador</th></tr></thead>'
-    +'<tbody>'
-    +['HVB','HVC','CMV','TOXO','VDRL','Chagas','EBV','HIV'].map(function(s){
-      var sr=(d.sorologias_imuno||{})[s]||{};
-      return '<tr style="border-bottom:0.5px solid var(--border);"><td style="padding:4px 8px;color:var(--text2);">'+s+'</td>'
-        +'<td style="padding:4px 8px;text-align:center;color:var(--text);">'+esc(sr.receptor||'-')+'</td>'
-        +'<td style="padding:4px 8px;text-align:center;color:var(--text);">'+esc(sr.doador||'-')+'</td></tr>';
-    }).join('')
-    +'</tbody></table>'
-    +'<div style="margin-top:12px;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">OBSERVACOES</div>'
-    +'<div style="font-size:13px;color:var(--text2);">'+esc(im.obs||'-')+'</div>'
-    +'</div></div>';
+  +(im.obs?'<div style="margin-top:12px;">'+dvRow('Observacoes',im.obs)+'</div>':'')
+    +'</div>';
+  var btnImuno=get('btn-editar-imuno');
+  if(btnImuno) btnImuno.addEventListener('click',function(){abrirFormImuno(folhaoAtivo);});
 }
 
 function renderTabSorologias(d,isPre,c){
@@ -4763,4 +4793,169 @@ document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListen
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </body>
-</html>
+</html><script>
+// Injected: abrirFormDoador e abrirFormImuno
+function abrirFormDoador(f){
+  var d=f.dados||{};
+  var doc=d.doador||{};
+  function inp(id,val,ph){return '<input type="text" class="form-input" id="fd-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="font-size:12px;padding:7px 10px;">';}
+  function sel(id,val,opts){return '<select class="form-select" id="fd-'+id+'">'+opts.map(function(o){return '<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';}
+  function row(label,field){return '<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:3px;">'+label+'</div>'+field+'</div>';}
+
+  var html='<div class="modal-title">Dados do Doador</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px;">'
+    +row('Idade',inp('idade',doc.idade))
+    +row('Sexo',sel('sexo',doc.sexo||'',['','M','F']))
+    +row('Peso (kg)',inp('peso',doc.peso))
+    +row('Altura (m)',inp('altura',doc.altura))
+    +row('Causa da Morte',inp('causa_morte',doc.causa_morte))
+    +row('Infeccao',sel('infeccao',doc.infeccao||'',['','Sim','Nao']))
+    +row('Antibiotico',inp('antibiotico',doc.antibiotico))
+    +row('TGO',inp('tgo',doc.tgo))
+    +row('TGP',inp('tgp',doc.tgp))
+    +row('Sodio (Na)',inp('na',doc.na))
+    +row('Nora (dose)',inp('nora',doc.nora))
+    +row('Vaso (dose)',inp('vaso',doc.vaso))
+    +'<div style="grid-column:1/-1;">'+row('Solucao de Perfusao',inp('solucao',doc.solucao))+'</div>'
+    +'<div style="grid-column:1/-1;">'+row('Local do Implante',inp('local_implante',doc.local_implante))+'</div>'
+    +row('Isquemia Fria',inp('isquemia_fria',doc.isquemia_fria,'Ex: 8h30min'))
+    +row('Isquemia Quente',inp('isquemia_quente',doc.isquemia_quente,'Ex: 45min'))
+    +row('Tempo Anastomose',inp('tempo_anast',doc.tempo_anast))
+    +row('V.Cava',inp('vcava',doc.vcava))
+    +row('V.Porta',inp('vporta',doc.vporta))
+    +row('A.Hepatica',inp('ahep',doc.ahep))
+    +row('Via Biliar',inp('via_biliar',doc.via_biliar))
+    +'</div>'
+    +'<div class="modal-footer">'
+    +'<button class="btn btn-ghost" id="btn-cancelar-doador">Cancelar</button>'
+    +'<button class="btn btn-primary" id="btn-salvar-doador">Salvar</button>'
+    +'</div>';
+
+  get('modal-doador-form').querySelector('.modal').innerHTML=html;
+  openModal('modal-doador-form');
+
+  get('btn-cancelar-doador').addEventListener('click',function(){closeModal('modal-doador-form');});
+  get('btn-salvar-doador').addEventListener('click',function(){
+    function gv(id){var el=get('fd-'+id);return el?el.value.trim():'';}
+    var novoDoc={
+      idade:gv('idade'),sexo:gv('sexo'),peso:gv('peso'),altura:gv('altura'),
+      causa_morte:gv('causa_morte'),infeccao:gv('infeccao'),antibiotico:gv('antibiotico'),
+      tgo:gv('tgo'),tgp:gv('tgp'),na:gv('na'),nora:gv('nora'),vaso:gv('vaso'),
+      solucao:gv('solucao'),local_implante:gv('local_implante'),
+      isquemia_fria:gv('isquemia_fria'),isquemia_quente:gv('isquemia_quente'),
+      tempo_anast:gv('tempo_anast'),vcava:gv('vcava'),vporta:gv('vporta'),
+      ahep:gv('ahep'),via_biliar:gv('via_biliar')
+    };
+    var dados=Object.assign({},f.dados||{});
+    dados.doador=novoDoc;
+    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
+    closeModal('modal-doador-form');
+    showToast('Dados do doador salvos!','success');
+  });
+}
+
+function abrirFormImuno(f){
+  var d=f.dados||{};
+  var im=d.imuno||{};
+  var imAnt=d.imuno_anterior||{};
+
+  function inp(id,val,ph){return '<input type="text" class="form-input" id="fi-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="font-size:12px;padding:7px 10px;">';}
+  function sel(id,val,opts){return '<select class="form-select" id="fi-'+id+'">'+opts.map(function(o){return '<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';}
+  function ta(id,val,ph){return '<textarea class="form-textarea" id="fi-'+id+'" style="font-size:12px;min-height:60px;" placeholder="'+(ph||'')+'">'+esc(val||'')+'</textarea>';}
+  function row(label,field){return '<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:3px;">'+label+'</div>'+field+'</div>';}
+
+  var html='<div class="modal-title">Imunossupressao</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">'
+    // Coluna anterior
+    +'<div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--text2);background:var(--surface2);padding:6px 10px;border-radius:var(--radius);margin-bottom:10px;">ANTERIOR (historico)</div>'
+    +row('Tac/CsA + doses',inp('ant_tac_csa',imAnt.tac_csa,'Ex: Tac 3mg manha, 2mg noite'))
+    +row('MMF/Myfortic + doses',inp('ant_mmf',imAnt.mmf,'Ex: MMF 500mg 12/12h'))
+    +row('Sirolimo/Everolimo + doses',inp('ant_siro_ever',imAnt.siro_ever,''))
+    +row('Ciclosporina + doses',inp('ant_ciclosporina',imAnt.ciclosporina,''))
+    +row('Corticosteroide',inp('ant_cortico',imAnt.cortico,'Ex: Pred 5mg/dia'))
+    +row('Outros',inp('ant_outros',imAnt.outros,''))
+    +row('Alergias',inp('ant_alergia',imAnt.alergia,''))
+    +'</div>'
+    // Coluna atual
+    +'<div>'
+    +'<div style="font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:6px 10px;border-radius:var(--radius);margin-bottom:10px;">ATUAL ★ (preenche LME e Receita)</div>'
+    // Tacrolimus detalhado
+    +'<div style="background:var(--surface2);border-radius:var(--radius);padding:10px;margin-bottom:8px;">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">TACROLIMUS</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+    +row('05mg - qtd caixas',inp('tac_5mg',im.tac_5mg,''))
+    +row('01mg - qtd caixas',inp('tac_1mg',im.tac_1mg,''))
+    +row('Tomar manha (mg)',inp('tac_manha',im.tac_manha,''))
+    +row('Tomar noite (mg)',inp('tac_noite',im.tac_noite,''))
+    +'</div></div>'
+    // Micofenolato
+    +'<div style="background:var(--surface2);border-radius:var(--radius);padding:10px;margin-bottom:8px;">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">MICOFENOLATO SODICO / MMF</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
+    +row('360mg - qtd',inp('mmf_360',im.mmf_360,''))
+    +row('180mg - qtd',inp('mmf_180',im.mmf_180,''))
+    +row('Manha (mg)',inp('mmf_manha',im.mmf_manha,''))
+    +row('Tarde (mg)',inp('mmf_tarde',im.mmf_tarde,''))
+    +row('Noite (mg)',inp('mmf_noite',im.mmf_noite,''))
+    +'</div></div>'
+    // Ciclosporina
+    +'<div style="background:var(--surface2);border-radius:var(--radius);padding:10px;margin-bottom:8px;">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">CICLOSPORINA</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+    +row('Dose/apresentacao',inp('ciclo_dose',im.ciclosporina,''))
+    +row('Tomar manha (mg)',inp('ciclo_manha',im.ciclo_manha,''))
+    +'</div></div>'
+    // Everolimus/Sirolimus
+    +'<div style="background:var(--surface2);border-radius:var(--radius);padding:10px;margin-bottom:8px;">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">EVEROLIMUS / SIROLIMUS</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;">'
+    +row('0,5mg - qtd',inp('ever_05',im.ever_05,''))
+    +row('1mg - qtd',inp('ever_1',im.ever_1,''))
+    +row('Manha (mg)',inp('ever_manha',im.ever_manha,''))
+    +row('Noite (mg)',inp('ever_noite',im.ever_noite,''))
+    +'</div></div>'
+    // Outros
+    +row('Corticosteroide',inp('cortico',im.cortico,'Ex: Prednisolona 5mg/dia'))
+    +row('Outros medicamentos',inp('outros',im.outros,''))
+    +row('Alergias',inp('alergia',im.alergia,''))
+    +row('Observacoes',ta('obs',im.obs,''))
+    +'</div>'
+    +'</div>'
+    +'<div class="modal-footer">'
+    +'<button class="btn btn-ghost" id="btn-cancelar-imuno-form">Cancelar</button>'
+    +'<button class="btn btn-primary" id="btn-salvar-imuno-form">Salvar</button>'
+    +'</div>';
+
+  get('modal-imuno-form').querySelector('.modal').innerHTML=html;
+  openModal('modal-imuno-form');
+
+  get('btn-cancelar-imuno-form').addEventListener('click',function(){closeModal('modal-imuno-form');});
+  get('btn-salvar-imuno-form').addEventListener('click',function(){
+    function gv(id){var el=get('fi-'+id);return el?el.value.trim():'';}
+    // Salvar anterior como histórico
+    var novoAnt={
+      tac_csa:gv('ant_tac_csa'),mmf:gv('ant_mmf'),siro_ever:gv('ant_siro_ever'),
+      ciclosporina:gv('ant_ciclosporina'),cortico:gv('ant_cortico'),
+      outros:gv('ant_outros'),alergia:gv('ant_alergia')
+    };
+    // Salvar atual com todos os campos detalhados
+    var novoImuno={
+      tac_csa:gv('tac_manha')&&gv('tac_noite')?'Tac '+gv('tac_manha')+'mg manha + '+gv('tac_noite')+'mg noite':(gv('tac_manha')?'Tac '+gv('tac_manha')+'mg manha':''),
+      tac_5mg:gv('tac_5mg'),tac_1mg:gv('tac_1mg'),tac_manha:gv('tac_manha'),tac_noite:gv('tac_noite'),
+      mmf:gv('mmf_manha')||gv('mmf_noite')?'MMF '+[gv('mmf_manha')&&gv('mmf_manha')+'mg manha',gv('mmf_tarde')&&gv('mmf_tarde')+'mg tarde',gv('mmf_noite')&&gv('mmf_noite')+'mg noite'].filter(Boolean).join(' + '):'',
+      mmf_360:gv('mmf_360'),mmf_180:gv('mmf_180'),mmf_manha:gv('mmf_manha'),mmf_tarde:gv('mmf_tarde'),mmf_noite:gv('mmf_noite'),
+      ciclosporina:gv('ciclo_dose'),ciclo_manha:gv('ciclo_manha'),
+      siro_ever:gv('ever_manha')||gv('ever_noite')?'Ever '+[gv('ever_manha')&&gv('ever_manha')+'mg manha',gv('ever_noite')&&gv('ever_noite')+'mg noite'].filter(Boolean).join(' + '):'',
+      ever_05:gv('ever_05'),ever_1:gv('ever_1'),ever_manha:gv('ever_manha'),ever_noite:gv('ever_noite'),
+      cortico:gv('cortico'),outros:gv('outros'),alergia:gv('alergia'),obs:gv('obs')
+    };
+    var dados=Object.assign({},f.dados||{});
+    dados.imuno=novoImuno;
+    dados.imuno_anterior=novoAnt;
+    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()},true);
+    closeModal('modal-imuno-form');
+    showToast('Imunossupressao salva!','success');
+  });
+}
+</script>
