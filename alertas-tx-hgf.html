@@ -3514,10 +3514,11 @@ function abrirFormSorologias(f,isPre){
   if(isPre){
     var exames=['Anti-HCV','PCR-HCV Qualit.','PCR-HCV Quant.','Genotipo HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Carga Viral HBV','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','alfa-1-Antitrip.','FAN','Anti-mitocon.','Anti-musc. liso','Ceruloplasmin.','Cobre serico','PSA','Ferritina','IST','PPD','Sat. Transferrina'];
     var cols=['Data1','Data2','Data3'];
+    var sorDatas=sor._datas||{};
     html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
       +'<thead><tr style="background:var(--surface2);">'
       +'<th style="padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);min-width:140px;">Exame</th>'
-      +cols.map(function(col){return '<th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);min-width:100px;">'+col+'</th>';}).join('')
+      +cols.map(function(col){return '<th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);min-width:110px;"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">'+col+'</div><input type="date" class="form-input" id="sor_data_'+col+'" value="'+esc(sorDatas[col]||'')+'" style="padding:3px 5px;font-size:11px;"></th>';}).join('')
       +'</tr></thead><tbody>'
       +exames.map(function(ex,i){
         var vals=sor[ex]||{};
@@ -3526,7 +3527,7 @@ function abrirFormSorologias(f,isPre){
           +cols.map(function(col){
             var id='sor_'+ex.replace(/[^a-z0-9]/gi,'_')+'_'+col;
             // fix: usar array JS
-            var dropdownExames=['Anti-HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','FAN','Anti-mitocon.','Anti-musc. liso','IST','PPD'];
+            var dropdownExames=['Anti-HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','FAN','Anti-mitocon.','Anti-musc. liso'];
             var useDropdown=dropdownExames.indexOf(ex)>=0;
             var v=vals[col]||'';
             if(useDropdown){
@@ -3572,6 +3573,13 @@ function abrirFormSorologias(f,isPre){
     if(isPre){
       var exames=['Anti-HCV','PCR-HCV Qualit.','PCR-HCV Quant.','Genotipo HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Carga Viral HBV','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','alfa-1-Antitrip.','FAN','Anti-mitocon.','Anti-musc. liso','Ceruloplasmin.','Cobre serico','PSA','Ferritina','IST','PPD','Sat. Transferrina'];
       var cols=['Data1','Data2','Data3'];
+      // Salvar datas dos cabecalhos
+      var novasDatas={};
+      cols.forEach(function(col){
+        var el=get('sor_data_'+col);
+        if(el&&el.value) novasDatas[col]=el.value;
+      });
+      novoSor._datas=novasDatas;
       exames.forEach(function(ex){
         var vals={};
         cols.forEach(function(col){
