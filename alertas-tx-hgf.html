@@ -3084,6 +3084,8 @@ function renderTabDoador(d,c){
     +dvRow('Tempo Anastomose',doc.tempo_anast)+dvRow('V.Cava',doc.vcava)
     +dvRow('V.Porta',doc.vporta)+dvRow('A.Hepatica',doc.ahep)+dvRow('Via Biliar',doc.via_biliar)
     +'</div></div>';
+  var _btnDoc=get('btn-editar-doador');
+  if(_btnDoc) _btnDoc.addEventListener('click',function(){abrirFormDoador(folhaoAtivo);});
 }
 
 function renderTabImuno(d,c){
