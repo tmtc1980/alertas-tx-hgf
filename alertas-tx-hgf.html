@@ -4847,6 +4847,7 @@ function abrirFormImuno(f){
   var imAnt=d.imuno_anterior||{};
 
   function inp(id,val,ph){return '<input type="text" class="form-input" id="fi-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="font-size:12px;padding:7px 10px;">';}
+  function roInp(id,val){return '<input type="text" class="form-input" id="fi-'+id+'" value="'+esc(val||'')+'" readonly style="font-size:12px;padding:7px 10px;background:var(--surface2);color:var(--text2);cursor:default;">';}
   function sel(id,val,opts){return '<select class="form-select" id="fi-'+id+'">'+opts.map(function(o){return '<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';}
   function ta(id,val,ph){return '<textarea class="form-textarea" id="fi-'+id+'" style="font-size:12px;min-height:60px;" placeholder="'+(ph||'')+'">'+esc(val||'')+'</textarea>';}
   function row(label,field){return '<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:3px;">'+label+'</div>'+field+'</div>';}
@@ -4855,14 +4856,14 @@ function abrirFormImuno(f){
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">'
     // Coluna anterior
     +'<div>'
-    +'<div style="font-size:12px;font-weight:700;color:var(--text2);background:var(--surface2);padding:6px 10px;border-radius:var(--radius);margin-bottom:10px;">ANTERIOR (historico)</div>'
-    +row('Tac/CsA + doses',inp('ant_tac_csa',imAnt.tac_csa,'Ex: Tac 3mg manha, 2mg noite'))
-    +row('MMF/Myfortic + doses',inp('ant_mmf',imAnt.mmf,'Ex: MMF 500mg 12/12h'))
-    +row('Sirolimo/Everolimo + doses',inp('ant_siro_ever',imAnt.siro_ever,''))
-    +row('Ciclosporina + doses',inp('ant_ciclosporina',imAnt.ciclosporina,''))
-    +row('Corticosteroide',inp('ant_cortico',imAnt.cortico,'Ex: Pred 5mg/dia'))
-    +row('Outros',inp('ant_outros',imAnt.outros,''))
-    +row('Alergias',inp('ant_alergia',imAnt.alergia,''))
+    +'<div style="font-size:12px;font-weight:700;color:var(--text2);background:var(--surface2);padding:6px 10px;border-radius:var(--radius);margin-bottom:10px;">CONSULTA ANTERIOR <span style="font-size:10px;font-weight:400;">(somente leitura)</span></div>'
+    +row('Tac/CsA + doses',roInp('ant_tac_csa',imAnt.tac_csa))
+    +row('MMF/Myfortic + doses',roInp('ant_mmf',imAnt.mmf))
+    +row('Sirolimo/Everolimo + doses',roInp('ant_siro_ever',imAnt.siro_ever))
+    +row('Ciclosporina + doses',roInp('ant_ciclosporina',imAnt.ciclosporina))
+    +row('Corticosteroide',roInp('ant_cortico',imAnt.cortico))
+    +row('Outros',roInp('ant_outros',imAnt.outros))
+    +row('Alergias',roInp('ant_alergia',imAnt.alergia))
     +'</div>'
     // Coluna atual
     +'<div>'
@@ -4921,10 +4922,15 @@ function abrirFormImuno(f){
   get('btn-salvar-imuno-form').addEventListener('click',function(){
     function gv(id){var el=get('fi-'+id);return el?el.value.trim():'';}
     // Salvar anterior como histórico
+    // A imuno atual vira automaticamente a anterior ao salvar
     var novoAnt={
-      tac_csa:gv('ant_tac_csa'),mmf:gv('ant_mmf'),siro_ever:gv('ant_siro_ever'),
-      ciclosporina:gv('ant_ciclosporina'),cortico:gv('ant_cortico'),
-      outros:gv('ant_outros'),alergia:gv('ant_alergia')
+      tac_csa: im.tac_csa||'',
+      mmf: im.mmf||'',
+      siro_ever: im.siro_ever||'',
+      ciclosporina: im.ciclosporina||'',
+      cortico: im.cortico||'',
+      outros: im.outros||'',
+      alergia: im.alergia||''
     };
     // Salvar atual com todos os campos detalhados
     var novoImuno={
