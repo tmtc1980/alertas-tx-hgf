@@ -335,12 +335,29 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     width:100%!important;
     font-size:11px!important;
   }
+  body.lme-printing #lme-form-container > div:first-child > div:first-child > div:first-child{
+    background:#000!important;
+    color:#fff!important;
+    -webkit-print-color-adjust:exact!important;
+  }
   /* Garantir que o cabeçalho negro apareça na impressão */
-  body.lme-printing #lme-form-container > div:first-child{
-    background:#111!important;
+  /* Garantir cores na impressão */
+  body.lme-printing #lme-form-container div[style*="background:#000"],
+  body.lme-printing #lme-form-container div[style*="background:#111"],
+  body.lme-printing #lme-form-container div[style*="background:#1a1a1a"]{
+    background:#000!important;
     color:#fff!important;
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
+  }
+  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  body.lme-printing #lme-form-container div[style*="background:#ccc"]{
+    background:#ccc!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  body.lme-printing #lme-form-container{
+    border:2px solid #000!important;
   }
   body.lme-printing #lme-form-container div[style*="background:#ddd"],
   body.lme-printing #lme-form-container div[style*="background:#ccc"]{
@@ -385,12 +402,29 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     width:100%!important;
     font-size:11px!important;
   }
+  body.lme-printing #lme-form-container > div:first-child > div:first-child > div:first-child{
+    background:#000!important;
+    color:#fff!important;
+    -webkit-print-color-adjust:exact!important;
+  }
   /* Garantir que o cabeçalho negro apareça na impressão */
-  body.lme-printing #lme-form-container > div:first-child{
-    background:#111!important;
+  /* Garantir cores na impressão */
+  body.lme-printing #lme-form-container div[style*="background:#000"],
+  body.lme-printing #lme-form-container div[style*="background:#111"],
+  body.lme-printing #lme-form-container div[style*="background:#1a1a1a"]{
+    background:#000!important;
     color:#fff!important;
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
+  }
+  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  body.lme-printing #lme-form-container div[style*="background:#ccc"]{
+    background:#ccc!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  body.lme-printing #lme-form-container{
+    border:2px solid #000!important;
   }
   body.lme-printing #lme-form-container div[style*="background:#ddd"],
   body.lme-printing #lme-form-container div[style*="background:#ccc"]{
@@ -5262,10 +5296,19 @@ function abrirLMEFullscreen(f, d, imuno, saved){
   var s = 'padding:8px 12px;border-bottom:1px solid #ddd;';
   var lb = 'font-size:9px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.3px;';
 
+  var susLogo='<svg width="48" height="38" viewBox="0 0 48 38" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="38" fill="#009c3b"/><text x="24" y="25" font-family="Arial" font-size="15" font-weight="bold" fill="white" text-anchor="middle">SUS</text></svg>';
+
   var html = ''
-    // CABEÇALHO
-    +'<div style="background:#1a1a1a;color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:bold;text-transform:uppercase;">COMPONENTE ESPECIALIZADO DA ASSISTENCIA FARMACEUTICA</div>'
-    +'<div style="text-align:center;padding:5px;border-bottom:1px solid #ddd;background:#f9f9f9;">'
+    // MOLDURA EXTERNA
+    +'<div style="border:2px solid #000;">'
+    // CABEÇALHO SUS
+    +'<div style="display:flex;align-items:center;justify-content:flex-end;padding:5px 10px;border-bottom:1px solid #ccc;gap:10px;background:#fff;">'
+    +susLogo
+    +'<div style="font-size:10px;line-height:1.5;text-align:left;"><strong>Sistema Único de Saude</strong><br>Ministerio da Saude<br>Secretaria de Estado da Saude</div>'
+    +'</div>'
+    // TÍTULO PRETO
+    +'<div style="background:#000;color:#fff;text-align:center;padding:6px 8px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;">COMPONENTE ESPECIALIZADO DA ASSISTENCIA FARMACEUTICA</div>'
+    +'<div style="text-align:center;padding:5px;border-bottom:1px solid #ccc;background:#fff;">'
     +'<div style="font-size:12px;font-weight:bold;">LAUDO DE SOLICITACAO, AVALIACAO E AUTORIZACAO DE MEDICAMENTO(S)</div>'
     +'<div style="font-size:11px;font-weight:bold;">SOLICITACAO DE MEDICAMENTO(S)</div>'
     +'</div>'
@@ -5370,7 +5413,8 @@ function abrirLMEFullscreen(f, d, imuno, saved){
     +'</div>'
     +'<div style="padding:6px 10px;"><span style="'+lb+'">23. Assinatura do responsavel*</span><div style="height:50px;border-bottom:1px solid #aaa;"></div></div>'
     +'</div>'
-    +'<div style="padding:4px 10px;font-size:9px;color:#888;border-top:1px solid #ddd;background:#fafafa;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>';
+    +'<div style="padding:4px 10px;font-size:9px;color:#888;border-top:1px solid #ddd;background:#fafafa;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>'
+    +'</div>'; // fecha moldura externa
 
   get('lme-form-container').innerHTML = html;
   get('lme-paciente-nome').textContent = nome + ' — LME';
