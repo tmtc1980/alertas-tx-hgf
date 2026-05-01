@@ -4211,7 +4211,82 @@ function renderFormDocumento(tipo, f, d, ant, imuno, saved){
     +'<div style="border:1px solid #333;border-top:none;padding:3px 5px;font-size:9px;color:#555;">'
     +'* CAMPOS DE PREENCHIMENTO OBRIGATORIO'
     +'</div>'
-    +'</div>';} else if(tipo==='retorno'){
+    +'</div>';
+  // Inserir html no modal e abrir
+  get('modal-documento').querySelector('.modal').innerHTML = html;
+  get('modal-documento').dataset.tipo = tipo;
+  openModal('modal-documento');
+  get('btn-cancelar-doc').addEventListener('click',function(){closeModal('modal-documento');});
+  get('btn-salvar-doc').addEventListener('click',function(){salvarDocumento(tipo,f,false);});
+  get('btn-salvar-imprimir-doc').addEventListener('click',function(){salvarDocumento(tipo,f,true);});
+}
+
+function coletarDadosDoc(tipo){
+  var dados={};
+  var prefix=tipo==='lme'?'lme-':'df-';
+  var cls=tipo==='lme'?'.lme-field':'.doc-field';
+  document.querySelectorAll(cls).forEach(function(el){
+    var id=el.id.replace(prefix,'');
+    if(el.type==='checkbox') dados[id]=el.checked;
+    else if(el.type==='radio'){if(el.checked) dados[id]=el.value;}
+    else if(el.value) dados[id]=el.value;
+  });
+  if(tipo==='lme'){
+    var radios=document.querySelectorAll('input[name="trat_previo"]');
+    radios.forEach(function(r){if(r.checked) dados['trat_previo']=r.value;});
+  }
+  return dados;
+}
+
+function salvarDocumento(tipo,f,imprimir){
+  var dados=coletarDadosDoc(tipo);
+  var rec={folhao_id:f.id,prontuario:f.prontuario,tipo:tipo,dados:dados,updated_at:new Date().toISOString()};
+  if(sbClient){
+    sbClient.from('documentos_clinicos').delete().eq('folhao_id',f.id).eq('tipo',tipo)
+      .then(function(){
+        return sbClient.from('documentos_clinicos').insert([rec]);
+      }).then(function(){
+        showToast('Documento salvo!','success');
+        if(imprimir) setTimeout(function(){imprimirDocumentoAtivo(tipo,dados,f);},300);
+        closeModal('modal-documento');
+        renderTabDocumentos(f,get('folhao-tab-content'));
+      }).catch(function(e){showToast('Erro ao salvar documento.','error');});
+  } else {
+    showToast('Salvo!','success');
+    if(imprimir) imprimirDocumentoAtivo(tipo,dados,f);
+    closeModal('modal-documento');
+  }
+}
+
+function imprimirDocumento(tipo){
+  var f=folhaoAtivo;
+  if(!sbClient) return;
+  sbClient.from('documentos_clinicos').select('*').eq('folhao_id',f.id).eq('tipo',tipo).limit(1)
+    .then(function(r){
+      if(r.data&&r.data.length) imprimirDocumentoAtivo(tipo,r.data[0].dados,f);
+    });
+}
+
+function imprimirDocumentoAtivo(tipo,dados,f){
+  var d=f.dados||{};
+  var html=gerarHTMLImpressao(tipo,dados,d,f);
+  var win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},600);
+}
+
+function gerarHTMLImpressao(tipo,dados,d,f){
+  var hoje=new Date().toLocaleDateString('pt-BR');
+  var base='<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box;} body{font-family:Arial,sans-serif;font-size:11px;color:#000;} '
+    +'.page{padding:10mm;} table{width:100%;border-collapse:collapse;} td,th{border:1px solid #000;padding:3px 5px;vertical-align:top;} '
+    +'.no-border{border:none;} .center{text-align:center;} .bold{font-weight:bold;} .titulo{font-size:14px;font-weight:bold;text-align:center;margin:8px 0;} '
+    +'.subtitulo{font-size:12px;text-align:center;margin-bottom:8px;} .linha{border-bottom:1px solid #000;min-height:18px;margin-bottom:3px;} '
+    +'.campo{margin-bottom:5px;} .label{font-size:9px;color:#666;} .assinatura{border-top:1px solid #000;margin-top:20px;text-align:center;padding-top:3px;font-size:10px;}'
+    +'@media print{body{-webkit-print-color-adjust:exact;}}</style></head><body>';
+
+  if(tipo==='retorno'){
     var dataRet = dados.data_ret ? new Date(dados.data_ret+'T12:00:00').toLocaleDateString('pt-BR') : '';
     return base+'<div class="page" style="width:74mm;min-height:105mm;border:1px solid #000;padding:5mm;">'
       +headerHGF
@@ -5080,6 +5155,8 @@ function abrirFormImuno(f){
       showToast('Imunossupressao salva!','success');
     }
   });
+}
+
 }
 
 })();
