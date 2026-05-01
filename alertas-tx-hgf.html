@@ -5264,13 +5264,13 @@ function abrirLMEFullscreen(f, d, imuno, saved){
   meds[5]=saved.med_5||'';
 
   function fi(id,val,w,ph){
-    return '<input type="text" class="lme-f" id="lmef-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="border:none;border-bottom:1px solid #aaa;width:'+(w||'100%')+';font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;font-family:Arial,sans-serif;">';
+    return '<input type="text" class="lme-f" id="lmef-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="border:none;border-bottom:1px solid #666;width:'+(w||'100%')+';font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;font-family:Arial,sans-serif;">';
   }
   function fd(id,val){
-    return '<input type="date" class="lme-f" id="lmef-'+id+'" value="'+(saved[id]||val||'')+'" style="border:none;border-bottom:1px solid #aaa;font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;">';
+    return '<input type="date" class="lme-f" id="lmef-'+id+'" value="'+(saved[id]||val||'')+'" style="border:none;border-bottom:1px solid #666;font-size:11px;padding:2px 4px;background:transparent;outline:none;color:#000;">';
   }
   function fta(id,val,h){
-    return '<textarea class="lme-f" id="lmef-'+id+'" style="border:1px solid #ccc;width:100%;font-size:11px;padding:4px;background:#fff;outline:none;color:#000;font-family:Arial,sans-serif;resize:vertical;min-height:'+(h||'55px')+';">'+esc(saved[id]||val||'')+'</textarea>';
+    return '<textarea class="lme-f" id="lmef-'+id+'" style="border:1.5px solid #555;width:100%;font-size:11px;padding:4px;background:#fff;outline:none;color:#000;font-family:Arial,sans-serif;resize:vertical;min-height:'+(h||'55px')+';">'+esc(saved[id]||val||'')+'</textarea>';
   }
   function fcb(id,label){
     return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;margin-right:10px;">'
@@ -5281,19 +5281,19 @@ function abrirLMEFullscreen(f, d, imuno, saved){
       +'<input type="radio" name="lmef_'+name+'" id="lmef-'+id+'" value="'+val+'" '+((saved[name]||'nao')===val?'checked':'')+'>'+label+'</label>';
   }
   function medRow(i){
-    return '<tr style="border-bottom:1px solid #eee;">'
-      +'<td style="width:22px;text-align:center;font-size:12px;font-weight:700;color:#555;border-right:1px solid #eee;padding:3px 2px;">'+(i+1)+'</td>'
-      +'<td style="padding:2px 6px;border-right:1px solid #eee;">'
+    return '<tr style="border-bottom:1px solid #999;">'
+      +'<td style="width:22px;text-align:center;font-size:12px;font-weight:700;color:#555;border-right:1.5px solid #666;padding:3px 2px;">'+(i+1)+'</td>'
+      +'<td style="padding:2px 6px;border-right:1.5px solid #666;">'
       +'<input type="text" class="lme-f" id="lmef-med_'+i+'" value="'+esc(meds[i])+'" style="width:100%;border:none;font-size:11px;padding:2px;outline:none;color:#000;background:transparent;">'
       +'</td>'
       +[1,2,3,4,5,6].map(function(m){
-        return '<td style="width:44px;text-align:center;padding:2px;border-right:1px solid #eee;">'
+        return '<td style="width:44px;text-align:center;padding:2px;border-right:1.5px solid #666;">'
           +'<input type="text" class="lme-f" id="lmef-qtd_'+i+'_'+m+'" value="'+esc(saved['qtd_'+i+'_'+m]||'')+'" style="width:40px;border:none;font-size:11px;text-align:center;padding:2px;outline:none;color:#000;background:transparent;">'
           +'</td>';
       }).join('')
       +'</tr>';
   }
-  var s = 'padding:8px 12px;border-bottom:1px solid #ddd;';
+  var s = 'padding:8px 12px;border-bottom:1px solid #666;';
   var lb = 'font-size:9px;color:#888;display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.3px;';
 
   var susLogo='<svg width="48" height="38" viewBox="0 0 48 38" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="38" fill="#009c3b"/><text x="24" y="25" font-family="Arial" font-size="15" font-weight="bold" fill="white" text-anchor="middle">SUS</text></svg>';
@@ -5302,23 +5302,23 @@ function abrirLMEFullscreen(f, d, imuno, saved){
     // MOLDURA EXTERNA
     +'<div style="border:2px solid #000;">'
     // CABEÇALHO SUS
-    +'<div style="display:flex;align-items:center;justify-content:flex-end;padding:5px 10px;border-bottom:1px solid #ccc;gap:10px;background:#fff;">'
+    +'<div style="display:flex;align-items:center;justify-content:flex-end;padding:5px 10px;border-bottom:1px solid #999;gap:10px;background:#fff;">'
     +susLogo
     +'<div style="font-size:10px;line-height:1.5;text-align:left;"><strong>Sistema Único de Saude</strong><br>Ministerio da Saude<br>Secretaria de Estado da Saude</div>'
     +'</div>'
     // TÍTULO PRETO
     +'<div style="background:#000;color:#fff;text-align:center;padding:6px 8px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;">COMPONENTE ESPECIALIZADO DA ASSISTENCIA FARMACEUTICA</div>'
-    +'<div style="text-align:center;padding:5px;border-bottom:1px solid #ccc;background:#fff;">'
+    +'<div style="text-align:center;padding:5px;border-bottom:1px solid #999;background:#fff;">'
     +'<div style="font-size:12px;font-weight:bold;">LAUDO DE SOLICITACAO, AVALIACAO E AUTORIZACAO DE MEDICAMENTO(S)</div>'
     +'<div style="font-size:11px;font-weight:bold;">SOLICITACAO DE MEDICAMENTO(S)</div>'
     +'</div>'
-    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #ccc;">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MEDICO SOLICITANTE</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MEDICO SOLICITANTE</div>'
 
     // LINHA 1
-    +'<div style="display:grid;grid-template-columns:160px 1fr 90px 90px;border-bottom:1px solid #ddd;">'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;"><span style="'+lb+'">1. CNES*</span><strong style="font-size:12px;">2497654</strong></div>'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;"><span style="'+lb+'">2. Estabelecimento*</span><strong>Hospital Geral de Fortaleza - HGF</strong></div>'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;"><span style="'+lb+'">5. Peso (kg)*</span>'+fi('peso',saved.peso||peso,'80px')+'</div>'
+    +'<div style="display:grid;grid-template-columns:160px 1fr 90px 90px;border-bottom:1px solid #666;">'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;"><span style="'+lb+'">1. CNES*</span><strong style="font-size:12px;">2497654</strong></div>'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;"><span style="'+lb+'">2. Estabelecimento*</span><strong>Hospital Geral de Fortaleza - HGF</strong></div>'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;"><span style="'+lb+'">5. Peso (kg)*</span>'+fi('peso',saved.peso||peso,'80px')+'</div>'
     +'<div style="padding:6px 10px;"><span style="'+lb+'">6. Altura (cm)*</span>'+fi('altura',saved.altura||altura,'80px')+'</div>'
     +'</div>'
 
@@ -5329,25 +5329,25 @@ function abrirLMEFullscreen(f, d, imuno, saved){
     +'<div style="'+s+'"><span style="'+lb+'">4. Nome da Mae do Paciente*</span>'+fi('mae',saved.mae||mae)+'</div>'
 
     // TABELA MEDICAMENTOS
-    +'<table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ddd;">'
+    +'<table style="width:100%;border-collapse:collapse;border-bottom:1px solid #666;">'
     +'<thead>'
     +'<tr style="background:#f5f5f5;">'
-    +'<th style="width:22px;padding:4px;border-right:1px solid #eee;font-size:10px;"></th>'
-    +'<th style="padding:4px 6px;border-right:1px solid #eee;font-size:10px;text-align:left;">7. Medicamento(s)*</th>'
+    +'<th style="width:22px;padding:4px;border-right:1.5px solid #666;font-size:10px;"></th>'
+    +'<th style="padding:4px 6px;border-right:1.5px solid #666;font-size:10px;text-align:left;">7. Medicamento(s)*</th>'
     +'<th colspan="6" style="padding:4px;font-size:10px;text-align:center;">8. Quantidade solicitada*</th>'
     +'</tr>'
     +'<tr style="background:#fafafa;">'
-    +'<th style="border-right:1px solid #eee;"></th>'
-    +'<th style="border-right:1px solid #eee;"></th>'
-    +[1,2,3,4,5,6].map(function(m){return '<th style="width:44px;padding:3px 2px;text-align:center;border-right:1px solid #eee;font-size:10px;color:#555;">'+m+'o mes</th>';}).join('')
+    +'<th style="border-right:1.5px solid #666;"></th>'
+    +'<th style="border-right:1.5px solid #666;"></th>'
+    +[1,2,3,4,5,6].map(function(m){return '<th style="width:44px;padding:3px 2px;text-align:center;border-right:1.5px solid #666;font-size:10px;color:#555;">'+m+'o mes</th>';}).join('')
     +'</tr>'
     +'</thead><tbody>'
     +[0,1,2,3,4,5].map(function(i){return medRow(i);}).join('')
     +'</tbody></table>'
 
     // CID + DIAGNÓSTICO
-    +'<div style="display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid #ddd;">'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;"><span style="'+lb+'">9. CID-10*</span>'+fi('cid',saved.cid||'','100px')+'</div>'
+    +'<div style="display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid #666;">'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;"><span style="'+lb+'">9. CID-10*</span>'+fi('cid',saved.cid||'','100px')+'</div>'
     +'<div style="padding:6px 10px;"><span style="'+lb+'">10. Diagnostico</span>'+fi('diag',saved.diag||diag)+'</div>'
     +'</div>'
 
@@ -5370,17 +5370,17 @@ function abrirLMEFullscreen(f, d, imuno, saved){
     +'</div></div>'
 
     // MÉDICO
-    +'<div style="display:grid;grid-template-columns:1fr 220px;border-bottom:1px solid #ddd;border-top:1px solid #ddd;">'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;"><span style="'+lb+'">14. Nome do medico solicitante*</span>'+fi('prof_nome',saved.prof_nome||medico)+'</div>'
-    +'<div style="padding:6px 10px;"><span style="'+lb+'">17. Assinatura e carimbo do medico*</span><div style="height:30px;border-bottom:1px solid #aaa;"></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 220px;border-bottom:1px solid #666;border-top:1px solid #666;">'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;"><span style="'+lb+'">14. Nome do medico solicitante*</span>'+fi('prof_nome',saved.prof_nome||medico)+'</div>'
+    +'<div style="padding:6px 10px;"><span style="'+lb+'">17. Assinatura e carimbo do medico*</span><div style="height:30px;border-bottom:1px solid #666;"></div></div>'
     +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 180px;border-bottom:1px solid #ddd;">'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;"><span style="'+lb+'">15. CNS do medico solicitante*</span>'+fi('prof_cns',saved.prof_cns||cns)+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 180px;border-bottom:1px solid #666;">'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;"><span style="'+lb+'">15. CNS do medico solicitante*</span>'+fi('prof_cns',saved.prof_cns||cns)+'</div>'
     +'<div style="padding:6px 10px;"><span style="'+lb+'">16. Data da solicitacao*</span>'+fd('data_sol',now.toISOString().slice(0,10))+'</div>'
     +'</div>'
 
     // CAMPOS PACIENTE
-    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #ccc;">CAMPOS ABAIXO PREENCHIDOS POR*:</div>'
+    +'<div style="background:#ddd;text-align:center;font-size:10px;font-weight:bold;padding:3px;border-bottom:1px solid #999;">CAMPOS ABAIXO PREENCHIDOS POR*:</div>'
     +'<div style="'+s+'">'
     +'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:6px;">'
     +'<span style="font-size:10px;font-weight:bold;margin-right:4px;">18.</span>'
@@ -5391,8 +5391,8 @@ function abrirLMEFullscreen(f, d, imuno, saved){
     +'</div></div>'
 
     // RAÇA + TELEFONE
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #ddd;">'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #666;">'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;">'
     +'<span style="'+lb+'">19. Raca/Cor/Etnia*</span>'
     +'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;">'
     +fcb('raca_branca','Branca')+fcb('raca_preta','Preta')+fcb('raca_parda','Parda')+fcb('raca_amarela','Amarela')+fcb('raca_indigena','Indigena')
@@ -5403,17 +5403,17 @@ function abrirLMEFullscreen(f, d, imuno, saved){
     +'</div>'
 
     // DOCUMENTO + EMAIL
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #ddd;">'
-    +'<div style="padding:6px 10px;border-right:1px solid #ddd;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #666;">'
+    +'<div style="padding:6px 10px;border-right:1.5px solid #666;">'
     +'<span style="'+lb+'">21. Numero do documento*</span>'
     +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
     +fcb('doc_cpf','CPF')+fcb('doc_cns','CNS')+fi('doc_numero',saved.doc_numero||cpf||cns,'160px')
     +'</div>'
     +'<span style="'+lb+'">22. Correio eletronico</span>'+fi('email',saved.email||'')
     +'</div>'
-    +'<div style="padding:6px 10px;"><span style="'+lb+'">23. Assinatura do responsavel*</span><div style="height:50px;border-bottom:1px solid #aaa;"></div></div>'
+    +'<div style="padding:6px 10px;"><span style="'+lb+'">23. Assinatura do responsavel*</span><div style="height:50px;border-bottom:1px solid #666;"></div></div>'
     +'</div>'
-    +'<div style="padding:4px 10px;font-size:9px;color:#888;border-top:1px solid #ddd;background:#fafafa;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>'
+    +'<div style="padding:4px 10px;font-size:9px;color:#888;border-top:1px solid #666;background:#fafafa;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>'
     +'</div>'; // fecha moldura externa
 
   get('lme-form-container').innerHTML = html;
@@ -5485,13 +5485,13 @@ function imprimirLME(dados, f){
   var _unused = function(){
   var hoje = new Date().toLocaleDateString('pt-BR');
   var dataSol = dados.data_sol ? new Date(dados.data_sol+'T12:00:00').toLocaleDateString('pt-BR') : hoje;
-  function tc(label,val){ return '<td style="padding:3px 5px;border:1px solid #aaa;vertical-align:top;"><div style="font-size:8px;color:#666;">'+label+'</div><div style="font-size:10px;">'+esc(val||'')+'</div></td>'; }
+  function tc(label,val){ return '<td style="padding:3px 5px;border:1px solid #666;vertical-align:top;"><div style="font-size:8px;color:#666;">'+label+'</div><div style="font-size:10px;">'+esc(val||'')+'</div></td>'; }
   var medsHtml = [0,1,2,3,4,5].map(function(i){
     var med=dados['med_'+i]||'';
     return '<tr>'
-      +'<td style="width:20px;text-align:center;padding:2px;border:1px solid #aaa;font-size:10px;">'+(i+1)+'</td>'
-      +'<td style="padding:2px 5px;border:1px solid #aaa;font-size:10px;">'+esc(med)+'</td>'
-      +[1,2,3,4,5,6].map(function(m){return '<td style="width:36px;text-align:center;padding:2px;border:1px solid #aaa;font-size:10px;">'+esc(dados['qtd_'+i+'_'+m]||'')+'</td>';}).join('')
+      +'<td style="width:20px;text-align:center;padding:2px;border:1px solid #666;font-size:10px;">'+(i+1)+'</td>'
+      +'<td style="padding:2px 5px;border:1px solid #666;font-size:10px;">'+esc(med)+'</td>'
+      +[1,2,3,4,5,6].map(function(m){return '<td style="width:36px;text-align:center;padding:2px;border:1px solid #666;font-size:10px;">'+esc(dados['qtd_'+i+'_'+m]||'')+'</td>';}).join('')
       +'</tr>';
   }).join('');
 
@@ -5500,52 +5500,52 @@ function imprimirLME(dados, f){
     +'@page{size:A4;margin:10mm;} table{width:100%;border-collapse:collapse;} @media print{body{-webkit-print-color-adjust:exact;}}'
     +'</style></head><body><div style="padding:3mm;">'
     +'<div style="background:#111;color:#fff;text-align:center;padding:5px;font-weight:bold;font-size:11px;text-transform:uppercase;">COMPONENTE ESPECIALIZADO DA ASSISTENCIA FARMACEUTICA</div>'
-    +'<div style="text-align:center;padding:4px;border:1px solid #aaa;border-top:none;">'
+    +'<div style="text-align:center;padding:4px;border:1px solid #666;border-top:none;">'
     +'<div style="font-weight:bold;">LAUDO DE SOLICITACAO, AVALIACAO E AUTORIZACAO DE MEDICAMENTO(S)</div>'
     +'<div style="font-weight:bold;">SOLICITACAO DE MEDICAMENTO(S)</div>'
     +'</div>'
-    +'<div style="background:#ccc;text-align:center;font-size:9px;font-weight:bold;padding:2px;border:1px solid #aaa;border-top:none;">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MEDICO SOLICITANTE</div>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;">'
+    +'<div style="background:#ccc;text-align:center;font-size:9px;font-weight:bold;padding:2px;border:1px solid #666;border-top:none;">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MEDICO SOLICITANTE</div>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;">'
     +'<tr>'
-    +'<td style="width:140px;padding:3px 5px;border-right:1px solid #aaa;"><div style="font-size:8px;color:#666;">1. CNES*</div><div style="font-weight:bold;">2497654</div></td>'
-    +'<td style="padding:3px 5px;border-right:1px solid #aaa;"><div style="font-size:8px;color:#666;">2. Estabelecimento*</div><div>Hospital Geral de Fortaleza - HGF</div></td>'
+    +'<td style="width:140px;padding:3px 5px;border-right:1px solid #666;"><div style="font-size:8px;color:#666;">1. CNES*</div><div style="font-weight:bold;">2497654</div></td>'
+    +'<td style="padding:3px 5px;border-right:1px solid #666;"><div style="font-size:8px;color:#666;">2. Estabelecimento*</div><div>Hospital Geral de Fortaleza - HGF</div></td>'
     +tc('5. Peso (kg)*',dados.peso)+tc('6. Altura (cm)*',dados.altura)
     +'</tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#666;">3. Nome do Paciente*</div><div>'+esc(dados.nome||'')+'</div></td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#666;">4. Nome da Mae*</div><div>'+esc(dados.mae||'')+'</div></td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;">'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#666;">3. Nome do Paciente*</div><div>'+esc(dados.nome||'')+'</div></td></tr></table>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#666;">4. Nome da Mae*</div><div>'+esc(dados.mae||'')+'</div></td></tr></table>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;">'
     +'<thead><tr style="background:#eee;">'
-    +'<th style="width:20px;padding:2px;border:1px solid #aaa;font-size:9px;"></th>'
-    +'<th style="padding:2px 5px;border:1px solid #aaa;font-size:9px;text-align:left;">7. Medicamento(s)*</th>'
-    +'<th colspan="6" style="padding:2px;border:1px solid #aaa;font-size:9px;text-align:center;">8. Quantidade*</th>'
+    +'<th style="width:20px;padding:2px;border:1px solid #666;font-size:9px;"></th>'
+    +'<th style="padding:2px 5px;border:1px solid #666;font-size:9px;text-align:left;">7. Medicamento(s)*</th>'
+    +'<th colspan="6" style="padding:2px;border:1px solid #666;font-size:9px;text-align:center;">8. Quantidade*</th>'
     +'</tr>'
-    +'<tr style="background:#f5f5f5;"><th style="border:1px solid #aaa;"></th><th style="border:1px solid #aaa;"></th>'
-    +[1,2,3,4,5,6].map(function(m){return '<th style="width:36px;padding:2px;border:1px solid #aaa;font-size:8px;text-align:center;">'+m+'o mes</th>';}).join('')
+    +'<tr style="background:#f5f5f5;"><th style="border:1px solid #666;"></th><th style="border:1px solid #666;"></th>'
+    +[1,2,3,4,5,6].map(function(m){return '<th style="width:36px;padding:2px;border:1px solid #666;font-size:8px;text-align:center;">'+m+'o mes</th>';}).join('')
     +'</tr></thead><tbody>'+medsHtml+'</tbody></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;">'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;">'
     +'<tr>'+tc('9. CID-10*',dados.cid)+tc('10. Diagnostico',dados.diag)+'</tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;min-height:40px;"><div style="font-size:8px;color:#666;">11. Anamnese*</div><div style="min-height:35px;">'+esc(dados.anamnese||'')+'</div></td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#666;">12. Tratamento previo*</div><div><strong>'+(dados.trat_previo==='sim'?'SIM - '+esc(dados.trat_desc||''):'NAO')+'</strong></div></td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;background:#fafafa;"><div style="font-size:9px;font-weight:bold;text-align:center;">13. Atestado de capacidade*</div><div>Incapaz? <strong>'+(dados.atestado==='sim'?'SIM - '+esc(dados.responsavel_nome||''):'NAO')+'</strong></div></td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr>'+tc('14. Nome do medico*',dados.prof_nome)+'<td style="padding:3px 5px;border:1px solid #aaa;width:200px;"><div style="font-size:8px;color:#666;">17. Assinatura*</div><div style="height:25px;"></div></td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr>'+tc('15. CNS do medico*',dados.prof_cns)+tc('16. Data*',dataSol)+'</tr></table>'
-    +'<div style="background:#ccc;text-align:center;font-size:9px;font-weight:bold;padding:2px;border:1px solid #aaa;border-top:none;">CAMPOS ABAIXO PREENCHIDOS POR*</div>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;font-size:10px;">'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;min-height:40px;"><div style="font-size:8px;color:#666;">11. Anamnese*</div><div style="min-height:35px;">'+esc(dados.anamnese||'')+'</div></td></tr></table>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;"><div style="font-size:8px;color:#666;">12. Tratamento previo*</div><div><strong>'+(dados.trat_previo==='sim'?'SIM - '+esc(dados.trat_desc||''):'NAO')+'</strong></div></td></tr></table>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;background:#fafafa;"><div style="font-size:9px;font-weight:bold;text-align:center;">13. Atestado de capacidade*</div><div>Incapaz? <strong>'+(dados.atestado==='sim'?'SIM - '+esc(dados.responsavel_nome||''):'NAO')+'</strong></div></td></tr></table>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr>'+tc('14. Nome do medico*',dados.prof_nome)+'<td style="padding:3px 5px;border:1px solid #666;width:200px;"><div style="font-size:8px;color:#666;">17. Assinatura*</div><div style="height:25px;"></div></td></tr></table>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr>'+tc('15. CNS do medico*',dados.prof_cns)+tc('16. Data*',dataSol)+'</tr></table>'
+    +'<div style="background:#ccc;text-align:center;font-size:9px;font-weight:bold;padding:2px;border:1px solid #666;border-top:none;">CAMPOS ABAIXO PREENCHIDOS POR*</div>'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;"><tr><td style="padding:3px 5px;font-size:10px;">'
     +(dados.por_paciente?'[x]Paciente  ':'')+(dados.por_mae?'[x]Mae  ':'')+(dados.por_responsavel?'[x]Responsavel  ':'')+(dados.por_medico?'[x]Medico  ':'')
     +(dados.por_outro?'[x]Outro: '+esc(dados.por_outro_nome||'')+'  CPF: '+esc(dados.por_outro_cpf||''):'')
     +'</td></tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;border-bottom:none;">'
+    +'<table style="border:1px solid #666;border-top:none;border-bottom:none;">'
     +'<tr>'
-    +'<td style="padding:3px 5px;border:1px solid #aaa;width:55%;"><div style="font-size:8px;color:#666;">19. Raca/Cor/Etnia*</div>'
+    +'<td style="padding:3px 5px;border:1px solid #666;width:55%;"><div style="font-size:8px;color:#666;">19. Raca/Cor/Etnia*</div>'
     +'<div style="font-size:10px;">'+(dados.raca_branca?'[x]Branca  ':'')+(dados.raca_preta?'[x]Preta  ':'')+(dados.raca_parda?'[x]Parda  ':'')+(dados.raca_amarela?'[x]Amarela  ':'')+(dados.raca_indigena?'[x]Indigena  ':'')+(dados.etnia?'Etnia:'+esc(dados.etnia):'')+'</div></td>'
-    +'<td style="padding:3px 5px;border:1px solid #aaa;"><div style="font-size:8px;color:#666;">20. Telefone*</div><div>'+esc(dados.telefone||'')+'</div></td>'
+    +'<td style="padding:3px 5px;border:1px solid #666;"><div style="font-size:8px;color:#666;">20. Telefone*</div><div>'+esc(dados.telefone||'')+'</div></td>'
     +'</tr></table>'
-    +'<table style="border:1px solid #aaa;border-top:none;">'
+    +'<table style="border:1px solid #666;border-top:none;">'
     +'<tr>'
-    +'<td style="padding:3px 5px;border:1px solid #aaa;width:55%;"><div style="font-size:8px;color:#666;">21. Documento*</div>'
+    +'<td style="padding:3px 5px;border:1px solid #666;width:55%;"><div style="font-size:8px;color:#666;">21. Documento*</div>'
     +'<div>'+(dados.doc_cpf?'[x]CPF  ':'')+(dados.doc_cns?'[x]CNS  ':'')+esc(dados.doc_numero||'')+'</div>'
     +'<div style="font-size:8px;color:#666;margin-top:3px;">22. Email</div><div>'+esc(dados.email||'')+'</div></td>'
-    +'<td style="padding:3px 5px;border:1px solid #aaa;"><div style="font-size:8px;color:#666;">23. Assinatura responsavel*</div><div style="min-height:40px;border-bottom:1px solid #aaa;"></div></td>'
+    +'<td style="padding:3px 5px;border:1px solid #666;"><div style="font-size:8px;color:#666;">23. Assinatura responsavel*</div><div style="min-height:40px;border-bottom:1px solid #666;"></div></td>'
     +'</tr></table>'
     +'<div style="font-size:8px;color:#666;margin-top:3px;padding:2px;">* CAMPOS DE PREENCHIMENTO OBRIGATORIO</div>'
     +'</div></body></html>';
