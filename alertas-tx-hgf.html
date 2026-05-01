@@ -301,19 +301,103 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 @media(max-width:600px){header{padding:0 12px;}.header-title{display:none;}main{padding:10px 12px;}.modal{padding:16px;}}
 
 @media print{
+  /* Regras gerais */
   header,.tabs,.section-header,.ficha-actions{display:none!important;}
   main{padding:0!important;}
   body{background:white!important;}
   #panel-anestesia{display:block!important;}
   .ficha-wrap{border-radius:0!important;}
+
+  /* Quando LME fullscreen está aberto: ocultar TUDO exceto o formulário */
+  body.lme-printing #app > *:not(#lme-fullscreen){display:none!important;}
+  body.lme-printing #lme-fullscreen{
+    position:static!important;
+    overflow:visible!important;
+    background:#fff!important;
+    padding:0!important;
+  }
+  body.lme-printing #lme-fullscreen > div{
+    max-width:100%!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  body.lme-printing #lme-btn-voltar,
+  body.lme-printing #lme-btn-salvar,
+  body.lme-printing #lme-btn-imprimir,
+  body.lme-printing #lme-paciente-info,
+  body.lme-printing > div:first-child{display:none!important;}
+  /* Ocultar header do LME (botões e info do paciente) */
+  body.lme-printing #lme-fullscreen > div > div:first-child{display:none!important;}
+  /* Garantir que o formulário ocupe a página toda */
+  body.lme-printing #lme-form-container{
+    border:none!important;
+    border-radius:0!important;
+    width:100%!important;
+    font-size:11px!important;
+  }
+  /* Garantir que o cabeçalho negro apareça na impressão */
+  body.lme-printing #lme-form-container > div:first-child{
+    background:#111!important;
+    color:#fff!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  body.lme-printing #lme-form-container div[style*="background:#ccc"]{
+    background:#ccc!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
 }
 
 @media print{
+  /* Regras gerais */
   header,.tabs,.section-header,.ficha-actions{display:none!important;}
   main{padding:0!important;}
   body{background:white!important;}
   #panel-anestesia{display:block!important;}
   .ficha-wrap{border-radius:0!important;}
+
+  /* Quando LME fullscreen está aberto: ocultar TUDO exceto o formulário */
+  body.lme-printing #app > *:not(#lme-fullscreen){display:none!important;}
+  body.lme-printing #lme-fullscreen{
+    position:static!important;
+    overflow:visible!important;
+    background:#fff!important;
+    padding:0!important;
+  }
+  body.lme-printing #lme-fullscreen > div{
+    max-width:100%!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  body.lme-printing #lme-btn-voltar,
+  body.lme-printing #lme-btn-salvar,
+  body.lme-printing #lme-btn-imprimir,
+  body.lme-printing #lme-paciente-info,
+  body.lme-printing > div:first-child{display:none!important;}
+  /* Ocultar header do LME (botões e info do paciente) */
+  body.lme-printing #lme-fullscreen > div > div:first-child{display:none!important;}
+  /* Garantir que o formulário ocupe a página toda */
+  body.lme-printing #lme-form-container{
+    border:none!important;
+    border-radius:0!important;
+    width:100%!important;
+    font-size:11px!important;
+  }
+  /* Garantir que o cabeçalho negro apareça na impressão */
+  body.lme-printing #lme-form-container > div:first-child{
+    background:#111!important;
+    color:#fff!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  body.lme-printing #lme-form-container div[style*="background:#ddd"],
+  body.lme-printing #lme-form-container div[style*="background:#ccc"]{
+    background:#ccc!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
 }
 
 /* LME ISOLATION */
@@ -5331,9 +5415,30 @@ function abrirLMEFullscreen(f, d, imuno, saved){
 
   get('lme-btn-salvar').onclick = function(){ salvarLME(false); };
   get('lme-btn-imprimir').onclick = function(){ salvarLME(true); };
+
+  // Ctrl+P / impressão direta: adicionar classe e remover depois
+  window.addEventListener('beforeprint', function lmeBefore(){
+    if(get('lme-fullscreen').style.display !== 'none'){
+      document.body.classList.add('lme-printing');
+    }
+  });
+  window.addEventListener('afterprint', function lmeAfter(){
+    document.body.classList.remove('lme-printing');
+  });
 }
 
 function imprimirLME(dados, f){
+  // Adicionar classe para CSS de impressão
+  document.body.classList.add('lme-printing');
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){
+      document.body.classList.remove('lme-printing');
+    }, 1000);
+  }, 300);
+  return;
+  // Código antigo abaixo (não executado)
+  var _unused = function(){
   var hoje = new Date().toLocaleDateString('pt-BR');
   var dataSol = dados.data_sol ? new Date(dados.data_sol+'T12:00:00').toLocaleDateString('pt-BR') : hoje;
   function tc(label,val){ return '<td style="padding:3px 5px;border:1px solid #aaa;vertical-align:top;"><div style="font-size:8px;color:#666;">'+label+'</div><div style="font-size:10px;">'+esc(val||'')+'</div></td>'; }
@@ -5405,6 +5510,7 @@ function imprimirLME(dados, f){
   win.document.write(html);
   win.document.close();
   setTimeout(function(){ win.print(); }, 600);
+  }; // fim _unused
 }
 
 
