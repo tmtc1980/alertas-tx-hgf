@@ -2845,6 +2845,21 @@ function renderFolhoesLista(lista){
   c.querySelectorAll('.folhao-card-lista').forEach(function(card){
     card.addEventListener('click',function(){abrirFolhao(this.dataset.id);});
   });
+  c.querySelectorAll('.folhao-status-btn').forEach(function(btn){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var id=this.dataset.id;
+      var isAtivo=this.dataset.ativo==='1';
+      var novoStatus=isAtivo?'inativo':'ativo';
+      this.dataset.ativo=isAtivo?'0':'1';
+      this.style.background=isAtivo?'var(--red)':'var(--accent)';
+      this.title=isAtivo?'Inativo':'Ativo';
+      var f=folhoesData.find(function(x){return x.id===id;});
+      if(f) f.status=novoStatus;
+      atualizarFolhao(id,{status:novoStatus,updated_at:new Date().toISOString()});
+      showToast('Status atualizado: '+novoStatus,'success');
+    });
+  });
 }
 
 function folhaoCardHtml(f){
@@ -2853,8 +2868,14 @@ function folhaoCardHtml(f){
   var diasTx=d.data_tx?'D+'+(Math.floor((new Date()-new Date(d.data_tx))/(1000*60*60*24))):'';
   var sub=f.tipo==='pre'?meld:diasTx;
   var activeClass=folhaoAtivo&&folhaoAtivo.id===f.id?' active':'';
+  var isAtivo=f.status==='ativo'||f.status==='Ativo'||(!f.status||f.status==='');
+  var statusColor=isAtivo?'var(--accent)':'var(--red)';
+  var statusTitle=isAtivo?'Ativo':'Inativo';
   return '<div class="folhao-card-lista '+f.tipo+activeClass+'" data-id="'+esc(f.id)+'">'
-    +'<div class="folhao-nome">'+esc(f.nome||'-')+'</div>'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">'
+    +'<div class="folhao-nome" style="flex:1;">'+esc(f.nome||'-')+'</div>'
+    +'<div class="folhao-status-btn" data-id="'+esc(f.id)+'" data-ativo="'+(isAtivo?'1':'0')+'" title="'+statusTitle+'" style="width:14px;height:14px;border-radius:3px;background:'+statusColor+';flex-shrink:0;margin-top:2px;cursor:pointer;border:1px solid rgba(0,0,0,.1);"></div>'
+    +'</div>'
     +'<div class="folhao-meta-lista" style="display:flex;justify-content:space-between;align-items:center;">'
     +'<span>'+esc(f.prontuario||'-')+'</span>'
     +'<span class="folhao-badge '+(f.status==='arquivado'?'arquivado':f.tipo)+'">'+
