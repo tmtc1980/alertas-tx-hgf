@@ -197,6 +197,62 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .ficha-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .ficha-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 
+
+/* FOLHOES */
+.folhao-card-lista{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:all .2s;border-left:3px solid var(--border);}
+.folhao-card-lista:hover{border-color:var(--border2);background:var(--surface2);}
+.folhao-card-lista.active{border-left-color:var(--accent);background:var(--accent-light);}
+.folhao-card-lista.pre{border-left-color:var(--accent);}
+.folhao-card-lista.pos{border-left-color:var(--green);}
+.folhao-nome{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.folhao-meta-lista{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.folhao-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;font-family:var(--mono);}
+.folhao-badge.pre{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);}
+.folhao-badge.pos{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);}
+.folhao-badge.arquivado{background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+
+.folhao-header{background:var(--accent);border-radius:var(--radius2) var(--radius2) 0 0;padding:14px 18px;color:#fff;}
+.folhao-header.pos{background:var(--green);}
+.folhao-header-nome{font-size:16px;font-weight:600;margin-bottom:2px;}
+.folhao-header-meta{font-size:12px;opacity:.8;font-family:var(--mono);}
+
+.folhao-tabs{background:var(--surface2);border:1px solid var(--border);border-top:none;display:flex;overflow-x:auto;gap:2px;padding:6px 10px;}
+.folhao-tab{padding:5px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .2s;}
+.folhao-tab:hover{color:var(--text2);background:var(--surface);}
+.folhao-tab.active{color:var(--accent);background:var(--surface);border:1px solid var(--border);}
+
+.folhao-panel{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius2) var(--radius2);padding:16px;background:var(--surface);}
+
+.exame-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;border-left:3px solid var(--border);}
+.exame-card.amb{border-left-color:var(--accent);}
+.exame-card.int{border-left-color:var(--yellow);}
+.exame-valores{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin-top:8px;}
+.exame-chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;text-align:center;}
+.exame-chip-label{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.exame-chip-val{font-size:13px;font-weight:600;color:var(--text);}
+.exame-chip-val.alto{color:var(--red);}
+.exame-chip-val.azul{color:var(--accent);}
+
+.evolucao-item{border-left:3px solid var(--accent);padding:10px 14px;margin-bottom:8px;background:var(--surface2);border-radius:0 var(--radius) var(--radius) 0;}
+.evolucao-item.int{border-left-color:var(--yellow);}
+
+.img-proc-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;}
+.img-proc-tipo{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--accent);text-transform:uppercase;margin-bottom:4px;}
+
+.tabela-seriada{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);}
+.tabela-seriada table{border-collapse:collapse;font-size:11px;min-width:400px;width:100%;}
+.tabela-seriada th{padding:5px 8px;background:var(--surface2);border-bottom:1px solid var(--border);border-right:0.5px solid var(--border);font-weight:500;color:var(--text2);text-align:center;position:sticky;top:0;}
+.tabela-seriada th:first-child{text-align:left;position:sticky;left:0;z-index:2;background:var(--surface2);}
+.tabela-seriada td{padding:4px 8px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);text-align:center;color:var(--text);}
+.tabela-seriada td:first-child{text-align:left;font-weight:500;color:var(--text2);position:sticky;left:0;background:var(--surface);z-index:1;white-space:nowrap;}
+.tabela-seriada tr:nth-child(even) td{background:var(--surface2);}
+.tabela-seriada tr:nth-child(even) td:first-child{background:var(--surface2);}
+.tabela-grupo td,.tabela-grupo th{background:var(--accent)!important;color:#fff!important;font-size:10px;letter-spacing:.5px;padding:3px 8px;}
+.tabela-grupo.pos td,.tabela-grupo.pos th{background:var(--green)!important;}
+.val-alto{color:var(--red)!important;font-weight:600;}
+.val-azul{color:var(--accent)!important;font-weight:600;}
+.val-verde{color:var(--green-dark)!important;font-weight:600;}
+
 /* LEITOS PLANTAO */
 .leito-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
 .leito-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
@@ -294,6 +350,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-stats">📊 Estatisticas</div>
     <div class="tab" id="tab-receptores">🫀 Lista de Receptores</div>
     <div class="tab" id="tab-anestesia">📋 Ficha Pré-Anestésica</div>
+    <div class="tab" id="tab-folhoes">📁 Pré e Pós-Tx</div>
     <div class="tab" id="tab-plantao" style="display:none">🛏️ Passagem de Plantao</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
@@ -344,6 +401,33 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <div id="receptores-list"></div>
     </div>
 
+
+
+    <!-- FOLHOES -->
+    <div id="panel-folhoes" style="display:none">
+      <div style="display:flex;height:calc(100vh - 120px);gap:0;">
+        <!-- COLUNA LATERAL -->
+        <div style="width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);">
+          <div style="padding:12px;border-bottom:1px solid var(--border);">
+            <input type="text" class="form-input" id="folhoes-busca" placeholder="Buscar paciente..." style="font-size:12px;padding:7px 10px;">
+          </div>
+          <div style="padding:8px;border-bottom:1px solid var(--border);">
+            <button class="btn btn-primary" id="btn-novo-folhao" style="width:100%;font-size:12px;padding:7px;">+ Novo Folhão</button>
+          </div>
+          <div id="folhoes-lista" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <!-- ÁREA DE CONTEÚDO -->
+        <div id="folhao-content" style="flex:1;overflow-y:auto;padding:20px;">
+          <div class="empty-state" style="margin-top:60px;">
+            <div style="font-size:32px;margin-bottom:12px;">📁</div>
+            <div style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:6px;">Selecione um paciente</div>
+            <div style="font-size:12px;color:var(--text3);">Escolha um paciente na lista ao lado ou crie um novo folhão</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ANESTESIA -->
     <div id="panel-anestesia" style="display:none">
@@ -678,6 +762,31 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <button class="btn btn-ghost" id="btn-cancelar-alt-senha">Cancelar</button>
       <button class="btn btn-primary" id="btn-salvar-alt-senha">Salvar Nova Senha</button>
     </div>
+  </div>
+</div>
+
+
+<!-- MODAL: NOVO/EDITAR FOLHAO -->
+<div class="modal-overlay" id="modal-folhao-form">
+  <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+  </div>
+</div>
+
+<!-- MODAL: ADICIONAR EXAME LAB -->
+<div class="modal-overlay" id="modal-exame-lab">
+  <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+  </div>
+</div>
+
+<!-- MODAL: ADICIONAR IMAGEM/PROCEDIMENTO -->
+<div class="modal-overlay" id="modal-imagem">
+  <div class="modal" style="max-width:560px;">
+  </div>
+</div>
+
+<!-- MODAL: ADICIONAR EVOLUCAO -->
+<div class="modal-overlay" id="modal-evolucao">
+  <div class="modal" style="max-width:600px;">
   </div>
 </div>
 
@@ -1852,13 +1961,14 @@ function setupRealtime(){
 get('tab-fila').addEventListener('click',function(){switchTab('fila');});
 get('tab-receptores').addEventListener('click',function(){switchTab('receptores');});
 get('tab-anestesia').addEventListener('click',function(){switchTab('anestesia');});
+get('tab-folhoes').addEventListener('click',function(){switchTab('folhoes');});
 get('tab-sessao').addEventListener('click',function(){switchTab('sessao');});
 get('tab-stats').addEventListener('click',function(){switchTab('stats');});
 get('tab-plantao').addEventListener('click',function(){switchTab('plantao');});
 get('tab-config').addEventListener('click',function(){switchTab('config');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','anestesia','plantao','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','folhoes','plantao','config'].forEach(function(t){
     get('panel-'+t).style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
@@ -1866,6 +1976,7 @@ function switchTab(tab){
   if(tab==='plantao')loadPlantao();
   if(tab==='receptores'){grupoAtivo='O';loadReceptores();}
   if(tab==='anestesia')initAnestesia();
+  if(tab==='folhoes')loadFolhoes();
 }
 
 // Filtros de periodo
@@ -2654,6 +2765,737 @@ function renderFichaForm(f, prontInicial){
       renderFichaView(rec, pront);
     }
   });
+}
+
+
+
+// ── FOLHOES ──
+var folhoesData = [];
+var folhaoAtivo = null;
+var folhaoTabAtiva = 'identificacao';
+
+var EXAMES_PRE = {
+  hemograma: ['HT (%)','Hb (g/dL)','VCM/HCM','Leucocitos','Plaquetas'],
+  coagulacao: ['TAP/INR','TTPA','Fibrinogenio'],
+  hepatica: ['TGO/AST','TGP/ALT','GGT','Fosfatase Alc.','BT/BD','Proteinas Tot.','Albumina','AFP'],
+  renal: ['Ureia','Creatinina','Sodio','Potassio','Calcio/Mg','Glicemia','Colesterol/TG','TSA/T4'],
+  urina: ['Sumario Urina','Urocultura','Clearence Cr','Sodio Urinario'],
+  scores: ['Peso (kg)','Child','MELD']
+};
+
+var EXAMES_POS = {
+  vitais: ['PA (mmHg)','Temp (C)','Drenos (mL)','Diurese (mL)','Peso (kg)'],
+  hemograma: ['HT (%)','Hb (g/dL)','Leucocitos','Plaquetas'],
+  hepatica: ['TGO/AST','TGP/ALT','FA/GGT','BT/BD','INR/TTPA','Albumina','CN (mg/dL)'],
+  eletrolitos: ['Na/K','Ca/Mg/PO4','Creatinina','Glicemia'],
+  imuno: ['Tac/CsA (ng/mL)','Everolimo/Sirolimo','MMF (mg)','Pred (mg)'],
+  vigilancia: ['CMV (copias)','Dias pos-Tx']
+};
+
+var GRUPOS_PRE_LABEL = {hemograma:'HEMOGRAMA',coagulacao:'COAGULACAO',hepatica:'FUNCAO HEPATICA',renal:'RENAL / ELETROLITOS',urina:'URINA / RENAL',scores:'SCORES / ANTROPOMETRIA'};
+var GRUPOS_POS_LABEL = {vitais:'SINAIS VITAIS / DRENOS',hemograma:'HEMOGRAMA',hepatica:'FUNCAO HEPATICA',eletrolitos:'ELETROLITOS / RENAL',imuno:'IMUNOSSUPRESSORES',vigilancia:'VIGILANCIA'};
+
+var IMAGENS_PRE = ['ECG','RX Torax','Ecocardiograma','EDA','Gasometria Arterial','Espirometria','US Abdominal','TC Abdome','RM Abdomen','US Doppler','Colangio'];
+var IMAGENS_POS = ['Ecodoppler','US Doppler','TC Abdome','RM Abdomen','Biopsia Hepatica','EDA','Colonoscopia'];
+var PROCEDIMENTOS = ['Paracentese','Biopsia Hepatica','CPRE','EDA','Colonoscopia','Endoscopia','Outros'];
+
+function loadFolhoes(){
+  if(!sbClient){renderFolhoesLista([]);return;}
+  sbClient.from('folhoes').select('*').order('updated_at',{ascending:false})
+    .then(function(r){folhoesData=r.data||[];renderFolhoesLista(folhoesData);})
+    .catch(function(){folhoesData=lsGet('folhoes_local')||[];renderFolhoesLista(folhoesData);});
+}
+
+get('folhoes-busca').addEventListener('input',function(){
+  var q=this.value.toLowerCase();
+  var filtrado=folhoesData.filter(function(f){
+    return (f.nome||'').toLowerCase().indexOf(q)>=0||(f.prontuario||'').toLowerCase().indexOf(q)>=0;
+  });
+  renderFolhoesLista(filtrado);
+});
+
+function renderFolhoesLista(lista){
+  var c=get('folhoes-lista');
+  if(!lista.length){c.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:20px;">Nenhum paciente encontrado.</div>';return;}
+  var pre=lista.filter(function(f){return f.tipo==='pre';});
+  var pos=lista.filter(function(f){return f.tipo==='pos';});
+  var arq=lista.filter(function(f){return f.status==='arquivado';});
+  var html='';
+  if(pre.length){
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;padding:4px 2px;margin-top:4px;">Pre-Transplante</div>';
+    pre.filter(function(f){return f.status!=='arquivado';}).forEach(function(f){html+=folhaoCardHtml(f);});
+  }
+  if(pos.length){
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;padding:4px 2px;margin-top:8px;">Pos-Transplante</div>';
+    pos.filter(function(f){return f.status!=='arquivado';}).forEach(function(f){html+=folhaoCardHtml(f);});
+  }
+  if(arq.length){
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;padding:4px 2px;margin-top:8px;">Arquivados</div>';
+    arq.forEach(function(f){html+=folhaoCardHtml(f);});
+  }
+  c.innerHTML=html;
+  c.querySelectorAll('.folhao-card-lista').forEach(function(card){
+    card.addEventListener('click',function(){abrirFolhao(this.dataset.id);});
+  });
+}
+
+function folhaoCardHtml(f){
+  var d=f.dados||{};
+  var meld=d.meld?'MELD '+d.meld:'';
+  var diasTx=d.data_tx?'D+'+(Math.floor((new Date()-new Date(d.data_tx))/(1000*60*60*24))):'';
+  var sub=f.tipo==='pre'?meld:diasTx;
+  var activeClass=folhaoAtivo&&folhaoAtivo.id===f.id?' active':'';
+  return '<div class="folhao-card-lista '+f.tipo+activeClass+'" data-id="'+esc(f.id)+'">'
+    +'<div class="folhao-nome">'+esc(f.nome||'-')+'</div>'
+    +'<div class="folhao-meta-lista" style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<span>'+esc(f.prontuario||'-')+'</span>'
+    +'<span class="folhao-badge '+(f.status==='arquivado'?'arquivado':f.tipo)+'">'+
+    (f.status==='arquivado'?'Arq':f.tipo==='pre'?'Pre-Tx':'Pos-Tx')+'</span>'
+    +'</div>'
+    +(sub?'<div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-top:2px;">'+esc(sub)+'</div>':'')
+    +'</div>';
+}
+
+function abrirFolhao(id){
+  folhaoAtivo=folhoesData.find(function(f){return f.id===id;});
+  if(!folhaoAtivo) return;
+  folhaoTabAtiva='identificacao';
+  renderFolhaoContent();
+  // Atualizar active na lista
+  document.querySelectorAll('.folhao-card-lista').forEach(function(c){c.classList.remove('active');});
+  var card=document.querySelector('.folhao-card-lista[data-id="'+id+'"]');
+  if(card) card.classList.add('active');
+}
+
+function renderFolhaoContent(){
+  var f=folhaoAtivo;
+  if(!f) return;
+  var isPre=f.tipo==='pre';
+  var d=f.dados||{};
+  var headerClass=isPre?'':'pos';
+  var sub=isPre?(d.meld?'MELD: '+d.meld+' · ':'')+('Pron: '+esc(f.prontuario||'-')):
+    ('Data Tx: '+(d.data_tx?fmtDateShort(d.data_tx):'-')+' · Pron: '+esc(f.prontuario||'-'));
+  var tabsPre=['identificacao','antecedentes','sorologias','exames_lab','imagens','evolucao'];
+  var tabsPos=['identificacao','doador','imuno','sorologias','exames_lab','imagens','evolucao'];
+  var tabLabels={identificacao:'Identificacao',antecedentes:'Antecedentes',sorologias:'Sorologias',exames_lab:'Exames Lab.',imagens:'Imagens e Proc.',evolucao:'Evolucao',doador:'Doador',imuno:'Imunossupressao'};
+  var tabs=isPre?tabsPre:tabsPos;
+
+  var html='<div class="folhao-header '+headerClass+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+    +'<div>'
+    +'<div class="folhao-header-nome">'+esc(f.nome||'-')+'</div>'
+    +'<div class="folhao-header-meta">'+sub+'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;">'
+    +(isPre&&f.status!=='arquivado'?'<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);" id="btn-arquivar-folhao">Arquivar</button>':'')
+    +'<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);" id="btn-editar-folhao">Editar</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="folhao-tabs">'
+    +tabs.map(function(t){return '<div class="folhao-tab'+(t===folhaoTabAtiva?' active':'')+'" data-tab="'+t+'">'+tabLabels[t]+'</div>';}).join('')
+    +'</div>'
+    +'<div class="folhao-panel" id="folhao-tab-content"></div>';
+
+  get('folhao-content').innerHTML=html;
+
+  document.querySelectorAll('.folhao-tab').forEach(function(tab){
+    tab.addEventListener('click',function(){
+      folhaoTabAtiva=this.dataset.tab;
+      document.querySelectorAll('.folhao-tab').forEach(function(t){t.classList.remove('active');});
+      this.classList.add('active');
+      renderFolhaoTab();
+    });
+  });
+
+  var btnEdit=get('btn-editar-folhao');
+  if(btnEdit) btnEdit.addEventListener('click',function(){abrirFormFolhao(folhaoAtivo);});
+  var btnArq=get('btn-arquivar-folhao');
+  if(btnArq) btnArq.addEventListener('click',function(){
+    if(confirm('Arquivar este folhao pre-transplante?')){
+      atualizarFolhao(f.id,{status:'arquivado'});
+    }
+  });
+
+  renderFolhaoTab();
+}
+
+function renderFolhaoTab(){
+  var f=folhaoAtivo;
+  var d=f.dados||{};
+  var isPre=f.tipo==='pre';
+  var c=get('folhao-tab-content');
+
+  if(folhaoTabAtiva==='identificacao') renderTabIdentificacao(f,d,isPre,c);
+  else if(folhaoTabAtiva==='antecedentes') renderTabAntecedentes(d,c);
+  else if(folhaoTabAtiva==='doador') renderTabDoador(d,c);
+  else if(folhaoTabAtiva==='imuno') renderTabImuno(d,c);
+  else if(folhaoTabAtiva==='sorologias') renderTabSorologias(d,isPre,c);
+  else if(folhaoTabAtiva==='exames_lab') renderTabExamesLab(f,isPre,c);
+  else if(folhaoTabAtiva==='imagens') renderTabImagens(f,isPre,c);
+  else if(folhaoTabAtiva==='evolucao') renderTabEvolucao(f,c);
+}
+
+function dvRow(label,val){
+  if(!val&&val!==0) return '';
+  return '<div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:13px;">'
+    +'<div style="min-width:160px;color:var(--text3);font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;padding-top:2px;">'+label+'</div>'
+    +'<div style="color:var(--text);flex:1;">'+esc(val)+'</div>'
+    +'</div>';
+}
+
+function renderTabIdentificacao(f,d,isPre,c){
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
+    +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
+    +'<div class="settings-title" style="margin-bottom:10px;">Dados do Paciente</div>'
+    +dvRow('Prontuario',f.prontuario)
+    +dvRow('Nome',f.nome)
+    +dvRow('Nome Mae',d.nome_mae)
+    +dvRow('Data Nasc.',d.data_nasc)
+    +dvRow('Sexo',d.sexo)
+    +dvRow('Idade',d.idade)
+    +dvRow('Cor',d.cor)
+    +dvRow('CPF',d.cpf)
+    +dvRow('RG',d.rg)
+    +dvRow('CNS',d.cns)
+    +dvRow('Matricula',d.matricula)
+    +dvRow('Peso',d.peso?d.peso+'kg':'')
+    +dvRow('Altura',d.altura?d.altura+'cm':'')
+    +dvRow('RGCT',d.rgct)
+    +dvRow('Telefone',d.telefone)
+    +dvRow('Endereco',d.endereco)
+    +dvRow('Medico Assistente',d.medico)
+    +dvRow('Plano de Saude',d.plano)
+    +'</div>'
+    +'<div style="padding-left:16px;">'
+    +'<div class="settings-title" style="margin-bottom:10px;">Dados Clinicos</div>'
+    +dvRow('Inscricao na Lista',d.data_inscricao)
+    +dvRow('ABO/RH',d.abo+(d.rh?' / '+d.rh:''))
+    +dvRow('Posicao Ativa',d.posicao_ativa)
+    +dvRow('Posicao Tecnica',d.posicao_tecnica)
+    +dvRow('Child-Pugh',d.child+(d.data_child?' ('+fmtDateShort(d.data_child)+')':''))
+    +dvRow('MELD',d.meld+(d.data_meld?' ('+fmtDateShort(d.data_meld)+')':''))
+    +dvRow('Etiologia',d.etiologia)
+    +dvRow('Complicacoes',d.complicacoes)
+    +dvRow('Priorizacao',d.priorizacao)
+    +dvRow('Hemodialise',d.hemodialise)
+    +(isPre?dvRow('Data Transplante',d.data_tx):dvRow('Grupo Sanguineo',d.grupo))
+    +dvRow('Historia Clinica',d.historia)
+    +'</div></div>';
+  c.innerHTML=html;
+}
+
+function renderTabAntecedentes(d,c){
+  var ant=d.antecedentes||{};
+  c.innerHTML='<div class="settings-title" style="margin-bottom:10px;">Antecedentes Pessoais</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
+    +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
+    +dvRow('Transfusao',ant.transfusao)+dvRow('HAS',ant.has)+dvRow('DM',ant.dm)
+    +dvRow('Tabagismo',ant.tabagismo)+dvRow('Etilismo',ant.etilismo)+dvRow('Abstinencia',ant.abstinencia)
+    +dvRow('Uso de drogas',ant.drogas)+dvRow('Dislipidemia',ant.dislipidemia)
+    +dvRow('Alergias',ant.alergias)+dvRow('Sangramento/Trombose',ant.sangramento)
+    +dvRow('Cirurgias Previas',ant.cirurgias)+dvRow('Medicacoes',ant.medicacoes)
+    +dvRow('Historia Familiar',ant.hist_familiar)+dvRow('Outras',ant.outras)
+    +'</div>'
+    +'<div style="padding-left:16px;">'
+    +'<div class="settings-title" style="margin-bottom:10px;">Vacinacao</div>'
+    +dvRow('DT',ant.vac_dt)+dvRow('Hep B',ant.vac_hepb)+dvRow('Hep A',ant.vac_hepa)
+    +dvRow('Pneumococo',ant.vac_pneumo)+dvRow('MMR',ant.vac_mmr)+dvRow('HiB',ant.vac_hib)
+    +dvRow('Varicela',ant.vac_varicela)+dvRow('Anti-HBs pos-vacina',ant.antihbs_pos)
+    +'<div class="settings-title" style="margin:10px 0;">Exame Fisico</div>'
+    +dvRow('PA',ant.pa)+dvRow('FC',ant.fc)+dvRow('FR',ant.fr)+dvRow('Temperatura',ant.temp)
+    +dvRow('Geral',ant.geral)+dvRow('Abdome',ant.abdome)+dvRow('Neuro',ant.neuro)
+    +dvRow('Pele e Ext.',ant.pele)+dvRow('Observacoes',ant.obs_ef)
+    +'<div class="settings-title" style="margin:10px 0;">Condutas Relevantes</div>'
+    +(ant.condutas?ant.condutas.map(function(c,i){return dvRow((i+1)+'.',c.texto+(c.data?' ('+fmtDateShort(c.data)+')':''));}).join(''):'<div style="color:var(--text3);font-size:12px;">Nenhuma conduta registrada.</div>')
+    +'</div></div>';
+}
+
+function renderTabDoador(d,c){
+  var doc=d.doador||{};
+  c.innerHTML='<div class="settings-title" style="margin-bottom:10px;">Dados do Doador</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
+    +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
+    +dvRow('Nome',doc.nome)+dvRow('Idade',doc.idade)+dvRow('Sexo',doc.sexo)
+    +dvRow('Peso',doc.peso?doc.peso+'kg':'')+dvRow('Altura',doc.altura?doc.altura+'m':'')
+    +dvRow('Causa da Morte',doc.causa_morte)+dvRow('Infeccao',doc.infeccao)
+    +dvRow('Antibiotico',doc.antibiotico)+dvRow('TGO',doc.tgo)+dvRow('TGP',doc.tgp)
+    +dvRow('Sodio',doc.na)
+    +'</div>'
+    +'<div style="padding-left:16px;">'
+    +'<div class="settings-title" style="margin-bottom:10px;">Dados da Cirurgia</div>'
+    +dvRow('Nora (dose)',doc.nora)+dvRow('Vaso (dose)',doc.vaso)
+    +dvRow('Solucao de Perfusao',doc.solucao)+dvRow('Local do Implante',doc.local_implante)
+    +dvRow('Isquemia Fria',doc.isquemia_fria)+dvRow('Isquemia Quente',doc.isquemia_quente)
+    +dvRow('Tempo Anastomose',doc.tempo_anast)+dvRow('V.Cava',doc.vcava)
+    +dvRow('V.Porta',doc.vporta)+dvRow('A.Hepatica',doc.ahep)+dvRow('Via Biliar',doc.via_biliar)
+    +'</div></div>';
+}
+
+function renderTabImuno(d,c){
+  var im=d.imuno||{};
+  c.innerHTML='<div class="settings-title" style="margin-bottom:10px;">Esquema de Imunossupressao</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">'
+    +'<div style="padding-right:16px;border-right:1px solid var(--border);">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">MANUTENCAO</div>'
+    +dvRow('Tac/CsA',im.tac_csa)+dvRow('Iniciado em D',im.tac_inicio)
+    +dvRow('MMF/Myfortic',im.mmf)+dvRow('Iniciado em D',im.mmf_inicio)
+    +dvRow('Sirolimo/Everolimo',im.siro_ever)+dvRow('Iniciado em D',im.siro_inicio)
+    +dvRow('Corticosteroide',im.cortico)
+    +dvRow('Outros Medicamentos',im.outros)
+    +dvRow('Alergia Medicamentosa',im.alergia)
+    +'</div>'
+    +'<div style="padding-left:16px;">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">SOROLOGIAS</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    +'<thead><tr style="background:var(--surface2);"><th style="padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);">Sorologia</th><th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);">Receptor</th><th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--border);">Doador</th></tr></thead>'
+    +'<tbody>'
+    +['HVB','HVC','CMV','TOXO','VDRL','Chagas','EBV','HIV'].map(function(s){
+      var sr=(d.sorologias_imuno||{})[s]||{};
+      return '<tr style="border-bottom:0.5px solid var(--border);"><td style="padding:4px 8px;color:var(--text2);">'+s+'</td>'
+        +'<td style="padding:4px 8px;text-align:center;color:var(--text);">'+esc(sr.receptor||'-')+'</td>'
+        +'<td style="padding:4px 8px;text-align:center;color:var(--text);">'+esc(sr.doador||'-')+'</td></tr>';
+    }).join('')
+    +'</tbody></table>'
+    +'<div style="margin-top:12px;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;">OBSERVACOES</div>'
+    +'<div style="font-size:13px;color:var(--text2);">'+esc(im.obs||'-')+'</div>'
+    +'</div></div>';
+}
+
+function renderTabSorologias(d,isPre,c){
+  var sor=d.sorologias||{};
+  if(isPre){
+    var cols=['Data1','Data2','Data3'];
+    var exames=['Anti-HCV','PCR-HCV Qualit.','PCR-HCV Quant.','Genotipo HCV','HBsAg','Anti-HBc Total','HBeAg','Anti-HBe','Anti-HBs','Carga Viral HBV','Anti-HVA IgG','Anti-HVA IgM','Anti-HIV','Anti-HTLV 1e2','CMV IgG','CMV IgM','VDRL','Herpes IgG','Rubeola IgG','Toxoplasm. IgM','Toxoplasm. IgG','Chagas','alfa-1-Antitrip.','FAN','Anti-mitocon.','Anti-musc. liso','Ceruloplasmin.','Cobre serico','PSA','Ferritina','IST','PPD','Sat. Transferrina'];
+    c.innerHTML='<div class="tabela-seriada"><table><thead><tr>'
+      +'<th style="text-align:left;min-width:150px;">Exame</th>'
+      +cols.map(function(col){return '<th style="min-width:80px;">'+col+'</th>';}).join('')
+      +'</tr></thead><tbody>'
+      +exames.map(function(ex,i){
+        var vals=(sor[ex]||{});
+        return '<tr'+(i%2?' style="background:var(--surface2);"':'')+'><td>'+ex+'</td>'
+          +cols.map(function(col){return '<td>'+esc(vals[col]||'-')+'</td>';}).join('')
+          +'</tr>';
+      }).join('')
+      +'</tbody></table></div>';
+  } else {
+    var sorPosExames=['HVB','HVC','CMV','TOXO','VDRL','Chagas','EBV','HIV'];
+    c.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      +'<thead><tr style="background:var(--surface2);"><th style="padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);">Sorologia</th><th style="padding:6px 10px;text-align:center;border-bottom:1px solid var(--border);">Receptor</th><th style="padding:6px 10px;text-align:center;border-bottom:1px solid var(--border);">Doador</th></tr></thead>'
+      +'<tbody>'+sorPosExames.map(function(s){
+        var sr=sor[s]||{};
+        return '<tr style="border-bottom:0.5px solid var(--border);"><td style="padding:6px 10px;color:var(--text2);">'+s+'</td>'
+          +'<td style="padding:6px 10px;text-align:center;color:var(--text);">'+esc(sr.receptor||'-')+'</td>'
+          +'<td style="padding:6px 10px;text-align:center;color:var(--text);">'+esc(sr.doador||'-')+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  }
+  c.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><button class="btn btn-primary btn-sm" id="btn-editar-sorologias">Editar Sorologias</button></div>'+c.innerHTML;
+  var btnSor=get('btn-editar-sorologias');
+  if(btnSor) btnSor.addEventListener('click',function(){abrirFormSorologias(folhaoAtivo,isPre);});
+}
+
+function renderTabExamesLab(f,isPre,c){
+  var grupos=isPre?EXAMES_PRE:EXAMES_POS;
+  var gruposLabel=isPre?GRUPOS_PRE_LABEL:GRUPOS_POS_LABEL;
+  var isPosClass=isPre?'':'pos';
+
+  c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">'
+    +'<div style="display:flex;gap:6px;">'
+    +'<button class="btn btn-sm" id="btn-modo-lista-ex" style="background:var(--accent);color:#fff;">Ver em lista</button>'
+    +'<button class="btn btn-ghost btn-sm" id="btn-modo-tabela-ex">Ver em tabela</button>'
+    +'</div>'
+    +'<button class="btn btn-primary btn-sm" id="btn-add-exame-lab">+ Adicionar Coleta</button>'
+    +'</div>'
+    +'<div id="exames-lab-content"><div class="loading"><div class="spinner"></div> Carregando...</div></div>';
+
+  get('btn-add-exame-lab').addEventListener('click',function(){abrirFormExameLab(f,isPre);});
+
+  var modoLista=true;
+  get('btn-modo-lista-ex').addEventListener('click',function(){
+    modoLista=true;
+    this.style.background='var(--accent)';this.style.color='#fff';
+    get('btn-modo-tabela-ex').style.background='';get('btn-modo-tabela-ex').style.color='';
+    carregarExamesLab(f,isPre,modoLista,grupos,gruposLabel,isPosClass);
+  });
+  get('btn-modo-tabela-ex').addEventListener('click',function(){
+    modoLista=false;
+    this.style.background='var(--accent)';this.style.color='#fff';
+    get('btn-modo-lista-ex').style.background='';get('btn-modo-lista-ex').style.color='';
+    carregarExamesLab(f,isPre,modoLista,grupos,gruposLabel,isPosClass);
+  });
+
+  carregarExamesLab(f,isPre,modoLista,grupos,gruposLabel,isPosClass);
+}
+
+function carregarExamesLab(f,isPre,modoLista,grupos,gruposLabel,isPosClass){
+  var tc=get('exames-lab-content');
+  if(!sbClient){renderExamesLab([],modoLista,grupos,gruposLabel,isPosClass,f,isPre,tc);return;}
+  sbClient.from('exames_seriados').select('*').eq('folhao_id',f.id).order('data_coleta',{ascending:false})
+    .then(function(r){renderExamesLab(r.data||[],modoLista,grupos,gruposLabel,isPosClass,f,isPre,tc);})
+    .catch(function(){renderExamesLab([],modoLista,grupos,gruposLabel,isPosClass,f,isPre,tc);});
+}
+
+function renderExamesLab(lista,modoLista,grupos,gruposLabel,isPosClass,f,isPre,c){
+  if(!lista.length){c.innerHTML='<div class="empty-state">Nenhuma coleta registrada. Clique em "+ Adicionar Coleta" para comecar.</div>';return;}
+  if(modoLista){
+    c.innerHTML=lista.map(function(ex){
+      var v=ex.valores||{};
+      var localClass=ex.local==='Internamento'?'int':'amb';
+      var outros=ex.outros||[];
+      var todosExames=[];
+      Object.keys(grupos).forEach(function(g){grupos[g].forEach(function(e){if(v[e]) todosExames.push({label:e,val:v[e]});});});
+      return '<div class="exame-card '+localClass+'">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+        +'<div style="display:flex;align-items:center;gap:8px;">'
+        +'<span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);">'+fmtDateShort(ex.data_coleta)+'</span>'
+        +'<span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:'+(ex.local==='Internamento'?'var(--yellow-bg)':'var(--accent-light)')+';color:'+(ex.local==='Internamento'?'var(--yellow)':'var(--accent)')+';border:1px solid '+(ex.local==='Internamento'?'var(--yellow-border)':'var(--accent)')+';font-family:var(--mono);">'+esc(ex.local||'Ambulatorio')+'</span>'
+        +'</div>'
+        +'<span style="font-size:11px;color:var(--text3);">'+esc(ex.medico||'')+'</span>'
+        +'</div>'
+        +'<div class="exame-valores">'
+        +todosExames.slice(0,12).map(function(e){return '<div class="exame-chip"><div class="exame-chip-label">'+esc(e.label.split('/')[0].substring(0,8))+'</div><div class="exame-chip-val">'+esc(e.val)+'</div></div>';}).join('')
+        +'</div>'
+        +(outros.length?'<div style="margin-top:6px;font-size:11px;color:var(--text2);"><strong>Outros:</strong> '+outros.map(function(o){return esc(o.nome)+': '+esc(o.valor);}).join(' | ')+'</div>':'')
+        +'</div>';
+    }).join('');
+  } else {
+    // Modo tabela
+    var html='<div class="tabela-seriada"><table><thead><tr>'
+      +'<th style="min-width:160px;">Exame</th>'
+      +lista.map(function(ex){
+        return '<th style="min-width:70px;">'
+          +'<div style="font-family:var(--mono);font-size:11px;">'+fmtDateShort(ex.data_coleta)+'</div>'
+          +'<div style="font-size:9px;padding:1px 4px;border-radius:8px;margin-top:2px;background:'+(ex.local==='Internamento'?'var(--yellow-bg)':'var(--accent-light)')+';color:'+(ex.local==='Internamento'?'var(--yellow)':'var(--accent)')+';">'+(ex.local==='Internamento'?'Int':'Amb')+'</div>'
+          +'</th>';
+      }).join('')
+      +'</tr></thead><tbody>';
+
+    Object.keys(grupos).forEach(function(g){
+      html+='<tr class="tabela-grupo '+isPosClass+'"><td colspan="'+(lista.length+1)+'">'+gruposLabel[g]+'</td></tr>';
+      grupos[g].forEach(function(exame){
+        html+='<tr><td>'+exame+'</td>'
+          +lista.map(function(ex){
+            var val=(ex.valores||{})[exame]||'—';
+            return '<td>'+esc(val)+'</td>';
+          }).join('')
+          +'</tr>';
+      });
+    });
+    html+='</tbody></table></div>';
+    c.innerHTML=html;
+  }
+}
+
+function renderTabImagens(f,isPre,c){
+  var tiposImg=isPre?IMAGENS_PRE:IMAGENS_POS;
+  c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+    +'<div class="section-title">Imagens e Procedimentos</div>'
+    +'<button class="btn btn-primary btn-sm" id="btn-add-imagem">+ Adicionar</button>'
+    +'</div>'
+    +'<div id="imagens-content"><div class="loading"><div class="spinner"></div> Carregando...</div></div>';
+
+  get('btn-add-imagem').addEventListener('click',function(){abrirFormImagem(f,isPre);});
+  carregarImagens(f);
+}
+
+function carregarImagens(f){
+  var ic=get('imagens-content');
+  if(!ic) return;
+  var dados=f.dados||{};
+  var imgs=dados.imagens||[];
+  if(!imgs.length){ic.innerHTML='<div class="empty-state">Nenhum exame de imagem ou procedimento registrado.</div>';return;}
+  var sorted=imgs.slice().sort(function(a,b){return new Date(b.data)-new Date(a.data);});
+  ic.innerHTML=sorted.map(function(img){
+    return '<div class="img-proc-card">'
+      +'<div class="img-proc-tipo">'+esc(img.tipo)+'</div>'
+      +'<div style="display:flex;gap:8px;margin-bottom:6px;font-size:11px;color:var(--text2);">'
+      +'<span style="font-family:var(--mono);">'+fmtDateShort(img.data)+'</span>'
+      +'<span style="padding:1px 7px;border-radius:10px;background:'+(img.local==='Internamento'?'var(--yellow-bg)':'var(--accent-light)')+';color:'+(img.local==='Internamento'?'var(--yellow)':'var(--accent)')+';">'+esc(img.local||'Ambulatorio')+'</span>'
+      +(img.medico?'<span>'+esc(img.medico)+'</span>':'')
+      +'</div>'
+      +'<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;">'+esc(img.resultado||'-')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function renderTabEvolucao(f,c){
+  c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+    +'<div class="section-title">Evolucao</div>'
+    +'<button class="btn btn-primary btn-sm" id="btn-add-evolucao">+ Nova Nota</button>'
+    +'</div>'
+    +'<div id="evolucao-content"><div class="loading"><div class="spinner"></div> Carregando...</div></div>';
+  get('btn-add-evolucao').addEventListener('click',function(){abrirFormEvolucao(f);});
+  carregarEvolucoes(f);
+}
+
+function carregarEvolucoes(f){
+  var ec=get('evolucao-content');
+  if(!ec) return;
+  if(!sbClient){ec.innerHTML='<div class="empty-state">Sem evolucoes registradas.</div>';return;}
+  sbClient.from('evolucoes').select('*').eq('folhao_id',f.id).order('data_evolucao',{ascending:false})
+    .then(function(r){
+      var lista=r.data||[];
+      if(!lista.length){ec.innerHTML='<div class="empty-state">Nenhuma nota de evolucao registrada.</div>';return;}
+      ec.innerHTML=lista.map(function(ev){
+        return '<div class="evolucao-item '+(ev.local==='Internamento'?'int':'')+'">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+          +'<div style="display:flex;gap:8px;align-items:center;">'
+          +'<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text);">'+fmtDate(ev.data_evolucao)+'</span>'
+          +'<span style="padding:1px 7px;border-radius:10px;font-size:10px;background:'+(ev.local==='Internamento'?'var(--yellow-bg)':'var(--accent-light)')+';color:'+(ev.local==='Internamento'?'var(--yellow)':'var(--accent)')+';">'+esc(ev.local||'Ambulatorio')+'</span>'
+          +'</div>'
+          +'<span style="font-size:11px;color:var(--text3);">'+esc(ev.medico||'')+'</span>'
+          +'</div>'
+          +'<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;">'+esc(ev.texto||'')+'</div>'
+          +'</div>';
+      }).join('');
+    });
+}
+
+// ── FORMULÁRIOS ──
+get('btn-novo-folhao').addEventListener('click',function(){abrirFormFolhao(null);});
+
+function abrirFormFolhao(f){
+  var d=f?(f.dados||{}):{};
+  var html='<div class="modal-title">'+(f?'Editar Folhao':'Novo Folhao')+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">'
+    +'<div class="form-row"><label class="form-label">Tipo *</label>'
+    +'<select class="form-select" id="ff-tipo"><option value="pre"'+((!f||f.tipo==='pre')?' selected':'')+'>Pre-Transplante</option><option value="pos"'+(f&&f.tipo==='pos'?' selected':'')+'>Pos-Transplante</option></select></div>'
+    +'<div class="form-row"><label class="form-label">Prontuario *</label><input type="text" class="form-input" id="ff-pront" value="'+esc(f?f.prontuario:'')+'"></div>'
+    +'<div class="form-row" style="grid-column:1/-1"><label class="form-label">Nome Completo *</label><input type="text" class="form-input" id="ff-nome" value="'+esc(f?f.nome:'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Data Nascimento</label><input type="date" class="form-input" id="ff-nasc" value="'+esc(d.data_nasc||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Sexo</label><select class="form-select" id="ff-sexo"><option value="">-</option><option value="M"'+(d.sexo==='M'?' selected':'')+'>M</option><option value="F"'+(d.sexo==='F'?' selected':'')+'>F</option></select></div>'
+    +'<div class="form-row"><label class="form-label">Idade</label><input type="text" class="form-input" id="ff-idade" value="'+esc(d.idade||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Cor</label><input type="text" class="form-input" id="ff-cor" value="'+esc(d.cor||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">CPF</label><input type="text" class="form-input" id="ff-cpf" value="'+esc(d.cpf||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Nome da Mae</label><input type="text" class="form-input" id="ff-mae" value="'+esc(d.nome_mae||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Matricula</label><input type="text" class="form-input" id="ff-mat" value="'+esc(d.matricula||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Peso (kg)</label><input type="number" class="form-input" id="ff-peso" value="'+esc(d.peso||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Altura (cm)</label><input type="number" class="form-input" id="ff-altura" value="'+esc(d.altura||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Telefone</label><input type="text" class="form-input" id="ff-tel" value="'+esc(d.telefone||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Medico Assistente</label><select class="form-select" id="ff-medico">'+getDoctors().map(function(doc){return '<option value="'+esc(doc)+'"'+(d.medico===doc?' selected':'')+'>'+esc(doc)+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-row"><label class="form-label">ABO</label><select class="form-select" id="ff-abo"><option value="">-</option>'+['O','A','AB','B'].map(function(g){return '<option value="'+g+'"'+(d.abo===g?' selected':'')+'>'+g+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-row"><label class="form-label">RH</label><select class="form-select" id="ff-rh"><option value="">-</option><option value="+"'+(d.rh==='+'?' selected':'')+'">+</option><option value="-"'+(d.rh==='-'?' selected':'')+'">-</option></select></div>'
+    +'<div class="form-row"><label class="form-label">MELD</label><input type="number" class="form-input" id="ff-meld" value="'+esc(d.meld||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Child-Pugh</label><input type="text" class="form-input" id="ff-child" value="'+esc(d.child||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Data Inscricao Lista</label><input type="date" class="form-input" id="ff-inscricao" value="'+esc(d.data_inscricao||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Data Transplante</label><input type="date" class="form-input" id="ff-tx" value="'+esc(d.data_tx||'')+'"></div>'
+    +'<div class="form-row" style="grid-column:1/-1"><label class="form-label">Etiologia</label><input type="text" class="form-input" id="ff-etio" value="'+esc(d.etiologia||'')+'"></div>'
+    +'<div class="form-row" style="grid-column:1/-1"><label class="form-label">Complicacoes</label><input type="text" class="form-input" id="ff-comp" value="'+esc(d.complicacoes||'')+'"></div>'
+    +'<div class="form-row" style="grid-column:1/-1"><label class="form-label">Historia Clinica</label><textarea class="form-textarea" id="ff-hist" style="min-height:80px;">'+esc(d.historia||'')+'</textarea></div>'
+    +'<div class="form-row" style="grid-column:1/-1"><label class="form-label">Endereco</label><input type="text" class="form-input" id="ff-end" value="'+esc(d.endereco||'')+'"></div>'
+    +'</div>'
+    +'<div class="modal-footer">'
+    +'<button class="btn btn-ghost" id="btn-cancelar-ff">Cancelar</button>'
+    +'<button class="btn btn-primary" id="btn-salvar-ff">Salvar</button>'
+    +'</div>';
+
+  get('modal-folhao-form').querySelector('.modal').innerHTML=html;
+  openModal('modal-folhao-form');
+
+  get('btn-cancelar-ff').addEventListener('click',function(){closeModal('modal-folhao-form');});
+  get('btn-salvar-ff').addEventListener('click',function(){
+    var nome=get('ff-nome').value.trim();
+    var pront=get('ff-pront').value.trim();
+    if(!nome||!pront){showToast('Nome e prontuario sao obrigatorios.','error');return;}
+    var rec={
+      prontuario:pront, nome:nome, tipo:get('ff-tipo').value, status:f?(f.status||'ativo'):'ativo',
+      dados:{
+        data_nasc:get('ff-nasc').value, sexo:get('ff-sexo').value, idade:get('ff-idade').value,
+        cor:get('ff-cor').value, cpf:get('ff-cpf').value, nome_mae:get('ff-mae').value,
+        matricula:get('ff-mat').value, peso:get('ff-peso').value, altura:get('ff-altura').value,
+        telefone:get('ff-tel').value, medico:get('ff-medico').value,
+        abo:get('ff-abo').value, rh:get('ff-rh').value, meld:get('ff-meld').value,
+        child:get('ff-child').value, data_inscricao:get('ff-inscricao').value,
+        data_tx:get('ff-tx').value, etiologia:get('ff-etio').value,
+        complicacoes:get('ff-comp').value, historia:get('ff-hist').value,
+        endereco:get('ff-end').value,
+        imagens:f?(f.dados||{}).imagens||[]:[]
+      },
+      updated_at:new Date().toISOString()
+    };
+    if(f){atualizarFolhao(f.id,rec,true);}
+    else{criarFolhao(rec);}
+    closeModal('modal-folhao-form');
+  });
+}
+
+function criarFolhao(rec){
+  rec.created_at=new Date().toISOString();
+  if(sbClient){
+    sbClient.from('folhoes').insert([rec]).then(function(r){
+      if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+      showToast('Folhao criado!','success');
+      loadFolhoes();
+    });
+  } else {
+    var local=lsGet('folhoes_local')||[];
+    rec.id=Date.now().toString();
+    local.push(rec);
+    lsSet('folhoes_local',local);
+    folhoesData=local;
+    showToast('Folhao criado!','success');
+    renderFolhoesLista(folhoesData);
+  }
+}
+
+function atualizarFolhao(id,updates,reload){
+  if(sbClient){
+    sbClient.from('folhoes').update(updates).eq('id',id).then(function(r){
+      if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+      showToast('Folhao atualizado!','success');
+      loadFolhoes();
+      if(reload&&folhaoAtivo&&folhaoAtivo.id===id){
+        Object.assign(folhaoAtivo,updates);
+        if(updates.dados) folhaoAtivo.dados=updates.dados;
+        renderFolhaoContent();
+      }
+    });
+  }
+}
+
+function abrirFormExameLab(f,isPre){
+  var grupos=isPre?EXAMES_PRE:EXAMES_POS;
+  var gruposLabel=isPre?GRUPOS_PRE_LABEL:GRUPOS_POS_LABEL;
+  var docs=getDoctors();
+  var html='<div class="modal-title">Adicionar Coleta de Exames</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px;">'
+    +'<div class="form-row"><label class="form-label">Data *</label><input type="date" class="form-input" id="el-data"></div>'
+    +'<div class="form-row"><label class="form-label">Local</label><select class="form-select" id="el-local"><option value="Ambulatorio">Ambulatorio</option><option value="Internamento">Internamento</option></select></div>'
+    +'<div class="form-row"><label class="form-label">Medico</label><select class="form-select" id="el-medico">'+docs.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('')+'</select></div>'
+    +'</div>';
+
+  Object.keys(grupos).forEach(function(g){
+    html+='<div style="font-size:11px;font-weight:600;letter-spacing:1px;color:#fff;background:var(--accent);padding:4px 10px;border-radius:4px;margin:10px 0 6px;text-transform:uppercase;">'+gruposLabel[g]+'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;">';
+    grupos[g].forEach(function(ex){
+      var id='el-'+ex.replace(/[^a-z0-9]/gi,'_');
+      html+='<div class="form-row" style="margin-bottom:4px;"><label class="form-label" style="font-size:10px;">'+ex+'</label><input type="text" class="form-input" id="'+id+'" placeholder="-" style="padding:5px 8px;font-size:12px;"></div>';
+    });
+    html+='</div>';
+  });
+
+  html+='<div style="font-size:11px;font-weight:600;letter-spacing:1px;color:#fff;background:var(--accent);padding:4px 10px;border-radius:4px;margin:10px 0 6px;text-transform:uppercase;">OUTROS EXAMES</div>'
+    +'<div id="outros-exames-list"></div>'
+    +'<button class="btn btn-ghost btn-sm" id="btn-add-outro-exame" style="margin-bottom:10px;">+ Adicionar outro exame</button>'
+    +'<div class="modal-footer">'
+    +'<button class="btn btn-ghost" id="btn-cancelar-el">Cancelar</button>'
+    +'<button class="btn btn-primary" id="btn-salvar-el">Salvar Coleta</button>'
+    +'</div>';
+
+  get('modal-exame-lab').querySelector('.modal').innerHTML=html;
+  openModal('modal-exame-lab');
+
+  var outrosCount=0;
+  get('btn-add-outro-exame').addEventListener('click',function(){
+    outrosCount++;
+    var div=document.createElement('div');
+    div.style.cssText='display:flex;gap:8px;margin-bottom:6px;';
+    div.innerHTML='<input type="text" class="form-input outro-nome" placeholder="Nome do exame" style="flex:1;"><input type="text" class="form-input outro-valor" placeholder="Valor" style="width:100px;">';
+    get('outros-exames-list').appendChild(div);
+  });
+
+  get('btn-cancelar-el').addEventListener('click',function(){closeModal('modal-exame-lab');});
+  get('btn-salvar-el').addEventListener('click',function(){
+    var data=get('el-data').value;
+    if(!data){showToast('Selecione a data da coleta.','error');return;}
+    var valores={};
+    Object.keys(grupos).forEach(function(g){
+      grupos[g].forEach(function(ex){
+        var id='el-'+ex.replace(/[^a-z0-9]/gi,'_');
+        var el=get(id);
+        if(el&&el.value.trim()) valores[ex]=el.value.trim();
+      });
+    });
+    var outros=[];
+    document.querySelectorAll('#outros-exames-list > div').forEach(function(div){
+      var nome=div.querySelector('.outro-nome').value.trim();
+      var valor=div.querySelector('.outro-valor').value.trim();
+      if(nome) outros.push({nome:nome,valor:valor});
+    });
+    var rec={folhao_id:f.id,prontuario:f.prontuario,tipo_folhao:f.tipo,data_coleta:data,local:get('el-local').value,medico:get('el-medico').value,valores:valores,outros:outros,created_at:new Date().toISOString()};
+    if(sbClient){
+      sbClient.from('exames_seriados').insert([rec]).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        showToast('Coleta salva!','success');
+        closeModal('modal-exame-lab');
+        renderTabExamesLab(f,isPre,get('folhao-tab-content'));
+      });
+    }
+  });
+}
+
+function abrirFormImagem(f,isPre){
+  var tipos=(isPre?IMAGENS_PRE:IMAGENS_POS).concat(PROCEDIMENTOS);
+  var docs=getDoctors();
+  var html='<div class="modal-title">Adicionar Exame de Imagem / Procedimento</div>'
+    +'<div class="form-row"><label class="form-label">Tipo *</label>'
+    +'<select class="form-select" id="img-tipo"><option value="">Selecione...</option>'
+    +tipos.map(function(t){return '<option value="'+esc(t)+'">'+esc(t)+'</option>';}).join('')
+    +'<option value="Outro">Outro (especificar)</option></select></div>'
+    +'<div class="form-row" id="img-outro-row" style="display:none"><label class="form-label">Especificar</label><input type="text" class="form-input" id="img-outro-texto"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px;">'
+    +'<div class="form-row"><label class="form-label">Data *</label><input type="date" class="form-input" id="img-data"></div>'
+    +'<div class="form-row"><label class="form-label">Local</label><select class="form-select" id="img-local"><option value="Ambulatorio">Ambulatorio</option><option value="Internamento">Internamento</option></select></div>'
+    +'<div class="form-row"><label class="form-label">Medico</label><select class="form-select" id="img-medico">'+docs.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('')+'</select></div>'
+    +'</div>'
+    +'<div class="form-row"><label class="form-label">Resultado / Laudo</label><textarea class="form-textarea" id="img-resultado" style="min-height:120px;" placeholder="Digite o resultado ou laudo do exame..."></textarea></div>'
+    +'<div class="modal-footer"><button class="btn btn-ghost" id="btn-cancelar-img">Cancelar</button><button class="btn btn-primary" id="btn-salvar-img">Salvar</button></div>';
+
+  get('modal-imagem').querySelector('.modal').innerHTML=html;
+  openModal('modal-imagem');
+
+  get('img-tipo').addEventListener('change',function(){
+    get('img-outro-row').style.display=this.value==='Outro'?'block':'none';
+  });
+  get('btn-cancelar-img').addEventListener('click',function(){closeModal('modal-imagem');});
+  get('btn-salvar-img').addEventListener('click',function(){
+    var tipo=get('img-tipo').value;
+    if(tipo==='Outro') tipo=get('img-outro-texto').value.trim()||'Outro';
+    var data=get('img-data').value;
+    if(!tipo||!data){showToast('Selecione o tipo e a data.','error');return;}
+    var rec={tipo:tipo,data:data,local:get('img-local').value,medico:get('img-medico').value,resultado:get('img-resultado').value.trim()};
+    var dados=Object.assign({},f.dados||{});
+    dados.imagens=(dados.imagens||[]).concat([rec]);
+    atualizarFolhao(f.id,{dados:dados,updated_at:new Date().toISOString()});
+    folhaoAtivo.dados=dados;
+    closeModal('modal-imagem');
+    renderTabImagens(f,isPre,get('folhao-tab-content'));
+    showToast('Exame salvo!','success');
+  });
+}
+
+function abrirFormEvolucao(f){
+  var docs=getDoctors();
+  var html='<div class="modal-title">Nova Nota de Evolucao</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px;">'
+    +'<div class="form-row"><label class="form-label">Data/Hora</label><input type="datetime-local" class="form-input" id="ev-data" value="'+new Date().toISOString().slice(0,16)+'"></div>'
+    +'<div class="form-row"><label class="form-label">Local</label><select class="form-select" id="ev-local"><option value="Ambulatorio">Ambulatorio</option><option value="Internamento">Internamento</option></select></div>'
+    +'<div class="form-row"><label class="form-label">Medico</label><select class="form-select" id="ev-medico">'+docs.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('')+'</select></div>'
+    +'</div>'
+    +'<div class="form-row"><label class="form-label">Evolucao *</label><textarea class="form-textarea" id="ev-texto" style="min-height:150px;" placeholder="Digite a nota de evolucao..."></textarea></div>'
+    +'<div class="modal-footer"><button class="btn btn-ghost" id="btn-cancelar-ev">Cancelar</button><button class="btn btn-primary" id="btn-salvar-ev">Salvar</button></div>';
+
+  get('modal-evolucao').querySelector('.modal').innerHTML=html;
+  openModal('modal-evolucao');
+
+  get('btn-cancelar-ev').addEventListener('click',function(){closeModal('modal-evolucao');});
+  get('btn-salvar-ev').addEventListener('click',function(){
+    var texto=get('ev-texto').value.trim();
+    if(!texto){showToast('Digite a nota de evolucao.','error');return;}
+    var rec={folhao_id:f.id,prontuario:f.prontuario,data_evolucao:get('ev-data').value,local:get('ev-local').value,medico:get('ev-medico').value,texto:texto,created_at:new Date().toISOString()};
+    if(sbClient){
+      sbClient.from('evolucoes').insert([rec]).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        showToast('Evolucao salva!','success');
+        closeModal('modal-evolucao');
+        renderTabEvolucao(f,get('folhao-tab-content'));
+      });
+    }
+  });
+}
+
+function abrirFormSorologias(f,isPre){
+  showToast('Funcao em desenvolvimento.','error');
 }
 
 
