@@ -2058,6 +2058,7 @@ get('tab-folhoes').addEventListener('click',function(){switchTab('folhoes');});
 get('tab-sessao').addEventListener('click',function(){switchTab('sessao');});
 get('tab-stats').addEventListener('click',function(){switchTab('stats');});
 get('tab-config').addEventListener('click',function(){switchTab('config');});
+get('tab-pendencias').addEventListener('click',function(){switchTab('pendencias');});
 
 function switchTab(tab){
   ['fila','sessao','stats','receptores','anestesia','folhoes','pendencias','config'].forEach(function(t){
@@ -5565,7 +5566,6 @@ function abrirAPACFullscreen(f, d, saved){
 var LEITOS_PEND = ['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4','Leito Ectopico'];
 var pendenciasData = {};
 
-get('tab-pendencias').addEventListener('click', function(){ switchTab('pendencias'); });
 
 function loadPendencias(){
   pendenciasData = lsGet('pendencias_diarias') || {};
