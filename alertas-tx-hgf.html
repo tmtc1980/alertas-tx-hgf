@@ -377,6 +377,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-receptores">🫀 Lista de Receptores</div>
     <div class="tab" id="tab-anestesia">📋 Ficha Pré-Anestésica</div>
     <div class="tab" id="tab-folhoes">📁 Pré e Pós-Tx</div>
+    <div class="tab" id="tab-pendencias" style="display:none">🛏️ Pendências Diárias</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
   <main>
@@ -466,6 +467,15 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       </div>
     </div>
       <div id="plantao-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+    </div>
+
+    <!-- PENDENCIAS -->
+    <div id="panel-pendencias" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Pendências Diárias — Leitos Tx Hepático</div>
+        <div style="font-size:12px;color:var(--text3);font-family:var(--mono);" id="pendencias-updated"></div>
+      </div>
+      <div id="pendencias-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;"></div>
     </div>
 
     <div id="panel-config" style="display:none">
@@ -2021,9 +2031,9 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';}
-  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';}
-  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';}
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';}
+  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';}
+  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';}
   initSupabase();
   populateDoctorSelects();
   loadFila();loadSessao();loadConfigFields();
@@ -2050,7 +2060,7 @@ get('tab-stats').addEventListener('click',function(){switchTab('stats');});
 get('tab-config').addEventListener('click',function(){switchTab('config');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','anestesia','folhoes','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','folhoes','pendencias','config'].forEach(function(t){
     get('panel-'+t).style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
@@ -2058,6 +2068,7 @@ function switchTab(tab){
   if(tab==='receptores'){grupoAtivo='O';loadReceptores();}
   if(tab==='anestesia')initAnestesia();
   if(tab==='folhoes')loadFolhoes();
+  if(tab==='pendencias')loadPendencias();
 }
 
 // Filtros de periodo
@@ -5547,6 +5558,83 @@ function abrirAPACFullscreen(f, d, saved){
   get('apac-btn-voltar').onclick=function(){get('apac-fullscreen').style.display='none';};
   get('apac-btn-salvar').onclick=function(){salvarAPAC(false);};
   get('apac-btn-imprimir').onclick=function(){salvarAPAC(true);};
+}
+
+
+// ── PENDÊNCIAS DIÁRIAS ──
+var LEITOS_PEND = ['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4','Leito Ectopico'];
+var pendenciasData = {};
+
+get('tab-pendencias').addEventListener('click', function(){ switchTab('pendencias'); });
+
+function loadPendencias(){
+  if(sbClient){
+    sbClient.from('pendencias_diarias').select('*')
+      .then(function(r){
+        pendenciasData = {};
+        (r.data||[]).forEach(function(row){ pendenciasData[row.leito] = row; });
+        renderPendencias();
+      }).catch(function(){
+        pendenciasData = lsGet('pendencias_diarias') || {};
+        renderPendencias();
+      });
+  } else {
+    pendenciasData = lsGet('pendencias_diarias') || {};
+    renderPendencias();
+  }
+}
+
+function renderPendencias(){
+  var canEdit = (currentRole === 'diarista' || currentRole === 'admin' || currentRole === 'ambulatorio');
+  var grid = get('pendencias-grid');
+  if(!grid) return;
+  var html = '';
+  LEITOS_PEND.forEach(function(leito){
+    var d = pendenciasData[leito] || {};
+    var texto = d.texto || '';
+    var meta = d.updated_at ? 'Atualizado: ' + fmtDate(d.updated_at) + (d.medico ? ' por ' + esc(d.medico) : '') : 'Sem registro';
+    var leitoId = leito.replace(/[^a-z0-9]/gi,'_');
+    html += '<div class="leito-card">'
+      + '<div class="leito-header"><span class="leito-id">' + esc(leito) + '</span></div>'
+      + '<div class="leito-meta" id="pend-meta-' + leitoId + '">' + meta + '</div>'
+      + '<textarea class="leito-texto" id="pend-txt-' + leitoId + '" placeholder="Pendencias, condutas, observacoes do leito ' + esc(leito) + '..."' + (canEdit ? '' : ' readonly') + '>' + esc(texto) + '</textarea>'
+      + (canEdit ? '<div class="leito-actions"><button class="btn btn-success btn-sm pend-salvar-btn" data-leito="' + esc(leito) + '" data-id="' + leitoId + '">Salvar</button></div>' : '')
+      + '</div>';
+  });
+  grid.innerHTML = html;
+  grid.querySelectorAll('.pend-salvar-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      salvarPendencia(this.dataset.id, this.dataset.leito);
+    });
+  });
+}
+
+function salvarPendencia(leitoId, leito){
+  var txtEl = get('pend-txt-' + leitoId);
+  if(!txtEl) return;
+  var texto = txtEl.value.trim();
+  var docs = getDoctors();
+  var cfg = getConfig();
+  var medico = cfg.medicoNome || (currentRole === 'admin' ? 'Admin' : currentRole === 'diarista' ? 'Diarista' : 'Ambulatorio');
+  var rec = {leito: leito, texto: texto, medico: medico, updated_at: new Date().toISOString()};
+  if(sbClient){
+    sbClient.from('pendencias_diarias').upsert([rec], {onConflict: 'leito'})
+      .then(function(r){
+        if(r.error){ showToast('Erro: ' + r.error.message, 'error'); return; }
+        pendenciasData[leito] = rec;
+        var metaEl = get('pend-meta-' + leitoId);
+        if(metaEl) metaEl.textContent = 'Atualizado: ' + fmtDate(rec.updated_at) + ' por ' + medico;
+        showToast('Leito ' + leito + ' salvo!', 'success');
+      });
+  } else {
+    var local = lsGet('pendencias_diarias') || {};
+    local[leito] = rec;
+    lsSet('pendencias_diarias', local);
+    pendenciasData[leito] = rec;
+    var metaEl = get('pend-meta-' + leitoId);
+    if(metaEl) metaEl.textContent = 'Atualizado: ' + fmtDate(rec.updated_at) + ' por ' + medico;
+    showToast('Leito ' + leito + ' salvo!', 'success');
+  }
 }
 
 })();
