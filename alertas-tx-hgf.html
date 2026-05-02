@@ -3902,7 +3902,7 @@ function renderTabDocumentos(f, c){
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;" id="docs-grid"></div>';
 
   var grid = get('docs-grid');
-  if(!grid) return;
+  if(!grid){ console.log('pendencias-grid nao encontrado'); return; }
 
   // Carregar documentos existentes
   if(sbClient){
@@ -5568,19 +5568,16 @@ var pendenciasData = {};
 get('tab-pendencias').addEventListener('click', function(){ switchTab('pendencias'); });
 
 function loadPendencias(){
+  pendenciasData = lsGet('pendencias_diarias') || {};
+  renderPendencias();
   if(sbClient){
     sbClient.from('pendencias_diarias').select('*')
       .then(function(r){
-        pendenciasData = {};
-        (r.data||[]).forEach(function(row){ pendenciasData[row.leito] = row; });
-        renderPendencias();
-      }).catch(function(){
-        pendenciasData = lsGet('pendencias_diarias') || {};
-        renderPendencias();
-      });
-  } else {
-    pendenciasData = lsGet('pendencias_diarias') || {};
-    renderPendencias();
+        if(r.data && r.data.length){
+          r.data.forEach(function(row){ pendenciasData[row.leito] = row; });
+          renderPendencias();
+        }
+      }).catch(function(){});
   }
 }
 
