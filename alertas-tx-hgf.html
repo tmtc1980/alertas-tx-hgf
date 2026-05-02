@@ -377,7 +377,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-receptores">🫀 Lista de Receptores</div>
     <div class="tab" id="tab-anestesia">📋 Ficha Pré-Anestésica</div>
     <div class="tab" id="tab-folhoes">📁 Pré e Pós-Tx</div>
-    <div class="tab" id="tab-plantao" style="display:none">🛏️ Passagem de Plantao</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
   <main>
@@ -466,13 +465,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
         <div class="empty-state">Digite o prontuário e clique em Buscar, ou clique em Nova Ficha.</div>
       </div>
     </div>
-
-    <!-- PLANTAO -->
-    <div id="panel-plantao" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Passagem de Plantao</div>
-        <div style="font-size:12px;color:var(--text3);font-family:var(--mono)" id="plantao-updated"></div>
-      </div>
       <div id="plantao-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
     </div>
 
@@ -899,24 +891,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;"></div>
 </div>
 
-<!-- MODAL: EDITAR LEITO -->
-<div class="modal-overlay" id="modal-leito">
-  <div class="modal">
-    <div class="modal-title" id="modal-leito-titulo">Editar Leito</div>
-    <input type="hidden" id="modal-leito-id">
-    <div class="form-row">
-      <label class="form-label">Nome do Paciente</label>
-      <input type="text" class="form-input" id="modal-leito-pac" placeholder="Nome do paciente neste leito">
-    </div>
-    <div class="form-row">
-      <label class="form-label">Pendencias / Condutas / Observacoes</label>
-      <textarea class="form-textarea" id="modal-leito-txt" placeholder="Descreva as pendencias, condutas e observacoes para passagem de plantao..." style="min-height:160px"></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="btn-cancelar-leito">Cancelar</button>
-      <button class="btn btn-primary" id="btn-salvar-leito">Salvar</button>
-    </div>
-  </div>
 </div>
 
 <div id="toast"></div>
@@ -2047,9 +2021,9 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-plantao').style.display='flex';}
-  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-plantao').style.display='flex';}
-  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-plantao').style.display='none';}
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';}
+  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';}
+  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';}
   initSupabase();
   populateDoctorSelects();
   loadFila();loadSessao();loadConfigFields();
@@ -2073,11 +2047,10 @@ get('tab-anestesia').addEventListener('click',function(){switchTab('anestesia');
 get('tab-folhoes').addEventListener('click',function(){switchTab('folhoes');});
 get('tab-sessao').addEventListener('click',function(){switchTab('sessao');});
 get('tab-stats').addEventListener('click',function(){switchTab('stats');});
-get('tab-plantao').addEventListener('click',function(){switchTab('plantao');});
 get('tab-config').addEventListener('click',function(){switchTab('config');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','anestesia','folhoes','plantao','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','folhoes','config'].forEach(function(t){
     get('panel-'+t).style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
@@ -4106,19 +4079,16 @@ function renderFormDocumento(tipo, f, d, ant, imuno, saved){
     return;
 
 } else if(tipo==='lme'){
-    // Abrir tela dedicada LME em vez de modal
     abrirLMEFullscreen(f, d, imuno, saved);
-    return; // Não continuar para o modal
+    return;
+  }
 
-  // Inserir html no modal e abrir
-  // Adicionar botões ao final
+  // Inserir html no modal e abrir (para documentos que usam modal)
   html += '<div class="modal-footer">'
     +'<button class="btn btn-ghost" id="btn-cancelar-doc">Cancelar</button>'
     +'<button class="btn btn-ghost" id="btn-salvar-imprimir-doc">Salvar e Imprimir</button>'
     +'<button class="btn btn-primary" id="btn-salvar-doc">Salvar</button>'
     +'</div>';
-
-  
 
   get('modal-documento').querySelector('.modal').innerHTML = html;
   get('modal-documento').dataset.tipo = tipo;
@@ -4779,82 +4749,17 @@ function gerarPDFReceptor(r){
 
 
 // ── PLANTAO ──
-var LEITOS=['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4'];
-var plantaoData={};
 
-function loadPlantao(){
-  if(sbClient){
-    sbClient.from('plantao').select('*')
-      .then(function(r){
-        plantaoData={};
-        (r.data||[]).forEach(function(row){plantaoData[row.leito]=row;});
-        renderPlantao();
-      }).catch(function(){
-        plantaoData=lsGet('plantao')||{};
-        renderPlantao();
-      });
-  } else {
-    plantaoData=lsGet('plantao')||{};
-    renderPlantao();
-  }
-}
 
-function renderPlantao(){
-  var canEdit=(currentRole==='diarista'||currentRole==='admin');
-  var grid=get('plantao-grid');
-  var html='';
-  LEITOS.forEach(function(leito){
-    var d=plantaoData[leito]||{};
-    var paciente=d.paciente||'';
-    var prontuario=d.prontuario||'';
-    var texto=d.texto||'';
-    var meta=d.updated_at?'Atualizado: '+fmtDate(d.updated_at)+(d.medico?' por '+d.medico:''):'Sem registro';
-    html+='<div class="leito-card">'
-      +'<div class="leito-header">'
-      +'<span class="leito-id">'+leito+'</span>'
-      +'<div style="flex:1;display:flex;gap:8px;align-items:center;">'
-      +'<input type="text" class="leito-paciente-input" data-leito="'+leito+'" data-field="paciente" value="'+esc(paciente)+'" placeholder="Nome do paciente..."'+(canEdit?'':' readonly')+' style="flex:2;">'
-      +'<input type="text" class="leito-paciente-input" data-leito="'+leito+'" data-field="prontuario" value="'+esc(prontuario)+'" placeholder="Prontuario..."'+(canEdit?'':' readonly')+' style="flex:1;">'
-      +'</div>'
-      +'</div>'
-      +'<div class="leito-meta">'+meta+'</div>'
-      +'<textarea class="leito-texto" data-leito="'+leito+'" data-field="texto" placeholder="Pendencias, condutas, observacoes..."'+(canEdit?'':' readonly')+' style="resize:vertical;min-height:120px;">'+esc(texto)+'</textarea>'
-      +(canEdit?'<div class="leito-actions"><button class="btn btn-success btn-sm leito-salvar-btn" data-leito="'+leito+'">Salvar</button></div>':'')
-      +'</div>';
-  });
-  grid.innerHTML=html;
-  if(canEdit){
-    grid.querySelectorAll('.leito-salvar-btn').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        var leito=this.dataset.leito;
-        var pacInput=grid.querySelector('input[data-leito="'+leito+'"][data-field="paciente"]');
-        var proInput=grid.querySelector('input[data-leito="'+leito+'"][data-field="prontuario"]');
-        var txtInput=grid.querySelector('textarea[data-leito="'+leito+'"][data-field="texto"]');
-        var paciente=pacInput?pacInput.value.trim():'';
-        var prontuario=proInput?proInput.value.trim():'';
-        var texto=txtInput?txtInput.value.trim():'';
-        var cfg=getConfig();
-        var medico=cfg.medicoNome||(currentRole==='admin'?'Admin':'Diarista');
-        var rec={leito:leito,paciente:paciente,prontuario:prontuario,texto:texto,medico:medico,updated_at:new Date().toISOString()};
-        if(sbClient){
-          sbClient.from('plantao').upsert([rec],{onConflict:'leito'})
-            .then(function(r){
-              if(r.error){showToast('Erro: '+r.error.message,'error');return;}
-              plantaoData[leito]=rec;
-              showToast('Leito '+leito+' salvo!','success');
-              renderPlantao();
-            });
-        } else {
-          var local=lsGet('plantao')||{};
-          local[leito]=rec;lsSet('plantao',local);
-          plantaoData[leito]=rec;
-          showToast('Leito '+leito+' salvo!','success');
-          renderPlantao();
-        }
-      });
-    });
-  }
-}
+
+
+
+
+
+
+
+
+
 // CONFIGURACOES
 function loadConfigFields(){
   if(currentRole!=='admin')return;
@@ -5106,8 +5011,6 @@ function abrirFormImuno(f){
       showToast('Imunossupressao salva!','success');
     }
   });
-}
-
 }
 
 function abrirLMEFullscreen(f, d, imuno, saved){
@@ -5434,7 +5337,7 @@ function imprimirLME(dados, f){
 
 
 
-})();
+
 
 function abrirAIHFullscreen(f, d, saved){
   saved=saved||{};
@@ -5646,7 +5549,7 @@ function abrirAPACFullscreen(f, d, saved){
   get('apac-btn-imprimir').onclick=function(){salvarAPAC(true);};
 }
 
-
+})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
