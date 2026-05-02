@@ -4806,63 +4806,55 @@ function renderPlantao(){
   LEITOS.forEach(function(leito){
     var d=plantaoData[leito]||{};
     var paciente=d.paciente||'';
+    var prontuario=d.prontuario||'';
     var texto=d.texto||'';
     var meta=d.updated_at?'Atualizado: '+fmtDate(d.updated_at)+(d.medico?' por '+d.medico:''):'Sem registro';
     html+='<div class="leito-card">'
       +'<div class="leito-header">'
       +'<span class="leito-id">'+leito+'</span>'
-      +'<span style="font-size:13px;font-weight:600;color:'+(paciente?'var(--text)':'var(--text3)')+';flex:1;margin:0 8px;">'+(paciente||'Leito vazio')+'</span>'
-      +(canEdit?'<button class="btn btn-primary btn-sm" style="white-space:nowrap" data-leito="'+leito+'">Editar</button>':'')
+      +'<div style="flex:1;display:flex;gap:8px;align-items:center;">'
+      +'<input type="text" class="leito-paciente-input" data-leito="'+leito+'" data-field="paciente" value="'+esc(paciente)+'" placeholder="Nome do paciente..."'+(canEdit?'':' readonly')+' style="flex:2;">'
+      +'<input type="text" class="leito-paciente-input" data-leito="'+leito+'" data-field="prontuario" value="'+esc(prontuario)+'" placeholder="Prontuario..."'+(canEdit?'':' readonly')+' style="flex:1;">'
+      +'</div>'
       +'</div>'
       +'<div class="leito-meta">'+meta+'</div>'
-      +'<div style="font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;min-height:80px;line-height:1.6;white-space:pre-wrap;">'+(texto||'<span style="color:var(--text3);font-style:italic">Sem informacoes registradas</span>')+'</div>'
+      +'<textarea class="leito-texto" data-leito="'+leito+'" data-field="texto" placeholder="Pendencias, condutas, observacoes..."'+(canEdit?'':' readonly')+' style="resize:vertical;min-height:120px;">'+esc(texto)+'</textarea>'
+      +(canEdit?'<div class="leito-actions"><button class="btn btn-success btn-sm leito-salvar-btn" data-leito="'+leito+'">Salvar</button></div>':'')
       +'</div>';
   });
   grid.innerHTML=html;
-  grid.querySelectorAll('button[data-leito]').forEach(function(btn){
-    btn.addEventListener('click',function(){abrirModalLeito(this.dataset.leito);});
-  });
-}
-
-function abrirModalLeito(leito){
-  var d=plantaoData[leito]||{};
-  get('modal-leito-titulo').textContent='Leito '+leito;
-  get('modal-leito-id').value=leito;
-  get('modal-leito-pac').value=d.paciente||'';
-  get('modal-leito-txt').value=d.texto||'';
-  openModal('modal-leito');
-  setTimeout(function(){get('modal-leito-pac').focus();},100);
-}
-
-get('btn-salvar-leito').addEventListener('click',function(){
-  var leito=get('modal-leito-id').value;
-  var paciente=get('modal-leito-pac').value.trim();
-  var texto=get('modal-leito-txt').value.trim();
-  var cfg=getConfig();
-  var medico=cfg.medicoNome||(currentRole==='admin'?'Admin':'Diarista');
-  var rec={leito:leito,paciente:paciente,texto:texto,medico:medico,updated_at:new Date().toISOString()};
-  if(sbClient){
-    sbClient.from('plantao').upsert([rec],{onConflict:'leito'})
-      .then(function(r){
-        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
-        plantaoData[leito]=rec;
-        closeModal('modal-leito');
-        renderPlantao();
-        showToast('Leito '+leito+' atualizado!','success');
+  if(canEdit){
+    grid.querySelectorAll('.leito-salvar-btn').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var leito=this.dataset.leito;
+        var pacInput=grid.querySelector('input[data-leito="'+leito+'"][data-field="paciente"]');
+        var proInput=grid.querySelector('input[data-leito="'+leito+'"][data-field="prontuario"]');
+        var txtInput=grid.querySelector('textarea[data-leito="'+leito+'"][data-field="texto"]');
+        var paciente=pacInput?pacInput.value.trim():'';
+        var prontuario=proInput?proInput.value.trim():'';
+        var texto=txtInput?txtInput.value.trim():'';
+        var cfg=getConfig();
+        var medico=cfg.medicoNome||(currentRole==='admin'?'Admin':'Diarista');
+        var rec={leito:leito,paciente:paciente,prontuario:prontuario,texto:texto,medico:medico,updated_at:new Date().toISOString()};
+        if(sbClient){
+          sbClient.from('plantao').upsert([rec],{onConflict:'leito'})
+            .then(function(r){
+              if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+              plantaoData[leito]=rec;
+              showToast('Leito '+leito+' salvo!','success');
+              renderPlantao();
+            });
+        } else {
+          var local=lsGet('plantao')||{};
+          local[leito]=rec;lsSet('plantao',local);
+          plantaoData[leito]=rec;
+          showToast('Leito '+leito+' salvo!','success');
+          renderPlantao();
+        }
       });
-  } else {
-    var local=lsGet('plantao')||{};
-    local[leito]=rec;
-    lsSet('plantao',local);
-    plantaoData[leito]=rec;
-    closeModal('modal-leito');
-    renderPlantao();
-    showToast('Leito '+leito+' atualizado!','success');
+    });
   }
-});
-
-get('btn-cancelar-leito').addEventListener('click',function(){closeModal('modal-leito');});
-
+}
 // CONFIGURACOES
 function loadConfigFields(){
   if(currentRole!=='admin')return;
