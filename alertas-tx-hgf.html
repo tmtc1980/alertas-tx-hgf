@@ -57,8 +57,8 @@ header{background:var(--accent);padding:0 24px;display:flex;align-items:center;j
 
 /* MAIN */
 main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
-#panel-fila,#panel-sessao,#panel-stats,#panel-receptores,#panel-anestesia,#panel-config,#panel-pendencias{min-height:0;}
-#panel-folhoes[style*="display:none"]{display:none!important;}
+
+
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
 .section-title{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);}
 
@@ -199,7 +199,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .ficha-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .ficha-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 
-
 /* FOLHOES */
 .folhao-card-lista{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:all .2s;border-left:3px solid var(--border);}
 .folhao-card-lista:hover{border-color:var(--border2);background:var(--surface2);}
@@ -270,7 +269,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .leito-paciente-input[readonly]{background:var(--surface2);cursor:default;color:var(--text2);}
 .leito-actions{display:flex;gap:6px;justify-content:flex-end;}
 
-
 /* RECEPTORES */
 .receptor-grupos{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
 .grupo-btn{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:all .2s;font-family:var(--mono);}
@@ -334,7 +332,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   header,.tabs,.section-header,.ficha-actions{display:none!important;}
   main{padding:0!important;}
   body{background:white!important;}
-  #panel-anestesia{display:block!important;}
+  
   .ficha-wrap{border-radius:0!important;}
 }
 
@@ -344,22 +342,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 #modal-documento select.lme-field option{background:#fff!important;color:#000!important;}
 #modal-documento table td,#modal-documento table th{color:#000!important;}
 
-/* Garantir que panels ocultos nao ocupem espaco */
-#panel-fila[style*="display:none"],
-#panel-sessao[style*="display:none"],
-#panel-stats[style*="display:none"],
-#panel-receptores[style*="display:none"],
-#panel-anestesia[style*="display:none"],
-#panel-config[style*="display:none"],
-#panel-pendencias[style*="display:none"]{
-  display:none!important;
-  height:0!important;
-  overflow:hidden!important;
-  padding:0!important;
-  margin:0!important;
-}
 </style>
-
 
 </head>
 <body>
@@ -398,96 +381,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
   <main>
-    <div id="panel-fila">
-      <div class="section-header">
-        <div class="section-title">Fila de Internacao</div>
-        <button class="btn btn-primary" id="btn-novo-paciente">+ Novo Paciente</button>
-      </div>
-      <div id="fila-list" class="card-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
-    </div>
-
-    <div id="panel-sessao" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Casos para Sessao Clinica</div>
-        <button class="btn btn-primary" id="btn-novo-caso">+ Novo Caso</button>
-      </div>
-      <div id="sessao-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
-    </div>
-
-    <div id="panel-stats" style="display:none">
-      <div class="section-header"><div class="section-title">Estatisticas</div></div>
-      <div class="stats-filters">
-        <button class="filter-btn active" data-period="mes">Mes Atual</button>
-        <button class="filter-btn" data-period="trim">Trimestre</button>
-        <button class="filter-btn" data-period="ano">Ano Atual</button>
-        <button class="filter-btn" data-period="total">Total</button>
-      </div>
-      <div id="stats-content"></div>
-    </div>
-
-
-    <!-- RECEPTORES -->
-    <div id="panel-receptores" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Lista de Receptores</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" class="form-input" id="receptores-busca" placeholder="Buscar por nome..." style="width:200px;padding:6px 10px;font-size:12px;">
-          <button class="btn btn-primary" id="btn-novo-receptor">+ Novo Receptor</button>
-        </div>
-      </div>
-      <div class="receptor-grupos">
-        <button class="grupo-btn active" data-grupo="O">Grupo O</button>
-        <button class="grupo-btn" data-grupo="A">Grupo A</button>
-        <button class="grupo-btn" data-grupo="AB">Grupo AB</button>
-        <button class="grupo-btn" data-grupo="B">Grupo B</button>
-      </div>
-      <div id="receptores-list"></div>
-    </div>
-
-
-
-    <!-- FOLHOES -->
-        <div id="panel-folhoes" style="display:none;position:fixed;top:100px;left:0;right:0;bottom:0;z-index:50;">
-      <div style="display:flex;height:100%;gap:0;">
-        <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);">
-          <div style="padding:10px;border-bottom:1px solid var(--border);">
-            <input type="text" class="form-input" id="folhoes-busca" placeholder="Buscar paciente..." style="font-size:12px;padding:7px 10px;">
-          </div>
-          <div style="padding:8px;border-bottom:1px solid var(--border);">
-            <button class="btn btn-primary" id="btn-novo-folhao" style="width:100%;font-size:12px;padding:7px;">+ Novo Folhao</button>
-          </div>
-          <div id="folhoes-lista" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;">
-            <div class="loading"><div class="spinner"></div></div>
-          </div>
-        </div>
-        <div id="folhao-content" style="flex:1;overflow-y:auto;padding:16px;">
-          <div class="empty-state" style="margin-top:60px;">
-            <div style="font-size:32px;margin-bottom:12px;">&#128193;</div>
-            <div style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:6px;">Selecione um paciente</div>
-            <div style="font-size:12px;color:var(--text3);">Escolha um paciente na lista ao lado ou crie um novo folhao</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- ANESTESIA -->
-    <div id="panel-anestesia" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Ficha de Avaliação Pré-Anestésica</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" class="form-input" id="anestesia-busca-pront" placeholder="Prontuário..." style="width:160px;padding:6px 10px;font-size:12px;">
-          <button class="btn btn-primary" id="btn-buscar-ficha">Buscar</button>
-          <button class="btn btn-ghost" id="btn-nova-ficha">+ Nova Ficha</button>
-        </div>
-      </div>
-      <div id="anestesia-content">
-        <div class="empty-state">Digite o prontuário e clique em Buscar, ou clique em Nova Ficha.</div>
-      </div>
-    </div>
-      <div id="plantao-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
-    </div>
-
-    <!-- PENDENCIAS -->
-    <div id="panel-pendencias" style="display:none">
+    <div id="panel-pendencias" style="display:none;margin-top:0;padding-top:0;">
       <div class="section-header">
         <div class="section-title">🛏️ Pendências Diárias — Leitos Tx Hepático</div>
       </div>
@@ -595,6 +489,92 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       </div>
     </div>
 
+    <div id="panel-fila" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Fila de Internacao</div>
+        <button class="btn btn-primary" id="btn-novo-paciente">+ Novo Paciente</button>
+      </div>
+      <div id="fila-list" class="card-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+    </div>
+
+    <div id="panel-sessao" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Casos para Sessao Clinica</div>
+        <button class="btn btn-primary" id="btn-novo-caso">+ Novo Caso</button>
+      </div>
+      <div id="sessao-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+    </div>
+
+    <div id="panel-stats" style="display:none">
+      <div class="section-header"><div class="section-title">Estatisticas</div></div>
+      <div class="stats-filters">
+        <button class="filter-btn active" data-period="mes">Mes Atual</button>
+        <button class="filter-btn" data-period="trim">Trimestre</button>
+        <button class="filter-btn" data-period="ano">Ano Atual</button>
+        <button class="filter-btn" data-period="total">Total</button>
+      </div>
+      <div id="stats-content"></div>
+    </div>
+
+    <div id="panel-receptores" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Lista de Receptores</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" class="form-input" id="receptores-busca" placeholder="Buscar por nome..." style="width:200px;padding:6px 10px;font-size:12px;">
+          <button class="btn btn-primary" id="btn-novo-receptor">+ Novo Receptor</button>
+        </div>
+      </div>
+      <div class="receptor-grupos">
+        <button class="grupo-btn active" data-grupo="O">Grupo O</button>
+        <button class="grupo-btn" data-grupo="A">Grupo A</button>
+        <button class="grupo-btn" data-grupo="AB">Grupo AB</button>
+        <button class="grupo-btn" data-grupo="B">Grupo B</button>
+      </div>
+      <div id="receptores-list"></div>
+    </div>
+
+    <div id="lme-form-container" style="background:#fff;border-radius:var(--radius);border:1px solid #ccc;overflow:hidden;font-family:Arial,sans-serif;font-size:11px;color:#000;">
+    </div>
+
+    <!-- FOLHOES -->
+    <!-- FOLHOES -->
+        <div id="panel-folhoes" style="display:none;position:fixed;top:100px;left:0;right:0;bottom:0;z-index:50;">
+      <div style="display:flex;height:100%;gap:0;">
+        <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);">
+          <div style="padding:10px;border-bottom:1px solid var(--border);">
+            <input type="text" class="form-input" id="folhoes-busca" placeholder="Buscar paciente..." style="font-size:12px;padding:7px 10px;">
+          </div>
+          <div style="padding:8px;border-bottom:1px solid var(--border);">
+            <button class="btn btn-primary" id="btn-novo-folhao" style="width:100%;font-size:12px;padding:7px;">+ Novo Folhao</button>
+          </div>
+          <div id="folhoes-lista" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div id="folhao-content" style="flex:1;overflow-y:auto;padding:16px;">
+          <div class="empty-state" style="margin-top:60px;">
+            <div style="font-size:32px;margin-bottom:12px;">&#128193;</div>
+            <div style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:6px;">Selecione um paciente</div>
+            <div style="font-size:12px;color:var(--text3);">Escolha um paciente na lista ao lado ou crie um novo folhao</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-anestesia" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Ficha de Avaliação Pré-Anestésica</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" class="form-input" id="anestesia-busca-pront" placeholder="Prontuário..." style="width:160px;padding:6px 10px;font-size:12px;">
+          <button class="btn btn-primary" id="btn-buscar-ficha">Buscar</button>
+          <button class="btn btn-ghost" id="btn-nova-ficha">+ Nova Ficha</button>
+        </div>
+      </div>
+      <div id="anestesia-content">
+        <div class="empty-state">Digite o prontuário e clique em Buscar, ou clique em Nova Ficha.</div>
+      </div>
+    </div>
+
     <div id="panel-config" style="display:none">
       <div class="section-header"><div class="section-title">Configuracoes</div></div>
       <div class="settings-section">
@@ -620,6 +600,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
         </div>
       </div>
     </div>
+
   </main>
 </div>
 
@@ -703,7 +684,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     </div>
   </div>
 </div>
-
 
 <!-- MODAL: NOVO/EDITAR RECEPTOR -->
 <div class="modal-overlay" id="modal-receptor">
@@ -866,7 +846,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   </div>
 </div>
 
-
 <!-- MODAL: SENHA ANESTESISTA -->
 <div class="modal-overlay" id="modal-senha-anest">
   <div class="modal" style="max-width:360px;text-align:center;">
@@ -907,7 +886,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   </div>
 </div>
 
-
 <!-- MODAL: NOVO/EDITAR FOLHAO -->
 <div class="modal-overlay" id="modal-folhao-form">
   <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;">
@@ -931,10 +909,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   <div class="modal" style="max-width:600px;">
   </div>
 </div>
-
-
-
-
 
 <!-- AIH FULLSCREEN -->
 <div id="aih-fullscreen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#f0f2f5;overflow-y:auto;">
@@ -988,8 +962,6 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       </div>
     </div>
     <!-- Formulário -->
-    <div id="lme-form-container" style="background:#fff;border-radius:var(--radius);border:1px solid #ccc;overflow:hidden;font-family:Arial,sans-serif;font-size:11px;color:#000;">
-    </div>
   </div>
 </div>
 
@@ -2153,6 +2125,12 @@ function startApp(){
   else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';}
   initSupabase();
   populateDoctorSelects();
+  // Mostrar aba fila como padrão
+  ['fila','sessao','stats','receptores','anestesia','folhoes','pendencias','config'].forEach(function(t){
+    var p=get('panel-'+t); if(p) p.style.display='none';
+  });
+  var pf=get('panel-fila'); if(pf) pf.style.display='block';
+  var tf=get('tab-fila'); if(tf) tf.classList.add('active');
   loadFila();loadSessao();loadConfigFields();
   if(sbClient)setupRealtime();
 }
@@ -2180,13 +2158,7 @@ get('tab-pendencias').addEventListener('click',function(){switchTab('pendencias'
 function switchTab(tab){
   ['fila','sessao','stats','receptores','anestesia','folhoes','pendencias','config'].forEach(function(t){
     var panel=get('panel-'+t);
-    if(panel){
-      if(t==='folhoes'){
-        panel.style.display=t===tab?'flex':'none';
-      } else {
-        panel.style.display=t===tab?'block':'none';
-      }
-    }
+    if(panel) panel.style.display=t===tab?(t==='folhoes'?'flex':'block'):'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
   if(tab==='stats')loadStats();
@@ -2509,8 +2481,6 @@ function loadStats(){
     render(lsGet('fila')||[],lsGet('sessao')||[]);
   }
 }
-
-
 
 // ── FICHA PRÉ-ANESTÉSICA ──
 var SENHA_ANEST_DEFAULT = '1234';
@@ -2983,8 +2953,6 @@ function renderFichaForm(f, prontInicial){
     }
   });
 }
-
-
 
 // ── FOLHOES ──
 var folhoesData = [];
@@ -4001,7 +3969,6 @@ function abrirFormAntecedentes(f){
   });
 }
 
-
 // ── DOCUMENTOS CLÍNICOS ──
 var TIPOS_DOC = [
   {id:'declaracao', nome:'Declaracao de Comparecimento', tipo:'pre_pos'},
@@ -4583,7 +4550,6 @@ function gerarHTMLImpressao(tipo,dados,d,f){
   return base+'<div class="page"><p>Documento nao disponivel.</p></div></body></html>';
 }
 
-
 // ── RECEPTORES ──
 var grupoAtivo = 'O';
 var receptoresData = [];
@@ -4883,18 +4849,7 @@ function gerarPDFReceptor(r){
   setTimeout(function(){win.print();},500);
 }
 
-
 // ── PLANTAO ──
-
-
-
-
-
-
-
-
-
-
 
 // CONFIGURACOES
 function loadConfigFields(){
@@ -5471,10 +5426,6 @@ function imprimirLME(dados, f){
   }; // fim _unused
 }
 
-
-
-
-
 function abrirAIHFullscreen(f, d, saved){
   saved=saved||{};
   var nome=f.nome||'', pront=f.prontuario||'', cns=d.cns||'', cpf=d.cpf||'';
@@ -5685,11 +5636,9 @@ function abrirAPACFullscreen(f, d, saved){
   get('apac-btn-imprimir').onclick=function(){salvarAPAC(true);};
 }
 
-
 // ── PENDÊNCIAS DIÁRIAS ──
 var LEITOS_PEND = ['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4','Leito Ectopico'];
 var pendenciasData = {};
-
 
 function loadPendencias(){
   pendenciasData = lsGet('pendencias_diarias') || {};
