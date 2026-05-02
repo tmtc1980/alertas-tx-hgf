@@ -2082,7 +2082,6 @@ function switchTab(tab){
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
   if(tab==='stats')loadStats();
-  if(tab==='plantao')loadPlantao();
   if(tab==='receptores'){grupoAtivo='O';loadReceptores();}
   if(tab==='anestesia')initAnestesia();
   if(tab==='folhoes')loadFolhoes();
