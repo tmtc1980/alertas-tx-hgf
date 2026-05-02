@@ -57,6 +57,8 @@ header{background:var(--accent);padding:0 24px;display:flex;align-items:center;j
 
 /* MAIN */
 main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
+#panel-fila,#panel-sessao,#panel-stats,#panel-receptores,#panel-anestesia,#panel-config,#panel-pendencias{min-height:0;}
+#panel-folhoes[style*="display:none"]{display:none!important;}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
 .section-title{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);}
 
@@ -341,6 +343,21 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 #modal-documento input.lme-field:focus{background:rgba(0,0,0,.05)!important;outline:none;}
 #modal-documento select.lme-field option{background:#fff!important;color:#000!important;}
 #modal-documento table td,#modal-documento table th{color:#000!important;}
+
+/* Garantir que panels ocultos nao ocupem espaco */
+#panel-fila[style*="display:none"],
+#panel-sessao[style*="display:none"],
+#panel-stats[style*="display:none"],
+#panel-receptores[style*="display:none"],
+#panel-anestesia[style*="display:none"],
+#panel-config[style*="display:none"],
+#panel-pendencias[style*="display:none"]{
+  display:none!important;
+  height:0!important;
+  overflow:hidden!important;
+  padding:0!important;
+  margin:0!important;
+}
 </style>
 
 
@@ -2162,7 +2179,14 @@ get('tab-pendencias').addEventListener('click',function(){switchTab('pendencias'
 
 function switchTab(tab){
   ['fila','sessao','stats','receptores','anestesia','folhoes','pendencias','config'].forEach(function(t){
-    get('panel-'+t).style.display=t===tab?'block':'none';
+    var panel=get('panel-'+t);
+    if(panel){
+      if(t==='folhoes'){
+        panel.style.display=t===tab?'flex':'none';
+      } else {
+        panel.style.display=t===tab?'block':'none';
+      }
+    }
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
   });
   if(tab==='stats')loadStats();
