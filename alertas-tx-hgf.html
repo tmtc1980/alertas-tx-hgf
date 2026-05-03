@@ -3019,6 +3019,55 @@ get('btn-pdf-detalhe').addEventListener('click',function(){
 });
 
 
+
+function gerarPDFReceptor(r){
+  var now = new Date().toLocaleDateString('pt-BR');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>body{font-family:Arial,sans-serif;font-size:13px;color:#1a2535;padding:30px;max-width:700px;margin:0 auto;}'
+    +'h1{font-size:18px;color:#185FA5;margin-bottom:4px;}h2{font-size:13px;color:#4a5e78;font-weight:normal;margin-bottom:20px;}'
+    +'.section{margin-bottom:16px;} .section-title{font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;border-bottom:1px solid #dde3ed;padding-bottom:4px;margin-bottom:8px;}'
+    +'.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}'
+    +'.field{margin-bottom:4px;} .label{font-size:10px;font-weight:bold;color:#8a9ab5;text-transform:uppercase;} .value{font-size:13px;color:#1a2535;}'
+    +'.full{grid-column:1/-1;} .footer{margin-top:30px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
+    +'.badge{display:inline-block;background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:4px;}'
+    +'</style>'
+    +'</head><body>'
+    +'<h1>Resumo Pré-Transplante — HGF</h1>'
+    +'<h2>Programa de Transplante Hepático do Ceará</h2>'
+    +'<div class="section"><div class="section-title">Identificação</div><div class="grid">'
+    +'<div class="field full"><div class="label">Paciente</div><div class="value" style="font-size:16px;font-weight:bold;">'+esc(r.nome)+'</div></div>'
+    +(r.idade?'<div class="field"><div class="label">Idade</div><div class="value">'+r.idade+' anos</div></div>':'')
+    +'<div class="field"><div class="label">Grupo Sanguíneo</div><div class="value">'+esc(r.grupo)+'</div></div>'
+    +(r.equipe?'<div class="field"><div class="label">Equipe</div><div class="value">'+esc(r.equipe)+'</div></div>':'')
+    +(r.medico?'<div class="field"><div class="label">Médico Assistente</div><div class="value">'+esc(r.medico)+'</div></div>':'')
+    +(r.status?'<div class="field"><div class="label">Status</div><div class="value">'+esc(r.status)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Dados Clínicos</div><div class="grid">'
+    +(r.meld?'<div class="field"><div class="label">MELD</div><div class="value" style="font-size:18px;font-weight:bold;color:#185FA5;">'+r.meld+'</div></div>':'')
+    +(r.child?'<div class="field"><div class="label">Child-Pugh</div><div class="value">'+esc(r.child)+'</div></div>':'')
+    +(r.peso?'<div class="field"><div class="label">Peso</div><div class="value">'+r.peso+' kg</div></div>':'')
+    +(r.altura?'<div class="field"><div class="label">Altura</div><div class="value">'+r.altura+' cm</div></div>':'')
+    +(r.diagnostico?'<div class="field full"><div class="label">Diagnóstico</div><div class="value">'+esc(r.diagnostico)+'</div></div>':'')
+    +(r.priorizacao&&r.priorizacao!=='NÃO'?'<div class="field full"><div class="label">Priorização</div><div class="value"><span class="badge">'+esc(r.priorizacao)+'</span>'+(r.data_priorizacao?' desde '+fmtDateShort(r.data_priorizacao):'')+'</div></div>':'')
+    +(r.trombose&&r.trombose!=='NÃO'?'<div class="field"><div class="label">Trombose</div><div class="value"><span class="badge">'+esc(r.trombose)+'</span></div></div>':'')
+    +(r.descompensacoes?'<div class="field full"><div class="label">Descompensações</div><div class="value">'+esc(r.descompensacoes)+'</div></div>':'')
+    +(r.comorbidades?'<div class="field full"><div class="label">Comorbidades</div><div class="value">'+esc(r.comorbidades)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Protocolo de Transplante</div><div class="grid">'
+    +(r.antihbs?'<div class="field"><div class="label">AntiHbs</div><div class="value">'+esc(r.antihbs)+'</div></div>':'')
+    +(r.atb_inducao?'<div class="field full"><div class="label">ATB de Indução</div><div class="value">'+esc(r.atb_inducao)+'</div></div>':'')
+    +(r.corticoide?'<div class="field"><div class="label">Corticóide</div><div class="value">'+esc(r.corticoide)+'</div></div>':'')
+    +'</div></div>'
+    +(r.observacoes?'<div class="section"><div class="section-title">Observações</div><div style="padding:8px;background:#f5f7fa;border-radius:6px;font-size:13px;">'+esc(r.observacoes)+'</div></div>':'')
+    +'<div class="footer">Documento gerado em '+now+' — Alertas Tx Hepático HGF</div>'
+    +'</body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},500);
+}
+
 // ── PLANTAO ──
 
 // CONFIGURACOES
@@ -3131,6 +3180,54 @@ function salvarPendencia(leitoId, leito){
   }
 }
 
+
+function gerarPDFReceptor(r){
+  var now = new Date().toLocaleDateString('pt-BR');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>body{font-family:Arial,sans-serif;font-size:13px;color:#1a2535;padding:30px;max-width:700px;margin:0 auto;}'
+    +'h1{font-size:18px;color:#185FA5;margin-bottom:4px;}h2{font-size:13px;color:#4a5e78;font-weight:normal;margin-bottom:20px;}'
+    +'.section{margin-bottom:16px;} .section-title{font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;border-bottom:1px solid #dde3ed;padding-bottom:4px;margin-bottom:8px;}'
+    +'.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}'
+    +'.field{margin-bottom:4px;} .label{font-size:10px;font-weight:bold;color:#8a9ab5;text-transform:uppercase;} .value{font-size:13px;color:#1a2535;}'
+    +'.full{grid-column:1/-1;} .footer{margin-top:30px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
+    +'.badge{display:inline-block;background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:4px;}'
+    +'</style>'
+    +'</head><body>'
+    +'<h1>Resumo Pré-Transplante — HGF</h1>'
+    +'<h2>Programa de Transplante Hepático do Ceará</h2>'
+    +'<div class="section"><div class="section-title">Identificação</div><div class="grid">'
+    +'<div class="field full"><div class="label">Paciente</div><div class="value" style="font-size:16px;font-weight:bold;">'+esc(r.nome)+'</div></div>'
+    +(r.idade?'<div class="field"><div class="label">Idade</div><div class="value">'+r.idade+' anos</div></div>':'')
+    +'<div class="field"><div class="label">Grupo Sanguíneo</div><div class="value">'+esc(r.grupo)+'</div></div>'
+    +(r.equipe?'<div class="field"><div class="label">Equipe</div><div class="value">'+esc(r.equipe)+'</div></div>':'')
+    +(r.medico?'<div class="field"><div class="label">Médico Assistente</div><div class="value">'+esc(r.medico)+'</div></div>':'')
+    +(r.status?'<div class="field"><div class="label">Status</div><div class="value">'+esc(r.status)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Dados Clínicos</div><div class="grid">'
+    +(r.meld?'<div class="field"><div class="label">MELD</div><div class="value" style="font-size:18px;font-weight:bold;color:#185FA5;">'+r.meld+'</div></div>':'')
+    +(r.child?'<div class="field"><div class="label">Child-Pugh</div><div class="value">'+esc(r.child)+'</div></div>':'')
+    +(r.peso?'<div class="field"><div class="label">Peso</div><div class="value">'+r.peso+' kg</div></div>':'')
+    +(r.altura?'<div class="field"><div class="label">Altura</div><div class="value">'+r.altura+' cm</div></div>':'')
+    +(r.diagnostico?'<div class="field full"><div class="label">Diagnóstico</div><div class="value">'+esc(r.diagnostico)+'</div></div>':'')
+    +(r.priorizacao&&r.priorizacao!=="NÃO"?'<div class="field full"><div class="label">Priorização</div><div class="value"><span class="badge">'+esc(r.priorizacao)+'</span>'+(r.data_priorizacao?' desde '+fmtDateShort(r.data_priorizacao):'')+'</div></div>':'')
+    +(r.trombose&&r.trombose!=="NÃO"?'<div class="field"><div class="label">Trombose</div><div class="value"><span class="badge">'+esc(r.trombose)+'</span></div></div>':'')
+    +(r.descompensacoes?'<div class="field full"><div class="label">Descompensações</div><div class="value">'+esc(r.descompensacoes)+'</div></div>':'')
+    +(r.comorbidades?'<div class="field full"><div class="label">Comorbidades</div><div class="value">'+esc(r.comorbidades)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Protocolo de Transplante</div><div class="grid">'
+    +(r.antihbs?'<div class="field"><div class="label">AntiHbs</div><div class="value">'+esc(r.antihbs)+'</div></div>':'')
+    +(r.atb_inducao?'<div class="field full"><div class="label">ATB de Indução</div><div class="value">'+esc(r.atb_inducao)+'</div></div>':'')
+    +(r.corticoide?'<div class="field"><div class="label">Corticóide</div><div class="value">'+esc(r.corticoide)+'</div></div>':'')
+    +'</div></div>'
+    +(r.observacoes?'<div class="section"><div class="section-title">Observações</div><div style="padding:8px;background:#f5f7fa;border-radius:6px;font-size:13px;">'+esc(r.observacoes)+'</div></div>':'')
+    +'<div class="footer">Documento gerado em '+now+' — Alertas Tx Hepático HGF</div>'
+    +'</body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},500);
+}
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
