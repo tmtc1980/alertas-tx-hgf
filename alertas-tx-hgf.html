@@ -2117,8 +2117,8 @@ function renderFila(list){
   if(!list.length){c.innerHTML='<div class="empty-state">Nenhum paciente na fila de internacao.</div>';return;}
   var canResolve=(currentRole==='diarista'||currentRole==='admin');
   c.innerHTML=list.map(function(p){
-    var extra=p.cid_code?'<span class="card-field"><strong>CID:</strong> '+esc(p.cid_code)+'</span>':(p.procedimento?'<span class="card-field"><strong>Proc.:</strong> '+esc(p.procedimento.substring(0,40))+(p.procedimento.length>40?'...':'')+'</span>':'');
-    var motivoExtra=p.motivo?'<span class="card-field" style="grid-column:1/-1"><strong>'+(p.color==='red'?'Motivo Emerg.':'Sintomas')+':</strong> '+esc(p.motivo.substring(0,80))+(p.motivo.length>80?'...':'')+'</span>':'';
+    var extra=p.cid_code?'<span class="card-field"><strong>CID:</strong> '+esc(p.cid_code)+(p.cid_desc?' — '+esc(p.cid_desc):'')+'</span>':(p.procedimento?'<span class="card-field"><strong>Proc.:</strong> '+esc(p.procedimento)+'</span>':'');
+    var motivoExtra=p.motivo?'<span class="card-field" style="grid-column:1/-1;white-space:pre-wrap;"><strong>'+(p.color==='red'?'Motivo Emerg.':'Sintomas')+':</strong> '+esc(p.motivo)+'</span>':'';
     var actions=canResolve?'<div class="card-actions"><button class="btn btn-success btn-sm" data-id="'+esc(p.id)+'" data-nome="'+esc(p.nome)+'">✓ Resolvido</button></div>':'';
     return '<div class="patient-card '+p.color+'">'
       +'<div class="card-top">'
