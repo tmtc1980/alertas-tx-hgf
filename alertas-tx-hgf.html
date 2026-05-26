@@ -1909,9 +1909,9 @@ function filterByPeriod(list,period,field){
 
 function initSupabase(){
   var SB_URL='https://ereoxuntdlyqwivgvkng.supabase.co';
-  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE5MDAwMDAwMDB9.Ks0WZo2WTH6bgK7g_FCEXcUuW9SvEZaGMrmI9grpxJk';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE5MDAwMDAwMDB9.L4KQEP7Z69EsLrQE2GdMQ_fP6q31bzrPLIfdAolDYDQ';
   if(window.supabase){
-    try{sbClient=window.supabase.createClient(SB_URL,SB_KEY);return true;}catch(e){return false;}
+    try{sbClient=window.supabase.createClient(SB_URL,SB_KEY);return true;}catch(e){console.error('Supabase error:',e);return false;}
   }
   return false;
 }
@@ -3231,7 +3231,6 @@ function gerarPDFReceptor(r){
 }
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </body>
 </html>
