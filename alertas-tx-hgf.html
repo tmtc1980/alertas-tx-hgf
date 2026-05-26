@@ -1909,7 +1909,7 @@ function filterByPeriod(list,period,field){
 
 function initSupabase(){
   var SB_URL='https://ereoxuntdlyqwivgvkng.supabase.co';
-  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE5MDAwMDAwMDB9.DNWLd_NUjgCUAj9brSQhKq7k5awEwa2MzS8BRZljxF4';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZW94dW50ZGx5cXdpdmd2a25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDQwMDAsImV4cCI6MjA5Mjg4MDAwMH0.Q2SNWyllI963_clBazIeTormVgC7QDQv4oJZ1uJ86mw';
   if(window.supabase){
     try{sbClient=window.supabase.createClient(SB_URL,SB_KEY);return true;}catch(e){console.error('Supabase error:',e);return false;}
   }
