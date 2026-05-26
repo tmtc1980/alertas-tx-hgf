@@ -1909,14 +1909,9 @@ function filterByPeriod(list,period,field){
 
 function initSupabase(){
   var SB_URL='https://ereoxuntdlyqwivgvkng.supabase.co';
-  var SB_KEY='sb_publishable_sjDakdgSqGZ27nTqTPxYvw_T1tyV6RV';
-  var cfg=getConfig();
-  var url=SB_URL;
-  var key=SB_KEY;
-  // Permite sobrescrever via configurações se necessário
-  if(cfg.sbUrl&&cfg.sbKey){ url=cfg.sbUrl; key=cfg.sbKey; }
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE5MDAwMDAwMDB9.Ks0WZo2WTH6bgK7g_FCEXcUuW9SvEZaGMrmI9grpxJk';
   if(window.supabase){
-    try{sbClient=window.supabase.createClient(url,key);return true;}catch(e){return false;}
+    try{sbClient=window.supabase.createClient(SB_URL,SB_KEY);return true;}catch(e){return false;}
   }
   return false;
 }
