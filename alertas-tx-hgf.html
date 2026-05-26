@@ -552,6 +552,10 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <input type="hidden" id="f-cid-code">
       <input type="hidden" id="f-cid-desc">
     </div>
+    <div class="form-row" id="campo-motivo" style="display:none">
+      <label class="form-label" id="campo-motivo-label">Descrição do Motivo *</label>
+      <textarea class="form-textarea" id="f-motivo" placeholder="Descreva os sinais, sintomas ou motivo do encaminhamento..." style="min-height:80px;"></textarea>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="btn-cancelar-fila">Cancelar</button>
       <button class="btn btn-primary" id="btn-submit-fila">Inserir Paciente</button>
@@ -2058,7 +2062,11 @@ function selectTipo(tipo){
   ['green','yellow','red'].forEach(function(t){get('tipo-'+t).className='tipo-opt'+(t===tipo?' sel-'+t:'');});
   get('campo-procedimento').style.display=tipo==='green'?'block':'none';
   get('campo-cid').style.display=(tipo==='yellow'||tipo==='red')?'block':'none';
+  get('campo-motivo').style.display=(tipo==='yellow'||tipo==='red')?'block':'none';
+  if(tipo==='yellow') get('campo-motivo-label').textContent='Descrição dos Sinais e Sintomas *';
+  if(tipo==='red') get('campo-motivo-label').textContent='Motivo do Encaminhamento à Emergência *';
   get('f-procedimento').value='';get('f-cid-busca').value='';get('f-cid-code').value='';get('f-cid-desc').value='';
+  get('f-motivo').value='';
   get('cid-selecionado').style.display='none';get('cid-dropdown').classList.remove('open');
 }
 
@@ -2110,6 +2118,7 @@ function renderFila(list){
   var canResolve=(currentRole==='diarista'||currentRole==='admin');
   c.innerHTML=list.map(function(p){
     var extra=p.cid_code?'<span class="card-field"><strong>CID:</strong> '+esc(p.cid_code)+'</span>':(p.procedimento?'<span class="card-field"><strong>Proc.:</strong> '+esc(p.procedimento.substring(0,40))+(p.procedimento.length>40?'...':'')+'</span>':'');
+    var motivoExtra=p.motivo?'<span class="card-field" style="grid-column:1/-1"><strong>'+(p.color==='red'?'Motivo Emerg.':'Sintomas')+':</strong> '+esc(p.motivo.substring(0,80))+(p.motivo.length>80?'...':'')+'</span>':'';
     var actions=canResolve?'<div class="card-actions"><button class="btn btn-success btn-sm" data-id="'+esc(p.id)+'" data-nome="'+esc(p.nome)+'">✓ Resolvido</button></div>':'';
     return '<div class="patient-card '+p.color+'">'
       +'<div class="card-top">'
@@ -2120,7 +2129,7 @@ function renderFila(list){
       +'<div class="card-body">'
       +'<span class="card-field"><strong>Mae:</strong> '+esc(p.mae)+'</span>'
       +'<span class="card-field"><strong>Diag.:</strong> '+esc(p.diagnostico)+'</span>'
-      +extra
+      +extra+motivoExtra
       +'</div>'
       +actions+'</div>';
   }).join('');
@@ -2138,17 +2147,18 @@ get('btn-confirmar-resolver').addEventListener('click',function(){
 
 function submitFila(){
   var nome=get('f-nome').value.trim(),mae=get('f-mae').value.trim(),prontuario=get('f-prontuario').value.trim(),diagnostico=get('f-diagnostico').value.trim(),medico=get('f-medico').value;
-  var procedimento=get('f-procedimento').value.trim(),cidCode=get('f-cid-code').value,cidDesc=get('f-cid-desc').value;
+  var procedimento=get('f-procedimento').value.trim(),cidCode=get('f-cid-code').value,cidDesc=get('f-cid-desc').value,motivo=get('f-motivo').value.trim();
   if(!nome||!mae||!prontuario||!diagnostico||!selectedTipo){showToast('Preencha todos os campos e selecione o tipo.','error');return;}
   if(selectedTipo==='green'&&!procedimento){showToast('Descreva o exame ou procedimento.','error');return;}
   if((selectedTipo==='yellow'||selectedTipo==='red')&&!cidCode){showToast('Selecione o CID-10.','error');return;}
-  var rec={nome:nome,mae:mae,prontuario:prontuario,diagnostico:diagnostico,medico:medico,color:selectedTipo,procedimento:selectedTipo==='green'?procedimento:null,cid_code:cidCode||null,cid_desc:cidDesc||null,status:'pendente',created_at:new Date().toISOString()};
+  if((selectedTipo==='yellow'||selectedTipo==='red')&&!motivo){showToast('Descreva o motivo.','error');return;}
+  var rec={nome:nome,mae:mae,prontuario:prontuario,diagnostico:diagnostico,medico:medico,color:selectedTipo,procedimento:selectedTipo==='green'?procedimento:null,cid_code:cidCode||null,cid_desc:cidDesc||null,motivo:motivo||null,status:'pendente',created_at:new Date().toISOString()};
   if(sbClient){sbClient.from('fila_internacao').insert([rec]).then(function(r){if(r.error){showToast('Erro: '+r.error.message,'error');return;}if(selectedTipo==='red')sendAlertEmail(rec);showToast('Paciente inserido!','success');closeModal('modal-fila');clearFilaForm();loadFila();});}
   else{var fila=lsGet('fila')||[];rec.id=Date.now();fila.push(rec);lsSet('fila',fila);if(selectedTipo==='red')sendAlertEmail(rec);showToast('Paciente inserido!','success');closeModal('modal-fila');clearFilaForm();loadFila();}
 }
 
 function clearFilaForm(){
-  ['f-nome','f-mae','f-prontuario','f-diagnostico','f-procedimento','f-cid-busca'].forEach(function(id){get(id).value='';});
+  ['f-nome','f-mae','f-prontuario','f-diagnostico','f-procedimento','f-cid-busca','f-motivo'].forEach(function(id){get(id).value='';});
   get('f-cid-code').value='';get('f-cid-desc').value='';get('cid-selecionado').style.display='none';
   ['green','yellow','red'].forEach(function(t){get('tipo-'+t).className='tipo-opt';});
   get('campo-procedimento').style.display='none';get('campo-cid').style.display='none';selectedTipo=null;
