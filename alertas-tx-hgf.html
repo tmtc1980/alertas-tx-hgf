@@ -972,36 +972,32 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:8px;">
 
-        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-fila"
-             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-fila">
           <div style="font-size:28px;margin-bottom:8px;">🏥</div>
           <div class="settings-title" style="margin-bottom:6px;">Fila de Internação</div>
           <div style="font-size:12px;color:var(--text3);line-height:1.5;">Imprime todos os pacientes pendentes na fila, organizados por urgência.</div>
-          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="imprimirRelatorio('fila')">🖨️ Imprimir</button>
+          <button class="btn btn-primary btn-rel" style="margin-top:14px;width:100%;" data-rel="fila">🖨️ Imprimir</button>
         </div>
 
-        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-sessao"
-             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-sessao">
           <div style="font-size:28px;margin-bottom:8px;">🩺</div>
           <div class="settings-title" style="margin-bottom:6px;">Sessão Clínica</div>
           <div style="font-size:12px;color:var(--text3);line-height:1.5;">Imprime os casos pendentes da sessão clínica com resumo e dúvidas.</div>
-          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="imprimirRelatorio('sessao')">🖨️ Imprimir</button>
+          <button class="btn btn-primary btn-rel" style="margin-top:14px;width:100%;" data-rel="sessao">🖨️ Imprimir</button>
         </div>
 
-        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-receptores"
-             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-receptores">
           <div style="font-size:28px;margin-bottom:8px;">🫀</div>
           <div class="settings-title" style="margin-bottom:6px;">Lista de Receptores</div>
           <div style="font-size:12px;color:var(--text3);line-height:1.5;">Imprime todos os receptores ativos, ordenados por MELD decrescente.</div>
-          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="imprimirRelatorio('receptores')">🖨️ Imprimir</button>
+          <button class="btn btn-primary btn-rel" style="margin-top:14px;width:100%;" data-rel="receptores">🖨️ Imprimir</button>
         </div>
 
-        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-pendencias"
-             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+        <div class="settings-section" style="cursor:pointer;transition:all .2s;border:2px solid transparent;" id="rel-pendencias">
           <div style="font-size:28px;margin-bottom:8px;">🛏️</div>
           <div class="settings-title" style="margin-bottom:6px;">Pendências Diárias</div>
           <div style="font-size:12px;color:var(--text3);line-height:1.5;">Imprime o estado atual de todos os leitos com as pendências registradas.</div>
-          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="imprimirRelatorio('pendencias')">🖨️ Imprimir</button>
+          <button class="btn btn-primary btn-rel" style="margin-top:14px;width:100%;" data-rel="pendencias">🖨️ Imprimir</button>
         </div>
 
       </div>
@@ -1384,8 +1380,8 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 <div id="relatorio-overlay" style="display:none;position:fixed;inset:0;background:#fff;z-index:9998;overflow-y:auto;padding:20px;">
   <div style="max-width:900px;margin:0 auto;">
     <div style="display:flex;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #185FA5;">
-      <button onclick="fecharRelatorio()" style="background:#f5f7fa;border:1px solid #dde3ed;border-radius:8px;padding:7px 16px;font-size:13px;cursor:pointer;">← Voltar</button>
-      <button onclick="window.print()" style="background:#185FA5;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;">🖨️ Imprimir</button>
+      <button id="btn-fechar-relatorio" style="background:#f5f7fa;border:1px solid #dde3ed;border-radius:8px;padding:7px 16px;font-size:13px;cursor:pointer;">← Voltar</button>
+      <button id="btn-print-relatorio" style="background:#185FA5;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;">🖨️ Imprimir</button>
       <div id="relatorio-titulo" style="font-size:14px;font-weight:700;color:#185FA5;display:flex;align-items:center;margin-left:8px;"></div>
     </div>
     <div id="relatorio-conteudo"></div>
@@ -2931,7 +2927,8 @@ function loadStats(){
 
 // ── RELATÓRIOS (globais) ──
 
-window.imprimirRelatorio = function(tipo){
+function imprimirRelatorio(tipo){
+  console.log('imprimirRelatorio chamado, tipo:', tipo);
   var now = new Date();
   var dataHora = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   var estilos = '<style>'
@@ -3113,14 +3110,15 @@ window.imprimirRelatorio = function(tipo){
   }
 }
 
-window.abrirJanelaPrint = function(conteudo, titulo){
+function abrirJanelaPrint(conteudo, titulo){
+  console.log('abrirJanelaPrint chamado, titulo:', titulo);
   document.getElementById('relatorio-titulo').textContent = titulo||'';
   document.getElementById('relatorio-conteudo').innerHTML = conteudo;
   document.getElementById('relatorio-overlay').style.display = 'block';
   document.getElementById('relatorio-overlay').scrollTop = 0;
 }
 
-window.fecharRelatorio = function(){
+function fecharRelatorio(){
   document.getElementById('relatorio-overlay').style.display = 'none';
 }
 
@@ -4746,6 +4744,20 @@ get('tab-enfermagem').addEventListener('click', function(){ switchTab('enfermage
 
 // ── RELATÓRIOS ──
 get('tab-relatorios').addEventListener('click', function(){ switchTab('relatorios'); });
+
+// Listeners dos botões de relatório (delegação de evento)
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('.btn-rel');
+  if(btn){
+    var tipo = btn.dataset.rel;
+    console.log('btn-rel clicado, tipo:', tipo);
+    if(tipo) imprimirRelatorio(tipo);
+  }
+  var btnFechar = e.target.closest('#btn-fechar-relatorio');
+  if(btnFechar) fecharRelatorio();
+  var btnImprimir = e.target.closest('#btn-print-relatorio');
+  if(btnImprimir) window.print();
+});
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
