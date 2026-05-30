@@ -4573,6 +4573,9 @@ document.addEventListener('click', function(e){
 
 function imprimirRelatorio(tipo){
   console.log('imprimirRelatorio chamado, tipo:', tipo);
+  document.getElementById('relatorio-overlay').style.display='block';
+  document.getElementById('relatorio-titulo').textContent='Carregando...';
+  document.getElementById('relatorio-conteudo').innerHTML='<p style="padding:20px">Gerando relatório: '+tipo+'</p>';
   var now = new Date();
   var dataHora = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   var estilos = '<style>'
