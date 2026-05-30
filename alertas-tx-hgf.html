@@ -320,7 +320,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
   <div class="tabs">
     <div class="tab active" id="tab-fila">🏥 Fila de Internacao <span class="tab-count" id="count-fila">0</span></div>
     <div class="tab" id="tab-sessao">🩺 Sessao Clinica <span class="tab-count" id="count-sessao">0</span></div>
-    <div class="tab" id="tab-stats">📊 Estatisticas</div>
+    <div class="tab" id="tab-stats" style="display:none">📊 Estatisticas</div>
     <div class="tab" id="tab-receptores">🫀 Lista de Receptores</div>
     <div class="tab" id="tab-anestesia">📋 Ficha Pré-Anestésica</div>
     <div class="tab" id="tab-pendencias" style="display:none">🛏️ Pendências Diárias</div>
@@ -2449,7 +2449,7 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-stats').style.display='flex';}
   else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
   else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
   initSupabase();
