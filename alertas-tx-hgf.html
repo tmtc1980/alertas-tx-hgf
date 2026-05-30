@@ -501,6 +501,12 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
             <input type="text" class="form-input" id="filtro-cid" placeholder="Ex: K70, K76..." style="font-size:12px;padding:6px 10px;">
           </div>
 
+          <!-- Busca livre -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Busca Livre</div>
+            <input type="text" class="form-input" id="filtro-livre" placeholder="Diagnóstico, procedimento, motivo..." style="font-size:12px;padding:6px 10px;">
+          </div>
+
         </div>
 
         <!-- Ordenação -->
@@ -2606,6 +2612,20 @@ function aplicarFiltrosFila(){
            (p.cid_desc||'').toLowerCase().indexOf(cidFiltro)>=0;
   });
 
+  // Busca livre
+  var livre = get('filtro-livre') ? get('filtro-livre').value.toLowerCase().trim() : '';
+  if(livre) lista = lista.filter(function(p){
+    return (p.nome||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.prontuario||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.mae||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.diagnostico||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.procedimento||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.motivo||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.cid_code||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.cid_desc||'').toLowerCase().indexOf(livre)>=0 ||
+           (p.medico||'').toLowerCase().indexOf(livre)>=0;
+  });
+
   // Ordenação
   var ordem = get('filtro-ordem') ? get('filtro-ordem').value : 'urgencia';
   if(ordem==='urgencia'){
@@ -4292,7 +4312,7 @@ function initFiltrosFila(){
   ['filtro-medico','filtro-ordem'].forEach(function(id){
     var el = get(id); if(el) el.addEventListener('change', aplicarFiltrosFila);
   });
-  ['filtro-busca','filtro-cid'].forEach(function(id){
+  ['filtro-busca','filtro-cid','filtro-livre'].forEach(function(id){
     var el = get(id);
     if(el) el.addEventListener('input', function(){
       clearTimeout(el._t);
@@ -4310,6 +4330,7 @@ function initFiltrosFila(){
     if(get('filtro-medico')) get('filtro-medico').value = '';
     if(get('filtro-busca')) get('filtro-busca').value = '';
     if(get('filtro-cid')) get('filtro-cid').value = '';
+    if(get('filtro-livre')) get('filtro-livre').value = '';
     if(get('filtro-ordem')) get('filtro-ordem').value = 'urgencia';
     aplicarFiltrosFila();
   });
