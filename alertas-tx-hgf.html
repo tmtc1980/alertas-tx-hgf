@@ -2827,114 +2827,248 @@ function submitConduta(){
 
 // ESTATISTICAS
 function loadStats(){
-  function render(filaAll,sessaoAll){
-    var p=statsPeriod;
-    var fila=filterByPeriod(filaAll,p,'created_at');
-    var sess=filterByPeriod(sessaoAll,p,'created_at');
+  function render(filaAll, sessaoAll, receptoresAll){
+    var p = statsPeriod;
+    var fila = filterByPeriod(filaAll, p, 'created_at');
+    var sess = filterByPeriod(sessaoAll, p, 'created_at');
 
-    var filaRes=fila.filter(function(x){return x.status==='resolvido'||x.status==='ciente';});
-    var filaPend=filaAll.filter(function(x){return x.status==='pendente';});
-    var reds=fila.filter(function(x){return x.color==='red';});
-    var yellows=fila.filter(function(x){return x.color==='yellow';});
-    var greens=fila.filter(function(x){return x.color==='green';});
-    var sessRes=sess.filter(function(x){return x.status==='resolvido'||x.status==='ciente';});
-    var sessCiente=sess.filter(function(x){return x.status==='ciente';});
+    var filaRes   = fila.filter(function(x){return x.status==='resolvido'||x.status==='ciente';});
+    var filaPend  = filaAll.filter(function(x){return x.status==='pendente';});
+    var reds      = fila.filter(function(x){return x.color==='red';});
+    var yellows   = fila.filter(function(x){return x.color==='yellow';});
+    var greens    = fila.filter(function(x){return x.color==='green';});
+    var sessRes   = sess.filter(function(x){return x.status==='resolvido'||x.status==='ciente';});
+    var sessCiente= sess.filter(function(x){return x.status==='ciente';});
 
-    // Tempo medio de resolucao
-    var tempos=filaRes.filter(function(x){return x.resolved_at;}).map(function(x){return (new Date(x.resolved_at)-new Date(x.created_at))/(1000*60*60);});
-    var tempoMedio=tempos.length?Math.round(tempos.reduce(function(a,b){return a+b;},0)/tempos.length):null;
+    // Tempo médio de resolução por tipo
+    function tempoMedioPorTipo(cor){
+      var lista = filaAll.filter(function(x){return x.color===cor && x.resolved_at;});
+      if(!lista.length) return null;
+      var hrs = lista.map(function(x){return (new Date(x.resolved_at)-new Date(x.created_at))/(1000*60*60);});
+      return Math.round(hrs.reduce(function(a,b){return a+b;},0)/hrs.length);
+    }
+    var tmRed    = tempoMedioPorTipo('red');
+    var tmYellow = tempoMedioPorTipo('yellow');
+    var tmGreen  = tempoMedioPorTipo('green');
+    var tmGeral  = (function(){
+      var lista = filaAll.filter(function(x){return x.resolved_at;});
+      if(!lista.length) return null;
+      var hrs = lista.map(function(x){return (new Date(x.resolved_at)-new Date(x.created_at))/(1000*60*60);});
+      return Math.round(hrs.reduce(function(a,b){return a+b;},0)/hrs.length);
+    })();
 
-    // Por medico - fila
-    var medMap={};
-    fila.forEach(function(x){medMap[x.medico]=(medMap[x.medico]||0)+1;});
-    var medRank=Object.keys(medMap).map(function(k){return{nome:k,n:medMap[k]};}).sort(function(a,b){return b.n-a.n;});
+    // Internamentos por tipo por médico
+    var medMap = {};
+    fila.forEach(function(x){
+      if(!medMap[x.medico]) medMap[x.medico]={total:0,red:0,yellow:0,green:0};
+      medMap[x.medico].total++;
+      medMap[x.medico][x.color]++;
+    });
+    var medRank = Object.keys(medMap).map(function(k){return Object.assign({nome:k},medMap[k]);})
+      .sort(function(a,b){return b.total-a.total;});
 
-    // Por medico - sessao
-    var medSessMap={};
+    // Sessão clínica por médico
+    var medSessMap = {};
     sess.forEach(function(x){medSessMap[x.medico]=(medSessMap[x.medico]||0)+1;});
-    var medSessRank=Object.keys(medSessMap).map(function(k){return{nome:k,n:medSessMap[k]};}).sort(function(a,b){return b.n-a.n;});
+    var medSessRank = Object.keys(medSessMap).map(function(k){return{nome:k,n:medSessMap[k]};})
+      .sort(function(a,b){return b.n-a.n;});
+
+    // Sessão clínica por mês (últimos 6 meses)
+    var sessMes = {};
+    sessaoAll.forEach(function(x){
+      if(!x.created_at) return;
+      var d = new Date(x.created_at);
+      var key = d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+      sessMes[key] = (sessMes[key]||0)+1;
+    });
+    var sessMesKeys = Object.keys(sessMes).sort().slice(-6);
 
     // CID ranking
-    var cidMap={};
-    fila.filter(function(x){return x.cid_code;}).forEach(function(x){var k=x.cid_code+'|||'+(x.cid_desc||'');cidMap[k]=(cidMap[k]||0)+1;});
-    var cidRank=Object.keys(cidMap).map(function(k){return[k,cidMap[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+    var cidMap = {};
+    fila.filter(function(x){return x.cid_code;}).forEach(function(x){
+      var k = x.cid_code+'|||'+(x.cid_desc||'');
+      cidMap[k]=(cidMap[k]||0)+1;
+    });
+    var cidRank = Object.keys(cidMap).map(function(k){return[k,cidMap[k]];})
+      .sort(function(a,b){return b[1]-a[1];}).slice(0,8);
 
-    var periodoLabel={mes:'Mes Atual',trim:'Ultimos 3 Meses',ano:'Ano Atual',total:'Todo o Periodo'}[p];
+    // Evolução temporal (internamentos por mês)
+    var mesMap = {};
+    filaAll.forEach(function(x){
+      if(!x.created_at) return;
+      var d = new Date(x.created_at);
+      var key = d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+      if(!mesMap[key]) mesMap[key]={red:0,yellow:0,green:0};
+      mesMap[key][x.color]=(mesMap[key][x.color]||0)+1;
+    });
+    var mesKeys = Object.keys(mesMap).sort().slice(-6);
+    var maxMes = mesKeys.reduce(function(mx,k){
+      var t=(mesMap[k].red||0)+(mesMap[k].yellow||0)+(mesMap[k].green||0);
+      return t>mx?t:mx;
+    },1);
 
-    var html='<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">Periodo: '+periodoLabel+'</div>';
+    // Receptores por grupo
+    var recGrupo = {O:0,A:0,B:0,AB:0};
+    receptoresAll.forEach(function(r){if(recGrupo[r.grupo]!==undefined) recGrupo[r.grupo]++;});
+    var recAtivos = receptoresAll.filter(function(r){return r.status==='Ativo';}).length;
 
-    // Cards resumo
-    html+='<div class="stats-grid">'
-      +'<div class="stat-card"><div class="stat-num">'+fila.length+'</div><div class="stat-label">Internamentos Registrados</div></div>'
+    var periodoLabel = {mes:'Mês Atual',trim:'Últimos 3 Meses',ano:'Ano Atual',total:'Todo o Período'}[p];
+    var total = fila.length||1;
+    var pctRed    = Math.round(reds.length/total*100);
+    var pctYellow = Math.round(yellows.length/total*100);
+    var pctGreen  = Math.round(greens.length/total*100);
+
+    function fmtMes(key){
+      var parts = key.split('-');
+      var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      return meses[parseInt(parts[1])-1]+'/'+parts[0].slice(2);
+    }
+
+    var html = '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:14px;letter-spacing:1px;text-transform:uppercase;">Período: '+periodoLabel+'</div>';
+
+    // ── CARDS RESUMO ──
+    html += '<div class="stats-grid" style="margin-bottom:16px;">'
+      +'<div class="stat-card"><div class="stat-num">'+fila.length+'</div><div class="stat-label">Internamentos</div></div>'
       +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+filaRes.length+'</div><div class="stat-label">Resolvidos</div></div>'
-      +'<div class="stat-card"><div class="stat-num" style="color:var(--yellow)">'+filaPend.length+'</div><div class="stat-label">Pendentes (atual)</div></div>'
-      +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">'+reds.length+'</div><div class="stat-label">🔴 Emergencias</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--yellow)">'+filaPend.length+'</div><div class="stat-label">Pendentes</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">'+reds.length+'</div><div class="stat-label">🔴 Emergências</div></div>'
       +'<div class="stat-card"><div class="stat-num" style="color:var(--yellow)">'+yellows.length+'</div><div class="stat-label">🟡 Sinais/Sintomas</div></div>'
       +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+greens.length+'</div><div class="stat-label">🟢 Exames/Proc.</div></div>'
-      +'<div class="stat-card"><div class="stat-num">'+(tempoMedio!==null?tempoMedio+'h':'-')+'</div><div class="stat-label">Tempo Medio Resolucao</div></div>'
-      +'<div class="stat-card"><div class="stat-num">'+fila.length?Math.round(filaRes.length/fila.length*100)+'%':'-'+'</div><div class="stat-label">Taxa de Resolucao</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+sess.length+'</div><div class="stat-label">Sessão Clínica</div></div>'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--accent)">'+recAtivos+'</div><div class="stat-label">Receptores Ativos</div></div>'
       +'</div>';
 
-    // Por medico - fila
-    if(medRank.length){
-      html+='<div class="settings-section"><div class="settings-title">👩‍⚕️ Internamentos por Medico</div>'
-        +'<table class="stats-table"><thead><tr><th>Medico</th><th>Internamentos</th></tr></thead><tbody>'
-        +medRank.map(function(m){return '<tr><td>'+esc(m.nome)+'</td><td><strong>'+m.n+'</strong></td></tr>';}).join('')
-        +'</tbody></table></div>';
-    }
-
-    // Comparativo origens
-    var total=fila.length||1;
-    var pctRed=Math.round(reds.length/total*100);
-    var pctYellow=Math.round(yellows.length/total*100);
-    var pctGreen=Math.round(greens.length/total*100);
-    html+='<div class="settings-section"><div class="settings-title">📊 Origem dos Internamentos</div>'
-      +'<div style="display:flex;flex-direction:column;gap:12px;">'
-      // Emergencia
-      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--red)">🔴 A Emergencia</span><span style="font-family:var(--mono);font-weight:600;">'+reds.length+' casos ('+pctRed+'%)</span></div>'
-      +'<div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--red);width:'+pctRed+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
-      // Sinais/Sintomas
-      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--yellow)">🟡 Sinais / Sintomas</span><span style="font-family:var(--mono);font-weight:600;">'+yellows.length+' casos ('+pctYellow+'%)</span></div>'
-      +'<div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--yellow);width:'+pctYellow+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
-      // Exames/Procedimentos
-      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--green-dark)">🟢 Exames / Procedimentos</span><span style="font-family:var(--mono);font-weight:600;">'+greens.length+' casos ('+pctGreen+'%)</span></div>'
-      +'<div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--green);width:'+pctGreen+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
-      +'<div style="margin-top:4px;font-size:11px;color:var(--text3);font-family:var(--mono);">Total no periodo: '+fila.length+' internamentos</div>'
+    // ── TEMPO MÉDIO DE RESOLUÇÃO POR TIPO ──
+    html += '<div class="settings-section"><div class="settings-title">⏱️ Tempo Médio de Resolução por Tipo</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">'
+      +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="font-size:22px;color:var(--red)">'+(tmRed!==null?tmRed+'h':'—')+'</div><div class="stat-label">🔴 Emergência</div></div>'
+      +'<div class="stat-card" style="border-left:4px solid var(--yellow);"><div class="stat-num" style="font-size:22px;color:var(--yellow)">'+(tmYellow!==null?tmYellow+'h':'—')+'</div><div class="stat-label">🟡 Sinais/Sintomas</div></div>'
+      +'<div class="stat-card" style="border-left:4px solid var(--green);"><div class="stat-num" style="font-size:22px;color:var(--green)">'+(tmGreen!==null?tmGreen+'h':'—')+'</div><div class="stat-label">🟢 Exames/Proc.</div></div>'
+      +'<div class="stat-card" style="border-left:4px solid var(--border2);"><div class="stat-num" style="font-size:22px;">'+(tmGeral!==null?tmGeral+'h':'—')+'</div><div class="stat-label">Geral</div></div>'
       +'</div></div>';
 
-    // CID ranking
-    if(cidRank.length){
-      html+='<div class="settings-section"><div class="settings-title">📋 Principais CIDs de Internamento</div>'
-        +'<table class="stats-table"><thead><tr><th>CID</th><th>Descricao</th><th>Casos</th></tr></thead><tbody>'
-        +cidRank.map(function(item){var parts=item[0].split('|||');return '<tr><td><strong style="color:var(--accent)">'+esc(parts[0])+'</strong></td><td>'+esc(parts[1])+'</td><td><strong>'+item[1]+'</strong></td></tr>';}).join('')
+    // ── INTERNAMENTOS POR MÊS ──
+    if(mesKeys.length){
+      html += '<div class="settings-section"><div class="settings-title">📅 Internamentos por Mês (últimos 6 meses)</div>'
+        +'<div style="display:flex;gap:8px;align-items:flex-end;height:120px;padding:0 4px;">';
+      mesKeys.forEach(function(key){
+        var r=mesMap[key].red||0, y=mesMap[key].yellow||0, g=mesMap[key].green||0;
+        var t=r+y+g;
+        var pR=Math.round(r/maxMes*100), pY=Math.round(y/maxMes*100), pG=Math.round(g/maxMes*100);
+        html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">'
+          +'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);font-weight:600;">'+t+'</div>'
+          +'<div style="width:100%;display:flex;flex-direction:column;gap:1px;justify-content:flex-end;height:90px;">'
+          +'<div style="background:var(--red);width:100%;height:'+pR+'%;border-radius:3px 3px 0 0;min-height:'+(r?3:0)+'px;" title="🔴 '+r+'"></div>'
+          +'<div style="background:var(--yellow);width:100%;height:'+pY+'%;min-height:'+(y?3:0)+'px;" title="🟡 '+y+'"></div>'
+          +'<div style="background:var(--green);width:100%;height:'+pG+'%;min-height:'+(g?3:0)+'px;" title="🟢 '+g+'"></div>'
+          +'</div>'
+          +'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);">'+fmtMes(key)+'</div>'
+          +'</div>';
+      });
+      html += '</div>'
+        +'<div style="display:flex;gap:14px;margin-top:8px;font-size:11px;">'
+        +'<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block;"></span>Emergência</span>'
+        +'<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--yellow);border-radius:2px;display:inline-block;"></span>Sinais/Sintomas</span>'
+        +'<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block;"></span>Exames/Proc.</span>'
+        +'</div>'
+        +'</div>';
+    }
+
+    // ── INTERNAMENTOS POR MÉDICO ──
+    if(medRank.length){
+      html += '<div class="settings-section"><div class="settings-title">👩‍⚕️ Internamentos por Médico</div>'
+        +'<table class="stats-table"><thead><tr><th>Médico</th><th style="text-align:center">🔴</th><th style="text-align:center">🟡</th><th style="text-align:center">🟢</th><th style="text-align:center">Total</th></tr></thead><tbody>'
+        +medRank.map(function(m){
+          return '<tr>'
+            +'<td>'+esc(m.nome)+'</td>'
+            +'<td style="text-align:center;color:var(--red);font-weight:600;">'+(m.red||0)+'</td>'
+            +'<td style="text-align:center;color:var(--yellow);font-weight:600;">'+(m.yellow||0)+'</td>'
+            +'<td style="text-align:center;color:var(--green-dark);font-weight:600;">'+(m.green||0)+'</td>'
+            +'<td style="text-align:center;font-weight:700;">'+m.total+'</td>'
+            +'</tr>';
+        }).join('')
         +'</tbody></table></div>';
     }
 
-    // Sessao clinica
-    html+='<div class="settings-section"><div class="settings-title">🩺 Sessao Clinica</div>'
-      +'<div class="stats-grid" style="margin-bottom:12px">'
-      +'<div class="stat-card"><div class="stat-num">'+sess.length+'</div><div class="stat-label">Casos Inseridos</div></div>'
+    // ── DISTRIBUIÇÃO POR TIPO (barras) ──
+    html += '<div class="settings-section"><div class="settings-title">📊 Distribuição dos Internamentos</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px;">'
+      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--red)">🔴 Emergência</span><span style="font-family:var(--mono);font-weight:600;">'+reds.length+' ('+pctRed+'%)</span></div><div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--red);width:'+pctRed+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
+      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--yellow)">🟡 Sinais/Sintomas</span><span style="font-family:var(--mono);font-weight:600;">'+yellows.length+' ('+pctYellow+'%)</span></div><div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--yellow);width:'+pctYellow+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
+      +'<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;color:var(--green-dark)">🟢 Exames/Proc.</span><span style="font-family:var(--mono);font-weight:600;">'+greens.length+' ('+pctGreen+'%)</span></div><div style="background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;"><div style="background:var(--green);width:'+pctGreen+'%;height:100%;border-radius:20px;transition:width .5s;"></div></div></div>'
+      +'</div></div>';
+
+    // ── CID RANKING ──
+    if(cidRank.length){
+      html += '<div class="settings-section"><div class="settings-title">📋 Principais CIDs</div>'
+        +'<table class="stats-table"><thead><tr><th>CID</th><th>Descrição</th><th>Casos</th></tr></thead><tbody>'
+        +cidRank.map(function(item){
+          var parts=item[0].split('|||');
+          return '<tr><td><strong style="color:var(--accent)">'+esc(parts[0])+'</strong></td><td>'+esc(parts[1])+'</td><td><strong>'+item[1]+'</strong></td></tr>';
+        }).join('')
+        +'</tbody></table></div>';
+    }
+
+    // ── SESSÃO CLÍNICA ──
+    html += '<div class="settings-section"><div class="settings-title">🩺 Sessão Clínica</div>'
+      +'<div class="stats-grid" style="margin-bottom:12px;">'
+      +'<div class="stat-card"><div class="stat-num">'+sess.length+'</div><div class="stat-label">Casos no Período</div></div>'
       +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+sessRes.length+'</div><div class="stat-label">Condutas Registradas</div></div>'
       +'<div class="stat-card"><div class="stat-num" style="color:var(--accent)">'+sessCiente.length+'</div><div class="stat-label">Cientes</div></div>'
-      +'<div class="stat-card"><div class="stat-num">'+(sess.length?Math.round(sessRes.length/sess.length*100)+'%':'-')+'</div><div class="stat-label">Taxa de Resolucao</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+(sess.length?Math.round(sessRes.length/sess.length*100)+'%':'—')+'</div><div class="stat-label">Taxa de Resolução</div></div>'
       +'</div>';
 
+    // Sessão por mês
+    if(sessMesKeys.length){
+      var maxSess = Math.max.apply(null, sessMesKeys.map(function(k){return sessMes[k];}));
+      html += '<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;">Casos por mês (últimos 6):</div>'
+        +'<div style="display:flex;gap:6px;align-items:flex-end;height:70px;">';
+      sessMesKeys.forEach(function(key){
+        var n = sessMes[key];
+        var pct = Math.round(n/maxSess*100)||4;
+        html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">'
+          +'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);">'+n+'</div>'
+          +'<div style="width:100%;background:var(--accent);border-radius:3px 3px 0 0;height:'+pct+'%;min-height:4px;"></div>'
+          +'<div style="font-size:9px;font-family:var(--mono);color:var(--text3);">'+fmtMes(key)+'</div>'
+          +'</div>';
+      });
+      html += '</div></div>';
+    }
+
     if(medSessRank.length){
-      html+='<table class="stats-table"><thead><tr><th>Medico Solicitante</th><th>Casos</th></tr></thead><tbody>'
+      html += '<table class="stats-table"><thead><tr><th>Médico Solicitante</th><th>Casos</th></tr></thead><tbody>'
         +medSessRank.map(function(m){return '<tr><td>'+esc(m.nome)+'</td><td><strong>'+m.n+'</strong></td></tr>';}).join('')
         +'</tbody></table>';
     }
-    html+='</div>';
+    html += '</div>';
 
-    get('stats-content').innerHTML=html;
+    // ── RECEPTORES ──
+    html += '<div class="settings-section"><div class="settings-title">🫀 Lista de Receptores</div>'
+      +'<div class="stats-grid">'
+      +'<div class="stat-card"><div class="stat-num" style="color:var(--accent)">'+recAtivos+'</div><div class="stat-label">Ativos</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+receptoresAll.length+'</div><div class="stat-label">Total Cadastrado</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+recGrupo.O+'</div><div class="stat-label">Grupo O</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+recGrupo.A+'</div><div class="stat-label">Grupo A</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+recGrupo.B+'</div><div class="stat-label">Grupo B</div></div>'
+      +'<div class="stat-card"><div class="stat-num">'+recGrupo.AB+'</div><div class="stat-label">Grupo AB</div></div>'
+      +'</div></div>';
+
+    get('stats-content').innerHTML = html;
   }
 
+  // Carregar fila + sessão + receptores
   if(sbClient){
-    Promise.all([sbClient.from('fila_internacao').select('*'),sbClient.from('sessao_clinica').select('*')])
-      .then(function(r){render(r[0].data||[],r[1].data||[]);})
-      .catch(function(){render(lsGet('fila')||[],lsGet('sessao')||[]);});
+    Promise.all([
+      sbClient.from('fila_internacao').select('*'),
+      sbClient.from('sessao_clinica').select('*'),
+      sbClient.from('receptores').select('*')
+    ]).then(function(r){
+      render(r[0].data||[], r[1].data||[], r[2].data||[]);
+    }).catch(function(){
+      render(lsGet('fila')||[], lsGet('sessao')||[], []);
+    });
   } else {
-    render(lsGet('fila')||[],lsGet('sessao')||[]);
+    render(lsGet('fila')||[], lsGet('sessao')||[], []);
   }
 }
 
