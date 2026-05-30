@@ -326,6 +326,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-pendencias" style="display:none">🛏️ Pendências Diárias</div>
     <div class="tab" id="tab-decisoes" style="display:none">📝 Decisões da Visita</div>
     <div class="tab" id="tab-coleta" style="display:none">📄 Ficha de Coleta</div>
+    <div class="tab" id="tab-enfermagem" style="display:none">📊 Estatística de Enfermagem</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
   <main>
@@ -944,6 +945,17 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
           </div>
 
         </div>
+      </div>
+    </div>
+
+    <div id="panel-enfermagem" style="display:none">
+      <div class="section-header">
+        <div class="section-title">📊 Estatística de Enfermagem</div>
+      </div>
+      <div class="empty-state" style="margin-top:40px;">
+        <div style="font-size:32px;margin-bottom:12px;">📊</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:6px;">Em construção</div>
+        <div style="font-size:12px;color:var(--text3);">Novos indicadores serão adicionados em breve.</div>
       </div>
     </div>
 
@@ -2449,14 +2461,14 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-stats').style.display='flex';}
-  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
-  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-stats').style.display='flex';get('tab-enfermagem').style.display='flex';}
+  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';}
+  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';}
   initSupabase();
   populateDoctorSelects();
   initFiltrosFila();
   // Mostrar aba fila como padrão
-  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','enfermagem','config'].forEach(function(t){
     var p=get('panel-'+t); if(p) p.style.display='none';
   });
   var pf=get('panel-fila'); if(pf) pf.style.display='block';
@@ -2486,7 +2498,7 @@ get('tab-anestesia').addEventListener('click',function(){switchTab('anestesia');
 get('tab-pendencias').addEventListener('click',function(){switchTab('pendencias');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','enfermagem','config'].forEach(function(t){
     var panel=get('panel-'+t);
     if(panel) panel.style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
@@ -4472,6 +4484,8 @@ function initFiltrosFila(){
   popularMedicosFiltro();
 }
 
+
+get('tab-enfermagem').addEventListener('click', function(){ switchTab('enfermagem'); });
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
