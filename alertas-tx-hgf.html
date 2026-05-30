@@ -440,8 +440,86 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div id="panel-fila" style="display:none">
       <div class="section-header">
         <div class="section-title">Fila de Internacao</div>
-        <button class="btn btn-primary" id="btn-novo-paciente">+ Novo Paciente</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-ghost btn-sm" id="btn-toggle-filtros" style="gap:5px;">⚙️ Filtros <span id="filtros-badge" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;"></span></button>
+          <button class="btn btn-primary" id="btn-novo-paciente">+ Novo Paciente</button>
+        </div>
       </div>
+
+      <!-- PAINEL DE FILTROS -->
+      <div id="filtros-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;margin-bottom:14px;box-shadow:var(--shadow);">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:12px;">
+
+          <!-- Tipo/Cor -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Tipo de Internamento</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" class="filtro-tipo" value="red" style="accent-color:#d93025;"> 🔴 Emergência</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" class="filtro-tipo" value="yellow" style="accent-color:#c47f00;"> 🟡 Sinais/Sintomas</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" class="filtro-tipo" value="green" style="accent-color:#1e9e5e;"> 🟢 Exames/Proc.</label>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Status</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" class="filtro-status" value="pendente" checked> Pendente</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" class="filtro-status" value="resolvido"> Resolvido</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" class="filtro-status" value="ciente"> Ciente</label>
+            </div>
+          </div>
+
+          <!-- Médico -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Médico Responsável</div>
+            <select class="form-select" id="filtro-medico" style="font-size:12px;padding:6px 8px;">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <!-- Período -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Período</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="radio" name="filtro-periodo" value="todos" checked> Todos</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="radio" name="filtro-periodo" value="hoje"> Hoje</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="radio" name="filtro-periodo" value="semana"> Últimos 7 dias</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="radio" name="filtro-periodo" value="mes"> Último mês</label>
+            </div>
+          </div>
+
+          <!-- Busca textual -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Busca por Nome / Pront.</div>
+            <input type="text" class="form-input" id="filtro-busca" placeholder="Nome ou prontuário..." style="font-size:12px;padding:6px 10px;">
+          </div>
+
+          <!-- CID -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">CID-10</div>
+            <input type="text" class="form-input" id="filtro-cid" placeholder="Ex: K70, K76..." style="font-size:12px;padding:6px 10px;">
+          </div>
+
+        </div>
+
+        <!-- Ordenação -->
+        <div style="display:flex;align-items:center;gap:12px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Ordenar por:</div>
+          <select class="form-select" id="filtro-ordem" style="font-size:12px;padding:5px 8px;width:auto;">
+            <option value="urgencia">Urgência (padrão)</option>
+            <option value="data_asc">Data ↑ (mais antigos)</option>
+            <option value="data_desc">Data ↓ (mais recentes)</option>
+            <option value="nome">Nome A→Z</option>
+            <option value="medico">Médico</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" id="btn-limpar-filtros">Limpar filtros</button>
+            <span id="filtros-resultado" style="font-size:11px;color:var(--text3);font-family:var(--mono);padding:4px 0;"></span>
+          </div>
+        </div>
+      </div>
+
       <div id="fila-list" class="card-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
     </div>
 
@@ -2370,6 +2448,7 @@ function startApp(){
   else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
   initSupabase();
   populateDoctorSelects();
+  initFiltrosFila();
   // Mostrar aba fila como padrão
   ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','config'].forEach(function(t){
     var p=get('panel-'+t); if(p) p.style.display='none';
@@ -2471,12 +2550,117 @@ get('btn-novo-paciente').addEventListener('click',function(){openModal('modal-fi
 get('btn-cancelar-fila').addEventListener('click',function(){closeModal('modal-fila');clearFilaForm();});
 get('btn-submit-fila').addEventListener('click',submitFila);
 
+var filaAllData = [];
 function loadFila(){
-  if(!sbClient){renderFila(getLocalFila());return;}
-  sbClient.from('fila_internacao').select('*').eq('status','pendente')
-    .then(function(r){renderFila(r.data||[]);}).catch(function(){renderFila(getLocalFila());});
+  if(!sbClient){
+    filaAllData = lsGet('fila')||[];
+    aplicarFiltrosFila();
+    return;
+  }
+  sbClient.from('fila_internacao').select('*').order('created_at',{ascending:false})
+    .then(function(r){filaAllData=r.data||[];aplicarFiltrosFila();})
+    .catch(function(){filaAllData=lsGet('fila')||[];aplicarFiltrosFila();});
 }
-function getLocalFila(){return(lsGet('fila')||[]).filter(function(p){return p.status==='pendente';});}
+function getLocalFila(){return filaAllData.filter(function(p){return p.status==='pendente';});}
+
+function aplicarFiltrosFila(){
+  var lista = filaAllData.slice();
+
+  // Filtro tipo/cor
+  var tiposSel = Array.from(document.querySelectorAll('.filtro-tipo:checked')).map(function(el){return el.value;});
+  if(tiposSel.length) lista = lista.filter(function(p){return tiposSel.indexOf(p.color)>=0;});
+
+  // Filtro status
+  var statusSel = Array.from(document.querySelectorAll('.filtro-status:checked')).map(function(el){return el.value;});
+  if(statusSel.length) lista = lista.filter(function(p){return statusSel.indexOf(p.status)>=0;});
+  else lista = lista.filter(function(p){return p.status==='pendente';});
+
+  // Filtro médico
+  var medFiltro = get('filtro-medico') ? get('filtro-medico').value : '';
+  if(medFiltro) lista = lista.filter(function(p){return p.medico===medFiltro;});
+
+  // Filtro período
+  var periodoEl = document.querySelector('input[name="filtro-periodo"]:checked');
+  var periodo = periodoEl ? periodoEl.value : 'todos';
+  if(periodo !== 'todos'){
+    var now = new Date();
+    var cutoff;
+    if(periodo==='hoje'){cutoff=new Date(now.getFullYear(),now.getMonth(),now.getDate());}
+    else if(periodo==='semana'){cutoff=new Date(now-7*24*60*60*1000);}
+    else if(periodo==='mes'){cutoff=new Date(now-30*24*60*60*1000);}
+    if(cutoff) lista = lista.filter(function(p){return new Date(p.created_at)>=cutoff;});
+  }
+
+  // Filtro busca textual
+  var busca = get('filtro-busca') ? get('filtro-busca').value.toLowerCase().trim() : '';
+  if(busca) lista = lista.filter(function(p){
+    return (p.nome||'').toLowerCase().indexOf(busca)>=0 ||
+           (p.prontuario||'').toLowerCase().indexOf(busca)>=0 ||
+           (p.mae||'').toLowerCase().indexOf(busca)>=0;
+  });
+
+  // Filtro CID
+  var cidFiltro = get('filtro-cid') ? get('filtro-cid').value.toLowerCase().trim() : '';
+  if(cidFiltro) lista = lista.filter(function(p){
+    return (p.cid_code||'').toLowerCase().indexOf(cidFiltro)>=0 ||
+           (p.cid_desc||'').toLowerCase().indexOf(cidFiltro)>=0;
+  });
+
+  // Ordenação
+  var ordem = get('filtro-ordem') ? get('filtro-ordem').value : 'urgencia';
+  if(ordem==='urgencia'){
+    lista.sort(function(a,b){
+      var co=(COLOR_ORDER[a.color]||9)-(COLOR_ORDER[b.color]||9);
+      return co!==0?co:new Date(a.created_at)-new Date(b.created_at);
+    });
+  } else if(ordem==='data_asc'){
+    lista.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+  } else if(ordem==='data_desc'){
+    lista.sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
+  } else if(ordem==='nome'){
+    lista.sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
+  } else if(ordem==='medico'){
+    lista.sort(function(a,b){return (a.medico||'').localeCompare(b.medico||'');});
+  }
+
+  // Atualizar contador de resultados
+  var resEl = get('filtros-resultado');
+  if(resEl) resEl.textContent = lista.length + ' registro(s)';
+
+  renderFila(lista);
+  atualizarBadgeFiltros();
+}
+
+function atualizarBadgeFiltros(){
+  var badge = get('filtros-badge');
+  if(!badge) return;
+  var count = 0;
+  var tiposSel = document.querySelectorAll('.filtro-tipo:checked').length;
+  var statusSel = document.querySelectorAll('.filtro-status:checked');
+  // Conta filtros ativos (além do padrão "pendente")
+  if(tiposSel > 0) count++;
+  var statusDefault = statusSel.length===1 && statusSel[0].value==='pendente';
+  if(!statusDefault) count++;
+  if(get('filtro-medico')&&get('filtro-medico').value) count++;
+  var periodo = document.querySelector('input[name="filtro-periodo"]:checked');
+  if(periodo&&periodo.value!=='todos') count++;
+  if(get('filtro-busca')&&get('filtro-busca').value.trim()) count++;
+  if(get('filtro-cid')&&get('filtro-cid').value.trim()) count++;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'inline' : 'none';
+}
+
+function popularMedicosFiltro(){
+  var sel = get('filtro-medico');
+  if(!sel) return;
+  var docs = getDoctors();
+  sel.innerHTML = '<option value="">Todos os médicos</option>';
+  docs.forEach(function(d){
+    var opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    sel.appendChild(opt);
+  });
+}
 
 function renderFila(list){
   // Ordenar: cor primeiro (red=0,yellow=1,green=2), depois data mais antiga
@@ -4088,6 +4272,50 @@ get('btn-fc-imprimir').addEventListener('click', function(){
   win.document.close();
   setTimeout(function(){ win.print(); }, 600);
 });
+
+
+// Listeners dos filtros da fila
+function initFiltrosFila(){
+  var btnToggle = get('btn-toggle-filtros');
+  var panel = get('filtros-panel');
+  if(btnToggle) btnToggle.addEventListener('click', function(){
+    panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+  });
+
+  // Listeners de todos os filtros
+  document.querySelectorAll('.filtro-tipo, .filtro-status').forEach(function(el){
+    el.addEventListener('change', aplicarFiltrosFila);
+  });
+  document.querySelectorAll('input[name="filtro-periodo"]').forEach(function(el){
+    el.addEventListener('change', aplicarFiltrosFila);
+  });
+  ['filtro-medico','filtro-ordem'].forEach(function(id){
+    var el = get(id); if(el) el.addEventListener('change', aplicarFiltrosFila);
+  });
+  ['filtro-busca','filtro-cid'].forEach(function(id){
+    var el = get(id);
+    if(el) el.addEventListener('input', function(){
+      clearTimeout(el._t);
+      el._t = setTimeout(aplicarFiltrosFila, 300);
+    });
+  });
+
+  // Limpar filtros
+  var btnLimpar = get('btn-limpar-filtros');
+  if(btnLimpar) btnLimpar.addEventListener('click', function(){
+    document.querySelectorAll('.filtro-tipo').forEach(function(el){el.checked=false;});
+    document.querySelectorAll('.filtro-status').forEach(function(el){el.checked=el.value==='pendente';});
+    var periodoTodos = document.querySelector('input[name="filtro-periodo"][value="todos"]');
+    if(periodoTodos) periodoTodos.checked = true;
+    if(get('filtro-medico')) get('filtro-medico').value = '';
+    if(get('filtro-busca')) get('filtro-busca').value = '';
+    if(get('filtro-cid')) get('filtro-cid').value = '';
+    if(get('filtro-ordem')) get('filtro-ordem').value = 'urgencia';
+    aplicarFiltrosFila();
+  });
+
+  popularMedicosFiltro();
+}
 
 })();
 </script>
