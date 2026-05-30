@@ -2927,200 +2927,8 @@ function loadStats(){
 
 // ── RELATÓRIOS (globais) ──
 
-function imprimirRelatorio(tipo){
-  console.log('imprimirRelatorio chamado, tipo:', tipo);
-  var now = new Date();
-  var dataHora = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  var estilos = '<style>'
-    +'*{box-sizing:border-box;}'
-    +'.rel-wrap{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;}'
-    +'.rel-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #185FA5;padding-bottom:6px;margin-bottom:10px;}'
-    +'.rel-header-title{font-size:13px;font-weight:bold;color:#185FA5;}'
-    +'.rel-header-sub{font-size:9px;color:#666;margin-top:2px;}'
-    +'.rel-header-info{text-align:right;font-size:9px;color:#666;}'
-    +'.card{border:1px solid #dde3ed;border-radius:4px;padding:7px 10px;margin-bottom:6px;}'
-    +'.card.red{border-left:4px solid #d93025;background:#fffcfc;}'
-    +'.card.yellow{border-left:4px solid #c47f00;background:#fffdf5;}'
-    +'.card.green{border-left:4px solid #1e9e5e;background:#fafffe;}'
-    +'.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}'
-    +'.card-nome{font-size:11px;font-weight:bold;}'
-    +'.card-badge{font-size:8px;font-weight:bold;padding:1px 6px;border-radius:10px;}'
-    +'.badge-red{background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;}'
-    +'.badge-yellow{background:#fffbea;color:#c47f00;border:1px solid #f5d78a;}'
-    +'.badge-green{background:#e8f7f0;color:#157a48;border:1px solid #a3dcc0;}'
-    +'.card-meta{font-size:9px;color:#666;margin-bottom:4px;display:flex;gap:10px;flex-wrap:wrap;}'
-    +'.card-body{font-size:9px;color:#444;display:flex;gap:10px;flex-wrap:wrap;line-height:1.5;}'
-    +'.card-body strong{color:#888;font-weight:600;}'
-    +'.section-title{font-size:9px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;background:#f5f7fa;padding:4px 8px;border-radius:3px;margin:10px 0 5px;}'
-    +'.count-badge{display:inline-block;background:#185FA5;color:#fff;border-radius:10px;padding:1px 8px;font-size:9px;font-weight:bold;margin-left:6px;}'
-    +'.rel-footer{margin-top:14px;padding-top:6px;border-top:1px solid #dde3ed;font-size:8px;color:#aaa;display:flex;justify-content:space-between;}'
-    +'table{width:100%;border-collapse:collapse;font-size:9px;}'
-    +'th{background:#f0f4f8;padding:4px 8px;text-align:left;font-weight:bold;color:#4a5e78;border-bottom:1px solid #dde3ed;}'
-    +'td{padding:4px 8px;border-bottom:0.5px solid #eee;vertical-align:top;}'
-    +'tr:nth-child(even) td{background:#fafbfc;}'
-    +'.meld{font-weight:bold;color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;display:inline-block;}'
-    +'.meld-alto{background:#d93025;}'
-    +'.meld-med{background:#c47f00;}'
-    +'.meld-baixo{background:#1e9e5e;}'
-    +'.leito-box{border:1px solid #dde3ed;border-radius:4px;padding:6px 8px;margin-bottom:5px;}'
-    +'.leito-id{font-size:10px;font-weight:bold;color:#185FA5;margin-bottom:3px;}'
-    +'.leito-txt{font-size:9px;color:#444;line-height:1.6;white-space:pre-wrap;}'
-    +'.leito-meta{font-size:8px;color:#aaa;margin-top:3px;}'
-    +'</style>';
-  var base = '<div class="rel-wrap">'+estilos;
 
-  var COLOR_LABELS = {red:'🔴 Emergência', yellow:'🟡 Sinais/Sintomas', green:'🟢 Exames/Proc.'};
-  var COLOR_ORDER  = {red:0, yellow:1, green:2};
 
-  function footer(){
-    return '<div class="footer"><div>Hospital Geral de Fortaleza — Unidade de Transplante Hepático</div><div>Emitido em: '+dataHora+'</div></div>';
-  }
-
-  if(tipo==='fila'){
-    var fonte = filaAllData.length ? filaAllData : (lsGet('fila')||[]);
-    var lista = fonte.filter(function(p){return p.status==='pendente';});
-    lista.sort(function(a,b){
-      var co=(COLOR_ORDER[a.color]||9)-(COLOR_ORDER[b.color]||9);
-      return co!==0?co:new Date(a.created_at)-new Date(b.created_at);
-    });
-    var html = base
-      +'<div class="rel-header">'
-      +'<div><div class="header-title">🏥 Fila de Internação</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
-      +'<div class="rel-header-info">'+dataHora+'<br><strong>'+lista.length+' paciente(s) pendente(s)</strong></div>'
-      +'</div>';
-
-    if(!lista.length){
-      html += '<div style="text-align:center;padding:30px;color:#aaa;">Nenhum paciente pendente.</div>';
-    } else {
-      ['red','yellow','green'].forEach(function(cor){
-        var grupo = lista.filter(function(p){return p.color===cor;});
-        if(!grupo.length) return;
-        html += '<div class="section-title">'+COLOR_LABELS[cor]+'<span class="count-badge">'+grupo.length+'</span></div>';
-        grupo.forEach(function(p){
-          html += '<div class="card '+p.color+'">'
-            +'<div class="card-top">'
-            +'<div class="card-nome">'+esc(p.nome)+'</div>'
-            +'<span class="card-badge badge-'+p.color+'">'+COLOR_LABELS[p.color]+'</span>'
-            +'</div>'
-            +'<div class="card-meta">'
-            +'<span>Pront: <strong>'+esc(p.prontuario)+'</strong></span>'
-            +'<span>Mãe: <strong>'+esc(p.mae)+'</strong></span>'
-            +'<span>Médico: <strong>'+esc(p.medico)+'</strong></span>'
-            +'<span>Data: <strong>'+fmtDateShort(p.created_at)+'</strong></span>'
-            +'</div>'
-            +'<div class="card-body">'
-            +'<span><strong>Diag:</strong> '+esc(p.diagnostico)+'</span>'
-            +(p.cid_code?'<span><strong>CID:</strong> '+esc(p.cid_code)+' — '+esc(p.cid_desc||'')+'</span>':'')
-            +(p.procedimento?'<span><strong>Proc:</strong> '+esc(p.procedimento)+'</span>':'')
-            +(p.motivo?'<span><strong>Motivo:</strong> '+esc(p.motivo)+'</span>':'')
-            +'</div>'
-            +'</div>';
-        });
-      });
-    }
-    html += footer()+'</div>';
-    abrirJanelaPrint(html, '🏥 Fila de Internação');
-
-  } else if(tipo==='sessao'){
-    if(!sbClient){ showToast('Conecte ao Supabase para gerar este relatório.','error'); return; }
-    sbClient.from('sessao_clinica').select('*').eq('status','pendente').order('created_at',{ascending:true})
-      .then(function(r){
-        var lista = r.data||[];
-        var html = base
-          +'<div class="rel-header">'
-          +'<div><div class="header-title">🩺 Sessão Clínica</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
-          +'<div class="rel-header-info">'+dataHora+'<br><strong>'+lista.length+' caso(s) pendente(s)</strong></div>'
-          +'</div>';
-        if(!lista.length){
-          html += '<div style="text-align:center;padding:30px;color:#aaa;">Nenhum caso pendente.</div>';
-        } else {
-          lista.forEach(function(c, i){
-            html += '<div class="card">'
-              +'<div class="card-top">'
-              +'<div class="card-nome">'+(i+1)+'. '+esc(c.nome)+'</div>'
-              +'<span style="font-size:9px;color:#888;">'+fmtDateShort(c.created_at)+'</span>'
-              +'</div>'
-              +'<div class="card-meta">'
-              +'<span>Pront: <strong>'+esc(c.prontuario)+'</strong></span>'
-              +'<span>Médico: <strong>'+esc(c.medico)+'</strong></span>'
-              +'</div>'
-              +'<div class="card-body" style="flex-direction:column;gap:3px;">'
-              +'<div><strong>Resumo:</strong> '+esc(c.resumo)+'</div>'
-              +'<div><strong>Dúvida:</strong> '+esc(c.duvida)+'</div>'
-              +'</div>'
-              +'</div>';
-          });
-        }
-        html += footer()+'</div>';
-        abrirJanelaPrint(html, '🩺 Sessão Clínica');
-      });
-
-  } else if(tipo==='receptores'){
-    var fonte2 = receptoresData.length ? receptoresData : [];
-    var lista2 = fonte2.filter(function(r){return r.status==='Ativo';});
-    lista2.sort(function(a,b){return (b.meld||0)-(a.meld||0);});
-    var html2 = base
-      +'<div class="rel-header">'
-      +'<div><div class="header-title">🫀 Lista de Receptores Ativos</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
-      +'<div class="rel-header-info">'+dataHora+'<br><strong>'+lista2.length+' receptor(es) ativo(s)</strong></div>'
-      +'</div>'
-      +'<table><thead><tr>'
-      +'<th>#</th><th>Nome</th><th>Grupo</th><th>MELD</th><th>Child</th><th>Diagnóstico</th><th>Priorização</th><th>Trombose</th><th>Médico</th>'
-      +'</tr></thead><tbody>';
-    lista2.forEach(function(r, i){
-      var meldCls = r.meld>=25?'meld-alto':r.meld>=15?'meld-med':'meld-baixo';
-      html2 += '<tr>'
-        +'<td>'+(i+1)+'</td>'
-        +'<td><strong>'+esc(r.nome)+'</strong></td>'
-        +'<td style="text-align:center;font-weight:bold;">'+esc(r.grupo)+'</td>'
-        +'<td style="text-align:center;"><span class="meld '+meldCls+'">'+(r.meld||'—')+'</span></td>'
-        +'<td style="text-align:center;">'+(r.child||'—')+'</td>'
-        +'<td>'+esc(r.diagnostico||'—')+'</td>'
-        +'<td>'+esc(r.priorizacao&&r.priorizacao!=='NÃO'?r.priorizacao:'—')+'</td>'
-        +'<td style="text-align:center;">'+(r.trombose&&r.trombose!=='NÃO'?'<strong style="color:#d93025;">'+esc(r.trombose)+'</strong>':'—')+'</td>'
-        +'<td>'+esc(r.medico||'—')+'</td>'
-        +'</tr>';
-    });
-    html2 += '</tbody></table>'+footer()+'</div>';
-    abrirJanelaPrint(html2, '🫀 Lista de Receptores');
-
-  } else if(tipo==='pendencias'){
-    var LEITOS_LIST = ['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4','Leito Ectopico'];
-    var html3 = base
-      +'<div class="rel-header">'
-      +'<div><div class="header-title">🛏️ Pendências Diárias — Leitos Tx Hepático</div><div class="header-sub">Hospital Geral de Fortaleza — Unidade de Transplante Hepático</div></div>'
-      +'<div class="rel-header-info">'+dataHora+'</div>'
-      +'</div>';
-    var comDados = 0;
-    LEITOS_LIST.forEach(function(leito){
-      var d = pendenciasData[leito]||{};
-      var texto = d.texto||'';
-      var meta = d.updated_at ? 'Atualizado: '+fmtDate(d.updated_at)+(d.medico?' — '+esc(d.medico):'') : '';
-      if(texto) comDados++;
-      html3 += '<div class="leito-box">'
-        +'<div class="leito-id">'+esc(leito)+'</div>'
-        +(texto
-          ?'<div class="leito-txt">'+esc(texto)+'</div>'
-          +'<div class="leito-meta">'+meta+'</div>'
-          :'<div class="leito-txt" style="color:#ccc;font-style:italic;">Sem pendências registradas.</div>')
-        +'</div>';
-    });
-    html3 += footer()+'</div>';
-    abrirJanelaPrint(html3, '🛏️ Pendências Diárias');
-  }
-}
-
-function abrirJanelaPrint(conteudo, titulo){
-  console.log('abrirJanelaPrint chamado, titulo:', titulo);
-  document.getElementById('relatorio-titulo').textContent = titulo||'';
-  document.getElementById('relatorio-conteudo').innerHTML = conteudo;
-  document.getElementById('relatorio-overlay').style.display = 'block';
-  document.getElementById('relatorio-overlay').scrollTop = 0;
-}
-
-function fecharRelatorio(){
-  document.getElementById('relatorio-overlay').style.display = 'none';
-}
 
 
 
@@ -4759,6 +4567,205 @@ document.addEventListener('click', function(e){
   if(btnImprimir) window.print();
 });
 })();
+</script>
+<script>
+
+
+function imprimirRelatorio(tipo){
+  console.log('imprimirRelatorio chamado, tipo:', tipo);
+  var now = new Date();
+  var dataHora = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  var estilos = '<style>'
+    +'*{box-sizing:border-box;}'
+    +'.rel-wrap{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;}'
+    +'.rel-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #185FA5;padding-bottom:6px;margin-bottom:10px;}'
+    +'.rel-header-title{font-size:13px;font-weight:bold;color:#185FA5;}'
+    +'.rel-header-sub{font-size:9px;color:#666;margin-top:2px;}'
+    +'.rel-header-info{text-align:right;font-size:9px;color:#666;}'
+    +'.card{border:1px solid #dde3ed;border-radius:4px;padding:7px 10px;margin-bottom:6px;}'
+    +'.card.red{border-left:4px solid #d93025;background:#fffcfc;}'
+    +'.card.yellow{border-left:4px solid #c47f00;background:#fffdf5;}'
+    +'.card.green{border-left:4px solid #1e9e5e;background:#fafffe;}'
+    +'.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}'
+    +'.card-nome{font-size:11px;font-weight:bold;}'
+    +'.card-badge{font-size:8px;font-weight:bold;padding:1px 6px;border-radius:10px;}'
+    +'.badge-red{background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;}'
+    +'.badge-yellow{background:#fffbea;color:#c47f00;border:1px solid #f5d78a;}'
+    +'.badge-green{background:#e8f7f0;color:#157a48;border:1px solid #a3dcc0;}'
+    +'.card-meta{font-size:9px;color:#666;margin-bottom:4px;display:flex;gap:10px;flex-wrap:wrap;}'
+    +'.card-body{font-size:9px;color:#444;display:flex;gap:10px;flex-wrap:wrap;line-height:1.5;}'
+    +'.card-body strong{color:#888;font-weight:600;}'
+    +'.section-title{font-size:9px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;background:#f5f7fa;padding:4px 8px;border-radius:3px;margin:10px 0 5px;}'
+    +'.count-badge{display:inline-block;background:#185FA5;color:#fff;border-radius:10px;padding:1px 8px;font-size:9px;font-weight:bold;margin-left:6px;}'
+    +'.rel-footer{margin-top:14px;padding-top:6px;border-top:1px solid #dde3ed;font-size:8px;color:#aaa;display:flex;justify-content:space-between;}'
+    +'table{width:100%;border-collapse:collapse;font-size:9px;}'
+    +'th{background:#f0f4f8;padding:4px 8px;text-align:left;font-weight:bold;color:#4a5e78;border-bottom:1px solid #dde3ed;}'
+    +'td{padding:4px 8px;border-bottom:0.5px solid #eee;vertical-align:top;}'
+    +'tr:nth-child(even) td{background:#fafbfc;}'
+    +'.meld{font-weight:bold;color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;display:inline-block;}'
+    +'.meld-alto{background:#d93025;}'
+    +'.meld-med{background:#c47f00;}'
+    +'.meld-baixo{background:#1e9e5e;}'
+    +'.leito-box{border:1px solid #dde3ed;border-radius:4px;padding:6px 8px;margin-bottom:5px;}'
+    +'.leito-id{font-size:10px;font-weight:bold;color:#185FA5;margin-bottom:3px;}'
+    +'.leito-txt{font-size:9px;color:#444;line-height:1.6;white-space:pre-wrap;}'
+    +'.leito-meta{font-size:8px;color:#aaa;margin-top:3px;}'
+    +'</style>';
+  var base = '<div class="rel-wrap">'+estilos;
+
+  var COLOR_LABELS = {red:'🔴 Emergência', yellow:'🟡 Sinais/Sintomas', green:'🟢 Exames/Proc.'};
+  var COLOR_ORDER  = {red:0, yellow:1, green:2};
+
+  function footer(){
+    return '<div class="footer"><div>Hospital Geral de Fortaleza — Unidade de Transplante Hepático</div><div>Emitido em: '+dataHora+'</div></div>';
+  }
+
+  if(tipo==='fila'){
+    var fonte = filaAllData.length ? filaAllData : (lsGet('fila')||[]);
+    var lista = fonte.filter(function(p){return p.status==='pendente';});
+    lista.sort(function(a,b){
+      var co=(COLOR_ORDER[a.color]||9)-(COLOR_ORDER[b.color]||9);
+      return co!==0?co:new Date(a.created_at)-new Date(b.created_at);
+    });
+    var html = base
+      +'<div class="rel-header">'
+      +'<div><div class="header-title">🏥 Fila de Internação</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
+      +'<div class="rel-header-info">'+dataHora+'<br><strong>'+lista.length+' paciente(s) pendente(s)</strong></div>'
+      +'</div>';
+
+    if(!lista.length){
+      html += '<div style="text-align:center;padding:30px;color:#aaa;">Nenhum paciente pendente.</div>';
+    } else {
+      ['red','yellow','green'].forEach(function(cor){
+        var grupo = lista.filter(function(p){return p.color===cor;});
+        if(!grupo.length) return;
+        html += '<div class="section-title">'+COLOR_LABELS[cor]+'<span class="count-badge">'+grupo.length+'</span></div>';
+        grupo.forEach(function(p){
+          html += '<div class="card '+p.color+'">'
+            +'<div class="card-top">'
+            +'<div class="card-nome">'+esc(p.nome)+'</div>'
+            +'<span class="card-badge badge-'+p.color+'">'+COLOR_LABELS[p.color]+'</span>'
+            +'</div>'
+            +'<div class="card-meta">'
+            +'<span>Pront: <strong>'+esc(p.prontuario)+'</strong></span>'
+            +'<span>Mãe: <strong>'+esc(p.mae)+'</strong></span>'
+            +'<span>Médico: <strong>'+esc(p.medico)+'</strong></span>'
+            +'<span>Data: <strong>'+fmtDateShort(p.created_at)+'</strong></span>'
+            +'</div>'
+            +'<div class="card-body">'
+            +'<span><strong>Diag:</strong> '+esc(p.diagnostico)+'</span>'
+            +(p.cid_code?'<span><strong>CID:</strong> '+esc(p.cid_code)+' — '+esc(p.cid_desc||'')+'</span>':'')
+            +(p.procedimento?'<span><strong>Proc:</strong> '+esc(p.procedimento)+'</span>':'')
+            +(p.motivo?'<span><strong>Motivo:</strong> '+esc(p.motivo)+'</span>':'')
+            +'</div>'
+            +'</div>';
+        });
+      });
+    }
+    html += footer()+'</div>';
+    abrirJanelaPrint(html, '🏥 Fila de Internação');
+
+  } else if(tipo==='sessao'){
+    if(!sbClient){ showToast('Conecte ao Supabase para gerar este relatório.','error'); return; }
+    sbClient.from('sessao_clinica').select('*').eq('status','pendente').order('created_at',{ascending:true})
+      .then(function(r){
+        var lista = r.data||[];
+        var html = base
+          +'<div class="rel-header">'
+          +'<div><div class="header-title">🩺 Sessão Clínica</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
+          +'<div class="rel-header-info">'+dataHora+'<br><strong>'+lista.length+' caso(s) pendente(s)</strong></div>'
+          +'</div>';
+        if(!lista.length){
+          html += '<div style="text-align:center;padding:30px;color:#aaa;">Nenhum caso pendente.</div>';
+        } else {
+          lista.forEach(function(c, i){
+            html += '<div class="card">'
+              +'<div class="card-top">'
+              +'<div class="card-nome">'+(i+1)+'. '+esc(c.nome)+'</div>'
+              +'<span style="font-size:9px;color:#888;">'+fmtDateShort(c.created_at)+'</span>'
+              +'</div>'
+              +'<div class="card-meta">'
+              +'<span>Pront: <strong>'+esc(c.prontuario)+'</strong></span>'
+              +'<span>Médico: <strong>'+esc(c.medico)+'</strong></span>'
+              +'</div>'
+              +'<div class="card-body" style="flex-direction:column;gap:3px;">'
+              +'<div><strong>Resumo:</strong> '+esc(c.resumo)+'</div>'
+              +'<div><strong>Dúvida:</strong> '+esc(c.duvida)+'</div>'
+              +'</div>'
+              +'</div>';
+          });
+        }
+        html += footer()+'</div>';
+        abrirJanelaPrint(html, '🩺 Sessão Clínica');
+      });
+
+  } else if(tipo==='receptores'){
+    var fonte2 = receptoresData.length ? receptoresData : [];
+    var lista2 = fonte2.filter(function(r){return r.status==='Ativo';});
+    lista2.sort(function(a,b){return (b.meld||0)-(a.meld||0);});
+    var html2 = base
+      +'<div class="rel-header">'
+      +'<div><div class="header-title">🫀 Lista de Receptores Ativos</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
+      +'<div class="rel-header-info">'+dataHora+'<br><strong>'+lista2.length+' receptor(es) ativo(s)</strong></div>'
+      +'</div>'
+      +'<table><thead><tr>'
+      +'<th>#</th><th>Nome</th><th>Grupo</th><th>MELD</th><th>Child</th><th>Diagnóstico</th><th>Priorização</th><th>Trombose</th><th>Médico</th>'
+      +'</tr></thead><tbody>';
+    lista2.forEach(function(r, i){
+      var meldCls = r.meld>=25?'meld-alto':r.meld>=15?'meld-med':'meld-baixo';
+      html2 += '<tr>'
+        +'<td>'+(i+1)+'</td>'
+        +'<td><strong>'+esc(r.nome)+'</strong></td>'
+        +'<td style="text-align:center;font-weight:bold;">'+esc(r.grupo)+'</td>'
+        +'<td style="text-align:center;"><span class="meld '+meldCls+'">'+(r.meld||'—')+'</span></td>'
+        +'<td style="text-align:center;">'+(r.child||'—')+'</td>'
+        +'<td>'+esc(r.diagnostico||'—')+'</td>'
+        +'<td>'+esc(r.priorizacao&&r.priorizacao!=='NÃO'?r.priorizacao:'—')+'</td>'
+        +'<td style="text-align:center;">'+(r.trombose&&r.trombose!=='NÃO'?'<strong style="color:#d93025;">'+esc(r.trombose)+'</strong>':'—')+'</td>'
+        +'<td>'+esc(r.medico||'—')+'</td>'
+        +'</tr>';
+    });
+    html2 += '</tbody></table>'+footer()+'</div>';
+    abrirJanelaPrint(html2, '🫀 Lista de Receptores');
+
+  } else if(tipo==='pendencias'){
+    var LEITOS_LIST = ['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4','Leito Ectopico'];
+    var html3 = base
+      +'<div class="rel-header">'
+      +'<div><div class="header-title">🛏️ Pendências Diárias — Leitos Tx Hepático</div><div class="header-sub">Hospital Geral de Fortaleza — Unidade de Transplante Hepático</div></div>'
+      +'<div class="rel-header-info">'+dataHora+'</div>'
+      +'</div>';
+    var comDados = 0;
+    LEITOS_LIST.forEach(function(leito){
+      var d = pendenciasData[leito]||{};
+      var texto = d.texto||'';
+      var meta = d.updated_at ? 'Atualizado: '+fmtDate(d.updated_at)+(d.medico?' — '+esc(d.medico):'') : '';
+      if(texto) comDados++;
+      html3 += '<div class="leito-box">'
+        +'<div class="leito-id">'+esc(leito)+'</div>'
+        +(texto
+          ?'<div class="leito-txt">'+esc(texto)+'</div>'
+          +'<div class="leito-meta">'+meta+'</div>'
+          :'<div class="leito-txt" style="color:#ccc;font-style:italic;">Sem pendências registradas.</div>')
+        +'</div>';
+    });
+    html3 += footer()+'</div>';
+    abrirJanelaPrint(html3, '🛏️ Pendências Diárias');
+  }
+}
+
+function abrirJanelaPrint(conteudo, titulo){
+  console.log('abrirJanelaPrint chamado, titulo:', titulo);
+  document.getElementById('relatorio-titulo').textContent = titulo||'';
+  document.getElementById('relatorio-conteudo').innerHTML = conteudo;
+  document.getElementById('relatorio-overlay').style.display = 'block';
+  document.getElementById('relatorio-overlay').scrollTop = 0;
+}
+
+function fecharRelatorio(){
+  document.getElementById('relatorio-overlay').style.display = 'none';
+}
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </body>
