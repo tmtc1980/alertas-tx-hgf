@@ -2633,12 +2633,13 @@ var filaAllData = [];
 function loadFila(){
   if(!sbClient){
     filaAllData = lsGet('fila')||[];
+    window.filaAllData = filaAllData;
     aplicarFiltrosFila();
     return;
   }
   sbClient.from('fila_internacao').select('*').order('created_at',{ascending:false})
-    .then(function(r){filaAllData=r.data||[];aplicarFiltrosFila();})
-    .catch(function(){filaAllData=lsGet('fila')||[];aplicarFiltrosFila();});
+    .then(function(r){filaAllData=r.data||[];window.filaAllData=filaAllData;aplicarFiltrosFila();})
+    .catch(function(){filaAllData=lsGet('fila')||[];window.filaAllData=filaAllData;aplicarFiltrosFila();});
 }
 function getLocalFila(){return filaAllData.filter(function(p){return p.status==='pendente';});}
 
@@ -2825,7 +2826,10 @@ function loadSessao(){
   sbClient.from('sessao_clinica').select('*').order('created_at',{ascending:false}).then(function(r){renderSessao(r.data||[]);}).catch(function(){renderSessao(lsGet('sessao')||[]);});
 }
 
+var sessaoData = [];
 function renderSessao(list){
+  sessaoData = list;
+  window.sessaoData = list;
   var pend=list.filter(function(c){return c.status==='pendente';});
   var resol=list.filter(function(c){return c.status==='resolvido';});
   get('count-sessao').textContent=pend.length;
@@ -3646,7 +3650,7 @@ get('receptores-busca').addEventListener('input', function(){renderReceptores();
 function loadReceptores(){
   if(!sbClient){renderReceptores();return;}
   sbClient.from('receptores').select('*').order('meld',{ascending:false})
-    .then(function(r){receptoresData=r.data||[];renderReceptores();})
+    .then(function(r){receptoresData=r.data||[];window.receptoresData=receptoresData;renderReceptores();})
     .catch(function(){renderReceptores();});
 }
 
@@ -3973,12 +3977,14 @@ var pendenciasData = {};
 
 function loadPendencias(){
   pendenciasData = lsGet('pendencias_diarias') || {};
+  window.pendenciasData = pendenciasData;
   renderPendencias();
   if(sbClient){
     sbClient.from('pendencias_diarias').select('*')
       .then(function(r){
         if(r.data && r.data.length){
           r.data.forEach(function(row){ pendenciasData[row.leito] = row; });
+          window.pendenciasData = pendenciasData;
           renderPendencias();
         }
       }).catch(function(){});
@@ -4581,6 +4587,91 @@ function abrirJanelaPrint(conteudo,titulo){
 function fecharRelatorio(){
   document.getElementById("relatorio-overlay").style.display="none";
 }
+
+
+function _printFila(){
+  var dh=new Date().toLocaleString("pt-BR");
+  var CL={red:"Emergencia",yellow:"Sinais/Sintomas",green:"Exames/Proc."};
+  var CO={red:0,yellow:1,green:2};
+  var lista=(window.filaAllData||[]).filter(function(p){return p.status==="pendente";});
+  lista.sort(function(a,b){var c=(CO[a.color]||9)-(CO[b.color]||9);return c||new Date(a.created_at)-new Date(b.created_at);});
+  var h='<div class="rel-header"><div><div class="rel-header-title">Fila de Internacao</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'<br><strong>'+lista.length+' pendente(s)</strong></div></div>';
+  if(!lista.length){h+='<p style="padding:20px;color:#aaa;">Nenhum paciente pendente.</p>';}
+  else{["red","yellow","green"].forEach(function(cor){
+    var g=lista.filter(function(p){return p.color===cor;});if(!g.length)return;
+    h+='<div class="section-title">'+CL[cor]+' <span class="count-badge">'+g.length+'</span></div>';
+    g.forEach(function(p){
+      h+='<div class="card '+p.color+'"><div class="card-top"><div class="card-nome">'+_esc(p.nome)+'</div></div>'
+        +'<div class="card-meta"><span>Pront: '+_esc(p.prontuario)+'</span><span>Mae: '+_esc(p.mae)+'</span><span>Medico: '+_esc(p.medico)+'</span></div>'
+        +'<div class="card-body"><span><strong>Diag:</strong> '+_esc(p.diagnostico)+'</span>'
+        +(p.cid_code?'<span><strong>CID:</strong> '+_esc(p.cid_code)+(p.cid_desc?' - '+_esc(p.cid_desc):'')+'</span>':'')
+        +(p.procedimento?'<span><strong>Proc:</strong> '+_esc(p.procedimento)+'</span>':'')
+        +(p.motivo?'<span><strong>Motivo:</strong> '+_esc(p.motivo)+'</span>':'')
+        +'</div></div>';
+    });
+  });}
+  mkWin(h+relFt(dh));
+}
+
+function _printSessao(){
+  var dh=new Date().toLocaleString("pt-BR");
+  var lista=(window.sessaoData||[]).filter(function(c){return c.status==="pendente";});
+  lista.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+  var h='<div class="rel-header"><div><div class="rel-header-title">Sessao Clinica</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'<br><strong>'+lista.length+' caso(s)</strong></div></div>';
+  if(!lista.length){h+='<p style="padding:20px;color:#aaa;">Nenhum caso pendente.</p>';}
+  else{lista.forEach(function(c,i){
+    h+='<div class="card"><div class="card-top"><div class="card-nome">'+(i+1)+'. '+_esc(c.nome)+'</div></div>'
+      +'<div class="card-meta"><span>Pront: '+_esc(c.prontuario)+'</span><span>Medico: '+_esc(c.medico)+'</span></div>'
+      +'<div class="card-body" style="flex-direction:column;gap:3px;"><div><strong>Resumo:</strong> '+_esc(c.resumo)+'</div><div><strong>Duvida:</strong> '+_esc(c.duvida)+'</div></div></div>';
+  });}
+  mkWin(h+relFt(dh));
+}
+
+function _printReceptores(){
+  var dh=new Date().toLocaleString("pt-BR");
+  var lista=(window.receptoresData||[]).filter(function(r){return r.status==="Ativo";});
+  lista.sort(function(a,b){return (b.meld||0)-(a.meld||0);});
+  var h='<div class="rel-header"><div><div class="rel-header-title">Lista de Receptores Ativos</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'<br><strong>'+lista.length+' ativo(s)</strong></div></div>';
+  h+='<table><thead><tr><th>#</th><th>Nome</th><th>Grupo</th><th>MELD</th><th>Child</th><th>Diagnostico</th><th>Priorizacao</th><th>Medico</th></tr></thead><tbody>';
+  lista.forEach(function(r,i){
+    var mc=r.meld>=25?"meld-alto":r.meld>=15?"meld-med":"meld-baixo";
+    h+='<tr><td>'+(i+1)+'</td><td><strong>'+_esc(r.nome)+'</strong></td><td style="text-align:center">'+_esc(r.grupo)+'</td>'
+      +'<td style="text-align:center"><span class="meld '+mc+'">'+(r.meld||"-")+'</span></td>'
+      +'<td style="text-align:center">'+(r.child||"-")+'</td><td>'+_esc(r.diagnostico||"-")+'</td>'
+      +'<td>'+_esc(r.priorizacao&&r.priorizacao!=="NAO"?r.priorizacao:"-")+'</td><td>'+_esc(r.medico||"-")+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  mkWin(h+relFt(dh));
+}
+
+function _printPendencias(){
+  var dh=new Date().toLocaleString("pt-BR");
+  var LL=["208-1","208-2","208-3","208-4","208-5","209-1","209-2","209-3","209-4","Leito Ectopico"];
+  var pd=window.pendenciasData||{};
+  var h='<div class="rel-header"><div><div class="rel-header-title">Pendencias Diarias</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'</div></div>';
+  LL.forEach(function(leito){
+    var d=pd[leito]||{};
+    var txt=d.texto||"";
+    h+='<div class="leito-box"><div class="leito-id">Leito '+_esc(leito)+'</div>'
+      +(txt?'<div class="leito-txt">'+_esc(txt)+'</div>':'<div class="leito-txt" style="color:#ccc;font-style:italic;">Sem pendencias.</div>')
+      +'</div>';
+  });
+  mkWin(h+relFt(dh));
+}
+
+function _esc(s){if(s===null||s===undefined)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+document.addEventListener("DOMContentLoaded", function(){
+  var bf=document.getElementById("btn-print-fila");
+  var bs=document.getElementById("btn-print-sessao");
+  var br=document.getElementById("btn-print-receptores");
+  var bp=document.getElementById("btn-print-pendencias");
+  if(bf) bf.addEventListener("click", _printFila);
+  if(bs) bs.addEventListener("click", _printSessao);
+  if(br) br.addEventListener("click", _printReceptores);
+  if(bp) bp.addEventListener("click", _printPendencias);
+});
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </body>
