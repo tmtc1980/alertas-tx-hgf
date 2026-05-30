@@ -333,13 +333,13 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-decisoes" style="display:none">📝 Decisões da Visita</div>
     <div class="tab" id="tab-coleta" style="display:none">📄 Ficha de Coleta</div>
     <div class="tab" id="tab-enfermagem" style="display:none">📊 Estatística de Enfermagem</div>
-    <div class="tab" id="tab-relatorios" style="display:none">🖨️ Relatórios</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
   <main>
     <div id="panel-pendencias" style="display:none;margin-top:0;padding-top:0;">
       <div class="section-header">
         <div class="section-title">🛏️ Pendências Diárias — Leitos Tx Hepático</div>
+        <button class="btn btn-ghost btn-sm" id="btn-print-pendencias">🖨️ Imprimir</button>
       </div>
       <div id="pendencias-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
       <div class="leito-card">
@@ -449,6 +449,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <div class="section-header">
         <div class="section-title">Fila de Internacao</div>
         <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-ghost btn-sm" id="btn-print-fila">🖨️ Imprimir</button>
           <button class="btn btn-ghost btn-sm" id="btn-toggle-filtros" style="gap:5px;">⚙️ Filtros <span id="filtros-badge" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;"></span></button>
           <button class="btn btn-primary" id="btn-novo-paciente">+ Novo Paciente</button>
         </div>
@@ -540,7 +541,10 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div id="panel-sessao" style="display:none">
       <div class="section-header">
         <div class="section-title">Casos para Sessao Clinica</div>
-        <button class="btn btn-primary" id="btn-novo-caso">+ Novo Caso</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" id="btn-print-sessao">🖨️ Imprimir</button>
+          <button class="btn btn-primary" id="btn-novo-caso">+ Novo Caso</button>
+        </div>
       </div>
       <div id="sessao-list"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
     </div>
@@ -560,6 +564,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <div class="section-header">
         <div class="section-title">Lista de Receptores</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" id="btn-print-receptores">🖨️ Imprimir</button>
           <input type="text" class="form-input" id="receptores-busca" placeholder="Buscar por nome..." style="width:200px;padding:6px 10px;font-size:12px;">
           <button class="btn btn-primary" id="btn-novo-receptor">+ Novo Receptor</button>
         </div>
@@ -2517,14 +2522,14 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-stats').style.display='flex';get('tab-enfermagem').style.display='flex';get('tab-relatorios').style.display='flex';}
-  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';get('tab-relatorios').style.display='flex';}
-  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';get('tab-relatorios').style.display='flex';}
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-stats').style.display='flex';get('tab-enfermagem').style.display='flex';}
+  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';}
+  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';}
   initSupabase();
   populateDoctorSelects();
   initFiltrosFila();
   // Mostrar aba fila como padrão
-  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','enfermagem','relatorios','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','enfermagem','config'].forEach(function(t){
     var p=get('panel-'+t); if(p) p.style.display='none';
   });
   var pf=get('panel-fila'); if(pf) pf.style.display='block';
@@ -2554,7 +2559,7 @@ get('tab-anestesia').addEventListener('click',function(){switchTab('anestesia');
 get('tab-pendencias').addEventListener('click',function(){switchTab('pendencias');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','enfermagem','relatorios','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','enfermagem','config'].forEach(function(t){
     var panel=get('panel-'+t);
     if(panel) panel.style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
@@ -4551,7 +4556,7 @@ function initFiltrosFila(){
 get('tab-enfermagem').addEventListener('click', function(){ switchTab('enfermagem'); });
 
 // ── RELATÓRIOS ──
-get('tab-relatorios').addEventListener('click', function(){ switchTab('relatorios'); });
+
 
 // Listeners dos botões de relatório (delegação de evento)
 document.addEventListener('click', function(e){
@@ -4566,6 +4571,12 @@ document.addEventListener('click', function(e){
   var btnImprimir = e.target.closest('#btn-print-relatorio');
   if(btnImprimir) window.print();
 });
+
+// Botões de impressão por aba
+get('btn-print-fila').addEventListener('click', function(){ imprimirRelatorio('fila'); });
+get('btn-print-sessao').addEventListener('click', function(){ imprimirRelatorio('sessao'); });
+get('btn-print-receptores').addEventListener('click', function(){ imprimirRelatorio('receptores'); });
+get('btn-print-pendencias').addEventListener('click', function(){ imprimirRelatorio('pendencias'); });
 })();
 </script>
 <script>
@@ -4673,10 +4684,9 @@ function imprimirRelatorio(tipo){
     abrirJanelaPrint(html, '🏥 Fila de Internação');
 
   } else if(tipo==='sessao'){
-    if(!sbClient){ showToast('Conecte ao Supabase para gerar este relatório.','error'); return; }
-    sbClient.from('sessao_clinica').select('*').eq('status','pendente').order('created_at',{ascending:true})
-      .then(function(r){
-        var lista = r.data||[];
+    var lista = (typeof sessaoData !== 'undefined' ? sessaoData : []).filter(function(c){return c.status==='pendente';});
+    lista.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+    (function(){
         var html = base
           +'<div class="rel-header">'
           +'<div><div class="header-title">🩺 Sessão Clínica</div><div class="header-sub">Hospital Geral de Fortaleza — Transplante Hepático</div></div>'
@@ -4704,7 +4714,7 @@ function imprimirRelatorio(tipo){
         }
         html += footer()+'</div>';
         abrirJanelaPrint(html, '🩺 Sessão Clínica');
-      });
+    })();
 
   } else if(tipo==='receptores'){
     var fonte2 = receptoresData.length ? receptoresData : [];
