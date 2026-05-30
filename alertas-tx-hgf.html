@@ -262,6 +262,33 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
 .decisao-modal-title{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}
 .decisao-lock{font-size:11px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);padding:2px 10px;border-radius:10px;font-weight:600;}
 .decisao-text-view{font-size:13px;color:var(--text);line-height:1.8;white-space:pre-wrap;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;min-height:200px;}
+
+/* FICHA COLETA */
+.fc-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow);}
+.fc-header{padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:8px;}
+.fc-header.blue{background:#185FA5;}
+.fc-header.orange{background:#c47f00;}
+.fc-header.green{background:#1e9e5e;}
+.fc-header.purple{background:#6d3fa0;}
+.fc-header.red{background:#c0392b;}
+.fc-header.gray{background:#4a5e78;}
+.fc-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.fc-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+.fc-group{display:flex;flex-direction:column;gap:4px;}
+.fc-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono);}
+.fc-input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px 10px;font-size:12px;color:var(--text);outline:none;font-family:var(--sans);}
+.fc-input:focus{border-color:var(--accent);background:#fff;}
+.fc-input.sm{width:80px;}
+.fc-input.md{width:150px;}
+.fc-input.lg{width:100%;}
+.fc-cb-group{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;}
+.fc-cb{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap;}
+.fc-cb input{width:14px;height:14px;cursor:pointer;accent-color:var(--accent);}
+.sor-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sor-table th{background:var(--surface2);padding:6px 10px;text-align:left;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border);font-size:11px;}
+.sor-table td{padding:5px 10px;border-bottom:.5px solid var(--border);vertical-align:middle;}
+.sor-table tr:last-child td{border-bottom:none;}
+.sor-label{font-weight:600;color:var(--text);}
 </style>
 
 </head>
@@ -298,6 +325,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     <div class="tab" id="tab-anestesia">📋 Ficha Pré-Anestésica</div>
     <div class="tab" id="tab-pendencias" style="display:none">🛏️ Pendências Diárias</div>
     <div class="tab" id="tab-decisoes" style="display:none">📝 Decisões da Visita</div>
+    <div class="tab" id="tab-coleta" style="display:none">📄 Ficha de Coleta</div>
     <div class="tab" id="tab-config" style="display:none">⚙️ Configuracoes</div>
   </div>
   <main>
@@ -488,6 +516,349 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
             <button class="btn btn-ghost" id="btn-decisoes-limpar">🗑️ Limpar</button>
             <button class="btn btn-primary" id="btn-decisoes-salvar">💾 Salvar e Bloquear</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-coleta" style="display:none;margin:-16px -24px;height:calc(100vh - 98px);">
+      <div style="display:flex;height:100%;">
+
+        <!-- SIDEBAR fichas salvas -->
+        <div style="width:190px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;">
+          <div style="padding:10px;">
+            <button class="btn btn-primary" id="btn-nova-ficha-coleta" style="width:100%;font-size:12px;padding:7px;">+ Nova Ficha</button>
+          </div>
+          <div style="padding:8px 12px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);">Fichas Salvas</div>
+          <div id="coleta-sidebar" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;">
+            <div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhuma ficha</div>
+          </div>
+        </div>
+
+        <!-- FORMULÁRIO -->
+        <div id="coleta-form-area" style="flex:1;overflow-y:auto;padding:20px 24px;">
+
+          <!-- IDENTIFICAÇÃO -->
+          <div class="fc-section">
+            <div class="fc-header blue">🏷️ Identificação do Paciente</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group" style="flex:1"><div class="fc-label">Prontuário</div><input class="fc-input lg" id="fc-prontuario" placeholder="Número do prontuário"></div>
+                <div class="fc-group"><div class="fc-label">Data do Transplante</div><input type="date" class="fc-input md" id="fc-data-tx"></div>
+                <div class="fc-group"><div class="fc-label">Tipo Sanguíneo</div>
+                  <select class="fc-input" id="fc-tipo-sang">
+                    <option value="">-</option>
+                    <option>O+</option><option>O-</option><option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Hospital</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-hosp" value="HGF"> HGF</label>
+                    <label class="fc-cb"><input type="radio" name="fc-hosp" value="HSC"> HSC</label>
+                    <label class="fc-cb"><input type="radio" name="fc-hosp" value="HRU"> HRU</label>
+                    <label class="fc-cb"><input type="radio" name="fc-hosp" value="Outro"> Outro</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Procedência</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-proc" value="De casa"> De casa</label>
+                    <label class="fc-cb"><input type="radio" name="fc-proc" value="Internado"> Internado</label>
+                  </div>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Origem</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-orig" value="Fortaleza"> Cidade de Fortaleza</label>
+                    <label class="fc-cb"><input type="radio" name="fc-orig" value="Interior CE"> Interior do Ceará</label>
+                    <label class="fc-cb"><input type="radio" name="fc-orig" value="Outro estado"> Outro estado</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Sexo</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-sexo" value="M"> M</label>
+                    <label class="fc-cb"><input type="radio" name="fc-sexo" value="F"> F</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Idade (anos)</div><input class="fc-input sm" id="fc-idade" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">Peso (kg)</div><input class="fc-input sm" id="fc-peso" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">Altura (cm)</div><input class="fc-input sm" id="fc-altura" placeholder="—"></div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">MELD Puro</div><input class="fc-input sm" id="fc-meld-puro" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">MELD Priorizado</div><input class="fc-input sm" id="fc-meld-prior" placeholder="—"></div>
+              </div>
+              <div class="fc-group"><div class="fc-label">Priorização</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="radio" name="fc-prior" value="Nao priorizado"> Não priorizado</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-chc"> Carcinoma Hepatocelular (CHC)</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-paf"> Polineuropatia Amiloidótica Familiar (PAF)</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-shp"> Síndrome Hepatopulmonar</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-hpp"> Hipertensão Portopulmonar</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-met"> Metástase de Tumor Neuroendócrino</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-ade"> Adenomatose Hepática</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-hem"> Hemangiendotelioma Epitelióide</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-pol"> Doença Policística do Fígado</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-asc"> Ascite Refratária</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-bud"> Síndrome de Budd-Chiari</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-iha"> Insuficiência Hepática Aguda</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-ret"> Retransplante</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-tah"> Trombose de Artéria Hepática</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-prior-out"> Outra</label>
+                </div>
+              </div>
+              <div class="fc-group"><div class="fc-label">Tipo de Cirrose</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-alc"> Alcoólica</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-hbv"> Viral (HBV)</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-hcv"> Viral (HCV)</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-hbhc"> Viral (HBV+HCV)</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-cri"> Criptogênica</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-aut"> Autoimune</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-nas"> NASH/Esteatohepatite</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-bil"> Biliar primária</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-col"> Colangite esclerosante</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-met"> Metabólica</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-cir-out"> Outra</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DADOS CIRÚRGICOS -->
+          <div class="fc-section">
+            <div class="fc-header orange">🔪 Dados Cirúrgicos</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Isquemia Fria (min)</div><input class="fc-input sm" id="fc-isq-fria" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">Isquemia Quente (min)</div><input class="fc-input sm" id="fc-isq-quente" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">Tempo Cirúrgico (min)</div><input class="fc-input sm" id="fc-tempo-cir" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">TGP Doador (U/L)</div><input class="fc-input sm" id="fc-tgp-doador" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">Sódio Doador (mEq/L)</div><input class="fc-input sm" id="fc-na-doador" placeholder="—"></div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Droga Vasoativa</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-vaso" value="Sim"> Sim</label>
+                    <label class="fc-cb"><input type="radio" name="fc-vaso" value="Nao"> Não</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Infecção Doador</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-infec" value="Sim"> Sim</label>
+                    <label class="fc-cb"><input type="radio" name="fc-infec" value="Nao"> Não</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Corticoide Intraop.</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-corti" value="Sim"> Sim</label>
+                    <label class="fc-cb"><input type="radio" name="fc-corti" value="Nao"> Não</label>
+                  </div>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Anastomose Vascular</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-anvas" value="Porta termino-terminal"> Porta término-terminal</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anvas" value="Reno-portal"> Reno-portal</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anvas" value="Meso-portal"> Meso-portal</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anvas" value="Gastrica esquerda portal"> Gástrica esquerda portal</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anvas" value="Outra"> Outra</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anvas" value="Sem dados"> Sem dados</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Anastomose Biliar</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-anbil" value="Coledococoledocostomia"> Coledococoledocostomia</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anbil" value="Hepaticojejunostomia"> Hepaticojejunostomia</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anbil" value="Coledocojejuno"> Coledocojejuno</label>
+                    <label class="fc-cb"><input type="radio" name="fc-anbil" value="Drenagem externa"> Drenagem externa</label>
+                  </div>
+                </div>
+              </div>
+              <div class="fc-group"><div class="fc-label">Anastomose Arterial</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="radio" name="fc-anart" value="Padrao"> Padrão</label>
+                  <label class="fc-cb"><input type="radio" name="fc-anart" value="Esplenica receptor com hepatica enxerto"> Esplênica do receptor com hepática do enxerto</label>
+                  <label class="fc-cb"><input type="radio" name="fc-anart" value="Aorta hepatica"> Aorta hepática (supra-celíaca ou infra-renal)</label>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Lesão Pós-Reperfusão</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-lesao" value="Leve"> Leve</label>
+                    <label class="fc-cb"><input type="radio" name="fc-lesao" value="Moderada"> Moderada</label>
+                    <label class="fc-cb"><input type="radio" name="fc-lesao" value="Intensa"> Intensa</label>
+                    <label class="fc-cb"><input type="radio" name="fc-lesao" value="Sem dados"> Sem dados</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Quantidade de Esteatose</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-esteat" value="<5%"> &lt;5%</label>
+                    <label class="fc-cb"><input type="radio" name="fc-esteat" value="<50%"> &lt;50%</label>
+                    <label class="fc-cb"><input type="radio" name="fc-esteat" value=">50%"> &gt;50%</label>
+                    <label class="fc-cb"><input type="radio" name="fc-esteat" value="Sem dados"> Sem dados</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SOROLOGIA -->
+          <div class="fc-section">
+            <div class="fc-header green">🧪 Sorologia</div>
+            <div class="fc-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <table class="sor-table">
+                  <thead><tr><th>Marcador</th><th>Receptor</th><th>Doador</th></tr></thead>
+                  <tbody>
+                    <tr><td class="sor-label">Anti-HCV</td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hcv-r" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hcv-r" value="NR"> NR</label></td>
+                      <td>—</td></tr>
+                    <tr><td class="sor-label">AgHBs</td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hbs-r" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hbs-r" value="NR"> NR</label></td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hbs-d" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hbs-d" value="NR"> NR</label></td></tr>
+                    <tr><td class="sor-label">Anti-HBc</td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hbc-r" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hbc-r" value="NR"> NR</label></td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hbc-d" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hbc-d" value="NR"> NR</label></td></tr>
+                    <tr><td class="sor-label">Anti-HBs</td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hbsab-r" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hbsab-r" value="NR"> NR</label></td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hbsab-d" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hbsab-d" value="NR"> NR</label></td></tr>
+                  </tbody>
+                </table>
+                <table class="sor-table">
+                  <thead><tr><th>Marcador</th><th>Receptor</th><th>Doador</th></tr></thead>
+                  <tbody>
+                    <tr><td class="sor-label">CMV IgG</td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-cmv-r" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-cmv-r" value="NR"> NR</label></td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-cmv-d" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-cmv-d" value="NR"> NR</label></td></tr>
+                    <tr><td class="sor-label">HIV</td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hiv-r" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hiv-r" value="NR"> NR</label></td>
+                      <td><label class="fc-cb"><input type="radio" name="fc-hiv-d" value="R"> R</label> <label class="fc-cb"><input type="radio" name="fc-hiv-d" value="NR"> NR</label></td></tr>
+                    <tr><td class="sor-label">Carga Viral HBV</td>
+                      <td><input class="fc-input" id="fc-cv-hbv" style="width:100%;padding:3px 6px;font-size:11px;" placeholder="valor"></td>
+                      <td>—</td></tr>
+                    <tr><td class="sor-label">Carga Viral HCV</td>
+                      <td><input class="fc-input" id="fc-cv-hcv" style="width:100%;padding:3px 6px;font-size:11px;" placeholder="valor"></td>
+                      <td>—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMORBIDADES -->
+          <div class="fc-section">
+            <div class="fc-header purple">❤️ Comorbidades</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Hipertensão</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-has" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-has" value="Nao"> Não</label></div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Diabetes</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-dm" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-dm" value="Nao"> Não</label></div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Dislipidemia</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-disl" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-disl" value="Nao"> Não</label></div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Etilismo</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-etil" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-etil" value="Nao"> Não</label></div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Tabagismo</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-tab" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-tab" value="Nao"> Não</label></div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Doença Coronariana</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-dac" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-dac" value="Nao"> Não</label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- INFORMAÇÕES DO INTERNAMENTO -->
+          <div class="fc-section">
+            <div class="fc-header red">🏥 Informações do Internamento</div>
+            <div class="fc-body">
+              <div class="fc-group"><div class="fc-label">Imunossupressão</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="checkbox" id="fc-imuno-tac-mico"> Tacrolimus+Micofenolato</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-imuno-tac-ever"> Tacrolimus+Everolimus</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-imuno-tac-iso"> Tacrolimus isolado</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-imuno-out"> Outros</label>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Pico TGP</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-tgp" value="<1000"> &lt;1000</label>
+                    <label class="fc-cb"><input type="radio" name="fc-tgp" value="1000-2000"> 1000-2000</label>
+                    <label class="fc-cb"><input type="radio" name="fc-tgp" value=">2000"> &gt;2000</label>
+                  </div>
+                </div>
+                <div class="fc-group"><div class="fc-label">INR no Pico</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="fc-inr" value="<1.5"> &lt;1,5</label>
+                    <label class="fc-cb"><input type="radio" name="fc-inr" value="1.5-2.5"> 1,5-2,5</label>
+                    <label class="fc-cb"><input type="radio" name="fc-inr" value=">2.5"> &gt;2,5</label>
+                  </div>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group"><div class="fc-label">Tempo Internamento (dias)</div><input class="fc-input sm" id="fc-tempo-int" placeholder="—"></div>
+                <div class="fc-group"><div class="fc-label">Uso de Antibiótico</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-atb" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-atb" value="Nao"> Não</label></div>
+                </div>
+                <div class="fc-group"><div class="fc-label">Germe MR</div>
+                  <div class="fc-cb-group"><label class="fc-cb"><input type="radio" name="fc-mr" value="Sim"> Sim</label><label class="fc-cb"><input type="radio" name="fc-mr" value="Nao"> Não</label></div>
+                </div>
+              </div>
+              <div class="fc-group"><div class="fc-label">Sítios de Infecção</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-pul"> Pulmonar</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-uri"> Urinário</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-abd"> Abdominal</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-san"> Corrente sanguínea</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-cir"> Sítio cirúrgico</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-cat"> Cateter</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-sit-out"> Outro</label>
+                </div>
+              </div>
+              <div class="fc-group"><div class="fc-label">Complicações do Transplante</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="checkbox" id="fc-comp-nen"> Nenhuma</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-comp-tah"> Trombose de artéria hepática</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-comp-nfe"> Não funcionamento primário do enxerto</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-comp-rej"> Rejeição aguda</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-comp-bil"> Complicações biliares</label>
+                  <label class="fc-cb"><input type="checkbox" id="fc-comp-tvp"> Trombose de veia porta</label>
+                </div>
+              </div>
+              <div class="fc-group"><div class="fc-label">Desfecho</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="radio" name="fc-desf" value="Alta"> Alta</label>
+                  <label class="fc-cb"><input type="radio" name="fc-desf" value="Obito"> Óbito</label>
+                  <label class="fc-cb"><input type="radio" name="fc-desf" value="Transferencia"> Transferência</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OBSERVAÇÕES -->
+          <div class="fc-section">
+            <div class="fc-header gray">📝 Observações</div>
+            <div class="fc-body">
+              <textarea class="form-textarea" id="fc-obs" style="min-height:80px;" placeholder="Observações adicionais..."></textarea>
+            </div>
+          </div>
+
+          <!-- AÇÕES -->
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:20px;">
+            <button class="btn btn-ghost" id="btn-fc-limpar">🗑️ Limpar</button>
+            <button class="btn btn-success" id="btn-fc-imprimir">🖨️ Imprimir Ficha</button>
+            <button class="btn btn-primary" id="btn-fc-salvar">💾 Salvar Ficha</button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1994,13 +2365,13 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';}
-  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';}
-  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';}
+  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
+  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
+  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';}
   initSupabase();
   populateDoctorSelects();
   // Mostrar aba fila como padrão
-  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','config'].forEach(function(t){
     var p=get('panel-'+t); if(p) p.style.display='none';
   });
   var pf=get('panel-fila'); if(pf) pf.style.display='block';
@@ -2030,7 +2401,7 @@ get('tab-anestesia').addEventListener('click',function(){switchTab('anestesia');
 get('tab-pendencias').addEventListener('click',function(){switchTab('pendencias');});
 
 function switchTab(tab){
-  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','config'].forEach(function(t){
+  ['fila','sessao','stats','receptores','anestesia','pendencias','decisoes','coleta','config'].forEach(function(t){
     var panel=get('panel-'+t);
     if(panel) panel.style.display=t===tab?'block':'none';
     var el=get('tab-'+t);if(el)el.classList.toggle('active',t===tab);
@@ -2040,6 +2411,7 @@ function switchTab(tab){
   if(tab==='anestesia')initAnestesia();
   if(tab==='pendencias')loadPendencias();
   if(tab==='decisoes')loadDecisoes();
+  if(tab==='coleta')loadFichasColeta();
 }
 
 // Filtros de periodo
@@ -3399,6 +3771,322 @@ get('btn-decisoes-salvar').addEventListener('click', function(){
     get('decisoes-textarea').value = '';
     loadDecisoes();
   }
+});
+
+
+// ── FICHA DE COLETA ──
+var fichasColetaData = [];
+var fichaColetaAtiva = null;
+
+get('tab-coleta').addEventListener('click', function(){ switchTab('coleta'); });
+
+function loadFichasColeta(){
+  fichasColetaData = [];
+  if(sbClient){
+    sbClient.from('fichas_coleta').select('*').order('created_at',{ascending:false})
+      .then(function(r){
+        fichasColetaData = r.data||[];
+        renderColetaSidebar();
+      }).catch(function(){
+        fichasColetaData = lsGet('fichas_coleta')||[];
+        renderColetaSidebar();
+      });
+  } else {
+    fichasColetaData = lsGet('fichas_coleta')||[];
+    renderColetaSidebar();
+  }
+}
+
+function renderColetaSidebar(){
+  var sb = get('coleta-sidebar');
+  if(!sb) return;
+  if(!fichasColetaData.length){
+    sb.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhuma ficha</div>';
+    return;
+  }
+  sb.innerHTML = fichasColetaData.map(function(f){
+    var data = f.created_at ? new Date(f.created_at).toLocaleDateString('pt-BR') : '-';
+    var pront = (f.dados&&f.dados.prontuario)||'-';
+    return '<div class="leito-card" style="padding:9px 10px;cursor:pointer;gap:4px;" data-id="'+esc(f.id||f.created_at)+'">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Pront: '+esc(pront)+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);font-family:var(--mono);">'+data+'</div>'
+      +'<div style="font-size:9px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);padding:1px 6px;border-radius:10px;display:inline-block;font-weight:600;">✓ Salvo</div>'
+      +'</div>';
+  }).join('');
+  sb.querySelectorAll('[data-id]').forEach(function(el){
+    el.addEventListener('click', function(){ carregarFichaColeta(this.dataset.id); });
+  });
+}
+
+function coletarDadosFC(){
+  var dados = {};
+  // Inputs e selects
+  var ids = ['prontuario','data-tx','tipo-sang','idade','peso','altura','meld-puro','meld-prior','tempo-int','cv-hbv','cv-hcv','obs'];
+  ids.forEach(function(id){
+    var el = get('fc-'+id);
+    if(el) dados[id.replace(/-/g,'_')] = el.value;
+  });
+  // Radios
+  var radios = ['hosp','proc','orig','sexo','prior','vaso','infec','corti','anvas','anbil','anart','lesao','esteat','has','dm','disl','etil','tab','dac','tgp','inr','atb','mr','desf'];
+  radios.forEach(function(name){
+    var el = document.querySelector('input[name="fc-'+name+'"]:checked');
+    if(el) dados[name] = el.value;
+  });
+  // Checkboxes
+  var cbs = ['prior-chc','prior-paf','prior-shp','prior-hpp','prior-met','prior-ade','prior-hem','prior-pol','prior-asc','prior-bud','prior-iha','prior-ret','prior-tah','prior-out',
+             'cir-alc','cir-hbv','cir-hcv','cir-hbhc','cir-cri','cir-aut','cir-nas','cir-bil','cir-col','cir-met','cir-out',
+             'imuno-tac-mico','imuno-tac-ever','imuno-tac-iso','imuno-out',
+             'sit-pul','sit-uri','sit-abd','sit-san','sit-cir','sit-cat','sit-out',
+             'comp-nen','comp-tah','comp-nfe','comp-rej','comp-bil','comp-tvp'];
+  cbs.forEach(function(id){
+    var el = get('fc-'+id);
+    if(el) dados[id.replace(/-/g,'_')] = el.checked;
+  });
+  // Sorologia - radios com nomes especiais
+  var sorRadios = ['hcv-r','hbs-r','hbs-d','hbc-r','hbc-d','hbsab-r','hbsab-d','cmv-r','cmv-d','hiv-r','hiv-d'];
+  sorRadios.forEach(function(name){
+    var el = document.querySelector('input[name="fc-'+name+'"]:checked');
+    if(el) dados['sor_'+name.replace(/-/g,'_')] = el.value;
+  });
+  return dados;
+}
+
+function limparFichaColeta(){
+  // Limpar inputs
+  document.querySelectorAll('#coleta-form-area input[type="text"], #coleta-form-area input[type="date"], #coleta-form-area input[type="number"], #coleta-form-area select, #coleta-form-area textarea').forEach(function(el){
+    if(el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  // Limpar radios e checkboxes
+  document.querySelectorAll('#coleta-form-area input[type="radio"], #coleta-form-area input[type="checkbox"]').forEach(function(el){
+    el.checked = false;
+  });
+  fichaColetaAtiva = null;
+}
+
+function carregarFichaColeta(id){
+  var f = fichasColetaData.find(function(x){ return (x.id||x.created_at) == id; });
+  if(!f||!f.dados) return;
+  fichaColetaAtiva = f;
+  limparFichaColeta();
+  var d = f.dados;
+  // Inputs
+  var ids = ['prontuario','data-tx','tipo-sang','idade','peso','altura','meld-puro','meld-prior','tempo-int','cv-hbv','cv-hcv','obs'];
+  ids.forEach(function(id){
+    var el = get('fc-'+id);
+    var key = id.replace(/-/g,'_');
+    if(el && d[key]!==undefined) el.value = d[key];
+  });
+  // Radios
+  var radios = ['hosp','proc','orig','sexo','prior','vaso','infec','corti','anvas','anbil','anart','lesao','esteat','has','dm','disl','etil','tab','dac','tgp','inr','atb','mr','desf'];
+  radios.forEach(function(name){
+    if(d[name]){
+      var el = document.querySelector('input[name="fc-'+name+'"][value="'+d[name]+'"]');
+      if(el) el.checked = true;
+    }
+  });
+  // Checkboxes
+  var cbs = ['prior-chc','prior-paf','prior-shp','prior-hpp','prior-met','prior-ade','prior-hem','prior-pol','prior-asc','prior-bud','prior-iha','prior-ret','prior-tah','prior-out',
+             'cir-alc','cir-hbv','cir-hcv','cir-hbhc','cir-cri','cir-aut','cir-nas','cir-bil','cir-col','cir-met','cir-out',
+             'imuno-tac-mico','imuno-tac-ever','imuno-tac-iso','imuno-out',
+             'sit-pul','sit-uri','sit-abd','sit-san','sit-cir','sit-cat','sit-out',
+             'comp-nen','comp-tah','comp-nfe','comp-rej','comp-bil','comp-tvp'];
+  cbs.forEach(function(id){
+    var el = get('fc-'+id);
+    var key = id.replace(/-/g,'_');
+    if(el && d[key]) el.checked = true;
+  });
+  // Sorologia
+  var sorRadios = ['hcv-r','hbs-r','hbs-d','hbc-r','hbc-d','hbsab-r','hbsab-d','cmv-r','cmv-d','hiv-r','hiv-d'];
+  sorRadios.forEach(function(name){
+    var key = 'sor_'+name.replace(/-/g,'_');
+    if(d[key]){
+      var el = document.querySelector('input[name="fc-'+name+'"][value="'+d[key]+'"]');
+      if(el) el.checked = true;
+    }
+  });
+  get('coleta-form-area').scrollTop = 0;
+}
+
+get('btn-nova-ficha-coleta').addEventListener('click', function(){
+  limparFichaColeta();
+  get('coleta-form-area').scrollTop = 0;
+  document.querySelectorAll('#coleta-sidebar [data-id]').forEach(function(el){ el.style.borderColor=''; el.style.background=''; });
+});
+
+get('btn-fc-limpar').addEventListener('click', function(){
+  if(confirm('Limpar todos os campos?')) limparFichaColeta();
+});
+
+get('btn-fc-salvar').addEventListener('click', function(){
+  var pront = get('fc-prontuario').value.trim();
+  if(!pront){ showToast('Informe o prontuário.','error'); return; }
+  var dados = coletarDadosFC();
+  var rec = { dados: dados, created_at: new Date().toISOString() };
+  if(sbClient){
+    var query = fichaColetaAtiva
+      ? sbClient.from('fichas_coleta').update({dados:dados,updated_at:new Date().toISOString()}).eq('id',fichaColetaAtiva.id)
+      : sbClient.from('fichas_coleta').insert([rec]);
+    query.then(function(r){
+      if(r.error){ showToast('Erro: '+r.error.message,'error'); return; }
+      showToast('Ficha salva!','success');
+      loadFichasColeta();
+    });
+  } else {
+    var local = lsGet('fichas_coleta')||[];
+    if(fichaColetaAtiva){
+      var idx = local.findIndex(function(x){ return x.id===fichaColetaAtiva.id; });
+      if(idx>=0) local[idx].dados = dados;
+    } else {
+      rec.id = Date.now().toString();
+      local.unshift(rec);
+    }
+    lsSet('fichas_coleta', local);
+    fichasColetaData = local;
+    renderColetaSidebar();
+    showToast('Ficha salva!','success');
+  }
+});
+
+get('btn-fc-imprimir').addEventListener('click', function(){
+  var d = coletarDadosFC();
+  var now = new Date().toLocaleDateString('pt-BR');
+  function yn(v){ return v==='Sim'?'Sim':v==='Nao'?'Não':(v||'—'); }
+  function cb(v){ return v?'☑':'☐'; }
+  function rd(v,opt){ return v===opt?'●':'○'; }
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box;}'
+    +'body{font-family:Arial,sans-serif;font-size:10px;color:#000;padding:10mm;}'
+    +'.title{text-align:center;font-size:14px;font-weight:bold;margin-bottom:2px;}'
+    +'.subtitle{text-align:center;font-size:9px;color:#555;margin-bottom:8px;}'
+    +'.section{border:1px solid #333;border-radius:3px;margin-bottom:6px;overflow:hidden;}'
+    +'.sec-header{background:#185FA5;color:#fff;padding:4px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;}'
+    +'.sec-header.orange{background:#c47f00;}'
+    +'.sec-header.green{background:#1e9e5e;}'
+    +'.sec-header.purple{background:#6d3fa0;}'
+    +'.sec-header.red{background:#c0392b;}'
+    +'.sec-header.gray{background:#4a5e78;}'
+    +'.sec-body{padding:6px 8px;display:flex;flex-direction:column;gap:4px;}'
+    +'.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}'
+    +'.field{display:flex;flex-direction:column;gap:1px;}'
+    +'.lbl{font-size:8px;font-weight:bold;color:#666;text-transform:uppercase;}'
+    +'.val{font-size:10px;color:#000;}'
+    +'table{width:100%;border-collapse:collapse;font-size:9px;}'
+    +'th{background:#f0f4f8;padding:3px 6px;text-align:left;border-bottom:1px solid #ccc;font-weight:bold;}'
+    +'td{padding:3px 6px;border-bottom:.5px solid #eee;vertical-align:middle;}'
+    +'.footer{margin-top:10px;display:flex;justify-content:space-between;font-size:9px;color:#666;border-top:1px solid #ccc;padding-top:6px;}'
+    +'@media print{@page{margin:10mm;}}'
+    +'</style></head><body>'
+    +'<div class="title">FICHA DE COLETA — TRANSPLANTE HEPÁTICO</div>'
+    +'<div class="subtitle">TransplantData HGF • Registro de Dados Clínicos e Cirúrgicos</div>'
+
+    // IDENTIFICAÇÃO
+    +'<div class="section"><div class="sec-header">🏷 Identificação do Paciente</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Prontuário</div><div class="val">'+(d.prontuario||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Data Tx</div><div class="val">'+(d.data_tx||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Tipo Sang.</div><div class="val">'+(d.tipo_sang||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Sexo</div><div class="val">'+(d.sexo||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Idade</div><div class="val">'+(d.idade||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Peso (kg)</div><div class="val">'+(d.peso||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Altura (cm)</div><div class="val">'+(d.altura||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">MELD Puro</div><div class="val">'+(d.meld_puro||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">MELD Prior.</div><div class="val">'+(d.meld_prior||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Hospital</div><div class="val">'+(d.hosp||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Procedência</div><div class="val">'+(d.proc||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Origem</div><div class="val">'+(d.orig||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="field"><div class="lbl">Priorização</div><div class="val">'
+    +[['prior_chc','CHC'],['prior_paf','PAF'],['prior_shp','SHP'],['prior_hpp','HPP'],['prior_met','Met.Neuroend.'],['prior_ade','Adenomatose'],['prior_hem','Hemangiend.'],['prior_pol','Policística'],['prior_asc','Ascite Refrat.'],['prior_bud','Budd-Chiari'],['prior_iha','IHA'],['prior_ret','Retransplante'],['prior_tah','Trombose AH'],['prior_out','Outra']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||d.prior||'Não priorizado'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Tipo de Cirrose</div><div class="val">'
+    +[['cir_alc','Alcoólica'],['cir_hbv','HBV'],['cir_hcv','HCV'],['cir_hbhc','HBV+HCV'],['cir_cri','Criptogênica'],['cir_aut','Autoimune'],['cir_nas','NASH'],['cir_bil','Biliar primária'],['cir_col','Colangite esclerosante'],['cir_met','Metabólica'],['cir_out','Outra']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'—'
+    +'</div></div>'
+    +'</div></div>'
+
+    // DADOS CIRÚRGICOS
+    +'<div class="section"><div class="sec-header orange">🔪 Dados Cirúrgicos</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Isquemia Fria (min)</div><div class="val">'+(d.isq_fria||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Isquemia Quente (min)</div><div class="val">'+(d.isq_quente||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Tempo Cirúrgico (min)</div><div class="val">'+(d.tempo_cir||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">TGP Doador (U/L)</div><div class="val">'+(d.tgp_doador||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Sódio Doador (mEq/L)</div><div class="val">'+(d.na_doador||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Droga Vasoativa</div><div class="val">'+yn(d.vaso)+'</div></div>'
+    +'<div class="field"><div class="lbl">Infecção Doador</div><div class="val">'+yn(d.infec)+'</div></div>'
+    +'<div class="field"><div class="lbl">Corticoide Intraop.</div><div class="val">'+yn(d.corti)+'</div></div>'
+    +'<div class="field"><div class="lbl">Anastomose Vascular</div><div class="val">'+(d.anvas||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Anastomose Biliar</div><div class="val">'+(d.anbil||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Anastomose Arterial</div><div class="val">'+(d.anart||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Lesão Pós-Reperfusão</div><div class="val">'+(d.lesao||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Esteatose</div><div class="val">'+(d.esteat||'—')+'</div></div>'
+    +'</div>'
+    +'</div></div>'
+
+    // SOROLOGIA
+    +'<div class="section"><div class="sec-header green">🧪 Sorologia</div><div class="sec-body">'
+    +'<table><thead><tr><th>Marcador</th><th>Receptor</th><th>Doador</th></tr></thead><tbody>'
+    +'<tr><td>Anti-HCV</td><td>'+(d.sor_hcv_r||'—')+'</td><td>—</td></tr>'
+    +'<tr><td>AgHBs</td><td>'+(d.sor_hbs_r||'—')+'</td><td>'+(d.sor_hbs_d||'—')+'</td></tr>'
+    +'<tr><td>Anti-HBc</td><td>'+(d.sor_hbc_r||'—')+'</td><td>'+(d.sor_hbc_d||'—')+'</td></tr>'
+    +'<tr><td>Anti-HBs</td><td>'+(d.sor_hbsab_r||'—')+'</td><td>'+(d.sor_hbsab_d||'—')+'</td></tr>'
+    +'<tr><td>CMV IgG</td><td>'+(d.sor_cmv_r||'—')+'</td><td>'+(d.sor_cmv_d||'—')+'</td></tr>'
+    +'<tr><td>HIV</td><td>'+(d.sor_hiv_r||'—')+'</td><td>'+(d.sor_hiv_d||'—')+'</td></tr>'
+    +'<tr><td>Carga Viral HBV</td><td>'+(d.cv_hbv||'—')+'</td><td>—</td></tr>'
+    +'<tr><td>Carga Viral HCV</td><td>'+(d.cv_hcv||'—')+'</td><td>—</td></tr>'
+    +'</tbody></table>'
+    +'</div></div>'
+
+    // COMORBIDADES
+    +'<div class="section"><div class="sec-header purple">❤️ Comorbidades</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Hipertensão</div><div class="val">'+yn(d.has)+'</div></div>'
+    +'<div class="field"><div class="lbl">Diabetes</div><div class="val">'+yn(d.dm)+'</div></div>'
+    +'<div class="field"><div class="lbl">Dislipidemia</div><div class="val">'+yn(d.disl)+'</div></div>'
+    +'<div class="field"><div class="lbl">Etilismo</div><div class="val">'+yn(d.etil)+'</div></div>'
+    +'<div class="field"><div class="lbl">Tabagismo</div><div class="val">'+yn(d.tab)+'</div></div>'
+    +'<div class="field"><div class="lbl">D. Coronariana</div><div class="val">'+yn(d.dac)+'</div></div>'
+    +'</div>'
+    +'</div></div>'
+
+    // INTERNAMENTO
+    +'<div class="section"><div class="sec-header red">🏥 Informações do Internamento</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Imunossupressão</div><div class="val">'
+    +[['imuno_tac_mico','Tac+Mico'],['imuno_tac_ever','Tac+Ever'],['imuno_tac_iso','Tac isolado'],['imuno_out','Outros']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'—'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Pico TGP</div><div class="val">'+(d.tgp||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">INR Pico</div><div class="val">'+(d.inr||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Tempo Internamento</div><div class="val">'+(d.tempo_int||'—')+' dias</div></div>'
+    +'<div class="field"><div class="lbl">Uso ATB</div><div class="val">'+yn(d.atb)+'</div></div>'
+    +'<div class="field"><div class="lbl">Germe MR</div><div class="val">'+yn(d.mr)+'</div></div>'
+    +'</div>'
+    +'<div class="field"><div class="lbl">Sítios de Infecção</div><div class="val">'
+    +[['sit_pul','Pulmonar'],['sit_uri','Urinário'],['sit_abd','Abdominal'],['sit_san','Corrente sanguínea'],['sit_cir','Sítio cirúrgico'],['sit_cat','Cateter'],['sit_out','Outro']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'Nenhum'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Complicações</div><div class="val">'
+    +[['comp_nen','Nenhuma'],['comp_tah','Trombose AH'],['comp_nfe','NF primário enxerto'],['comp_rej','Rejeição aguda'],['comp_bil','Compl. biliares'],['comp_tvp','Trombose VP']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'—'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Desfecho</div><div class="val">'+(d.desf||'—')+'</div></div>'
+    +'</div></div>'
+
+    +(d.obs?'<div class="section"><div class="sec-header gray">📝 Observações</div><div class="sec-body"><div class="val">'+esc(d.obs)+'</div></div></div>':'')
+
+    +'<div class="footer">'
+    +'<div>TransplantData HGF — Sistema de Pesquisa em Transplante Hepático</div>'
+    +'<div>Gerado em: '+now+'&nbsp;&nbsp;&nbsp;Assinatura / Carimbo: ___________________</div>'
+    +'</div>'
+    +'</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 600);
 });
 
 })();
