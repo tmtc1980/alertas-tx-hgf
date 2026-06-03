@@ -961,6 +961,13 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
     </div>
 
     <div id="panel-enfermagem" style="display:none;margin:-16px -24px;height:calc(100vh - 98px);">
+
+      <!-- SELETOR DE VISÃO -->
+      <div id="enf-visao-selector" style="display:none;position:absolute;top:54px;left:0;right:0;z-index:10;background:var(--surface);border-bottom:2px solid var(--accent);padding:8px 20px;display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" id="btn-enf-preencher" style="font-size:12px;">📝 Preencher Plantão</button>
+        <button class="btn btn-ghost btn-sm" id="btn-enf-dashboard" style="font-size:12px;">📊 Dashboard Gerencial</button>
+      </div>
+
       <div style="display:flex;height:100%;">
 
         <!-- SIDEBAR plantões anteriores -->
@@ -2754,9 +2761,42 @@ function startApp(){
   get('login-screen').style.display='none';
   get('app').style.display='flex';
   var badge=get('role-badge');
-  if(currentRole==='admin'){badge.textContent='Admin';badge.classList.add('admin');get('tab-config').style.display='flex';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-stats').style.display='flex';get('tab-enfermagem').style.display='flex';}
-  else if(currentRole==='diarista'){badge.textContent='Diarista';badge.classList.add('diarista');get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';}
-  else{badge.textContent='Ambulatorio';get('tab-config').style.display='none';get('tab-pendencias').style.display='flex';get('tab-decisoes').style.display='flex';get('tab-coleta').style.display='flex';get('tab-enfermagem').style.display='flex';}
+  // Ocultar todas as abas opcionais primeiro
+  ['tab-config','tab-stats','tab-pendencias','tab-decisoes','tab-coleta','tab-enfermagem'].forEach(function(id){
+    var el=get(id); if(el) el.style.display='none';
+  });
+  if(currentRole==='admin'){
+    badge.textContent='Admin';badge.classList.add('admin');
+    get('tab-config').style.display='flex';
+    get('tab-stats').style.display='flex';
+    get('tab-pendencias').style.display='flex';
+    get('tab-decisoes').style.display='flex';
+    get('tab-coleta').style.display='flex';
+    get('tab-enfermagem').style.display='flex';
+  } else if(currentRole==='diarista'){
+    badge.textContent='Diarista';badge.classList.add('diarista');
+    get('tab-pendencias').style.display='flex';
+    get('tab-decisoes').style.display='flex';
+    get('tab-coleta').style.display='flex';
+    get('tab-enfermagem').style.display='flex';
+  } else if(currentRole==='enfermeiro'){
+    badge.textContent='Enfermeiro';
+    get('tab-pendencias').style.display='flex';
+    get('tab-decisoes').style.display='flex';
+    get('tab-enfermagem').style.display='flex';
+  } else if(currentRole==='chefe_enf'){
+    badge.textContent='Chefe Enf.';
+    get('tab-pendencias').style.display='flex';
+    get('tab-decisoes').style.display='flex';
+    get('tab-enfermagem').style.display='flex';
+    get('tab-stats').style.display='flex';
+  } else {
+    badge.textContent='Ambulatorio';
+    get('tab-pendencias').style.display='flex';
+    get('tab-decisoes').style.display='flex';
+    get('tab-coleta').style.display='flex';
+    get('tab-enfermagem').style.display='flex';
+  }
   initSupabase();
   populateDoctorSelects();
   initFiltrosFila();
@@ -4804,8 +4844,10 @@ var plantoesData = [];
 var plantaoAtivo = null;
 
 function loadEnfermagem(){
+  mostrarSeletorEnf();
+  initEnfermagemVisao();
   var hoje = new Date().toISOString().split('T')[0];
-  get('enf-data').value = hoje;
+  if(get('enf-data')) get('enf-data').value = hoje;
   plantoesData = [];
   if(sbClient){
     sbClient.from('plantoes_enfermagem').select('*').order('created_at',{ascending:false})
@@ -5060,6 +5102,184 @@ get('btn-enf-imprimir').addEventListener('click', function(){
   win.document.close();
   setTimeout(function(){ win.print(); }, 500);
 });
+
+// ── DASHBOARD ENFERMAGEM ──
+function initEnfermagemVisao(){
+  var btnPreencher = get('btn-enf-preencher');
+  var btnDash = get('btn-enf-dashboard');
+  if(!btnPreencher || !btnDash) return;
+
+  btnPreencher.addEventListener('click', function(){
+    get('enfermagem-form-area').style.display='flex';
+    get('enfermagem-form-area').style.flexDirection='column';
+    get('enf-dashboard-area').style.display='none';
+    btnPreencher.className='btn btn-primary btn-sm';
+    btnDash.className='btn btn-ghost btn-sm';
+  });
+
+  btnDash.addEventListener('click', function(){
+    get('enfermagem-form-area').style.display='none';
+    get('enf-dashboard-area').style.display='flex';
+    get('enf-dashboard-area').style.flexDirection='column';
+    btnDash.className='btn btn-primary btn-sm';
+    btnPreencher.className='btn btn-ghost btn-sm';
+    renderDashboardEnf();
+  });
+}
+
+function mostrarSeletorEnf(){
+  var sel = get('enf-visao-selector');
+  if(!sel) return;
+  var canDash = currentRole==='admin' || currentRole==='chefe_enf';
+  sel.style.display = canDash ? 'flex' : 'none';
+}
+
+function renderDashboardEnf(){
+  var dados = plantoesData;
+  if(!dados.length){
+    get('enf-dashboard-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;">📋</div><div>Nenhum plantão registrado ainda.</div></div>';
+    return;
+  }
+
+  // Período selecionável
+  var periodoAtual = window._enfPeriodo || 'mes';
+
+  function filtrarPeriodo(lista){
+    var now = new Date();
+    var cutoff;
+    if(periodoAtual==='semana') cutoff = new Date(now - 7*24*60*60*1000);
+    else if(periodoAtual==='mes') cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    else if(periodoAtual==='trim') cutoff = new Date(now - 90*24*60*60*1000);
+    else return lista;
+    return lista.filter(function(p){ return new Date(p.created_at) >= cutoff; });
+  }
+
+  var filtrados = filtrarPeriodo(dados);
+  var total = filtrados.length;
+
+  // Calcular esperado (3 turnos x dias do período)
+  var diasPeriodo = periodoAtual==='semana'?7:periodoAtual==='mes'?30:periodoAtual==='trim'?90:999;
+  var esperado = diasPeriodo * 3; // manhã, tarde, noite
+  var taxaPreench = total ? Math.round(total/esperado*100) : 0;
+
+  // Somar indicadores
+  function soma(campo){ return filtrados.reduce(function(acc,p){ return acc + ((p.dados&&p.dados[campo])||0); },0); }
+  function media(campo){ return total ? Math.round(soma(campo)/total*10)/10 : 0; }
+
+  // Ranking enfermeiros
+  var enfMap = {};
+  filtrados.forEach(function(p){
+    var nome = (p.dados&&p.dados.nome)||'Não identificado';
+    var coren = (p.dados&&p.dados.coren)||'—';
+    var key = nome+'|'+coren;
+    if(!enfMap[key]) enfMap[key]={nome:nome,coren:coren,count:0};
+    enfMap[key].count++;
+  });
+  var enfRank = Object.values(enfMap).sort(function(a,b){return b.count-a.count;});
+
+  // Plantões faltantes (verificar buracos por unidade/turno/data)
+  var preenchidos = {};
+  filtrados.forEach(function(p){
+    var d = p.dados||{};
+    var key = (d.data||'')+'|'+(d.unidade||'')+'|'+(d.turno||'');
+    preenchidos[key] = true;
+  });
+
+  // Últimos 7 dias por unidade — verificar faltantes
+  var faltantes = [];
+  var unidades = ['Ala C','Ala D','Transplante Hepatico'];
+  var turnos = ['Manha','Tarde','Noite'];
+  var hoje = new Date();
+  for(var dd=0; dd<7; dd++){
+    var dt = new Date(hoje - dd*24*60*60*1000);
+    var dtStr = dt.toISOString().split('T')[0];
+    unidades.forEach(function(u){
+      turnos.forEach(function(t){
+        var key = dtStr+'|'+u+'|'+t;
+        if(!preenchidos[key]){
+          faltantes.push({data:dtStr, unidade:u, turno:t});
+        }
+      });
+    });
+  }
+
+  // HTML do dashboard
+  var html = '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">'
+    +'<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;">Período:</div>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='semana'?'btn-primary':'btn-ghost')+'" data-periodo="semana" style="font-size:11px;">Semana</button>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='mes'?'btn-primary':'btn-ghost')+'" data-periodo="mes" style="font-size:11px;">Mês</button>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='trim'?'btn-primary':'btn-ghost')+'" data-periodo="trim" style="font-size:11px;">Trimestre</button>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='todos'?'btn-primary':'btn-ghost')+'" data-periodo="todos" style="font-size:11px;">Todos</button>'
+    +'</div>';
+
+  // Cards resumo
+  html += '<div class="stats-grid" style="margin-bottom:14px;">'
+    +'<div class="stat-card"><div class="stat-num">'+total+'</div><div class="stat-label">Plantões Registrados</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+taxaPreench+'%</div><div class="stat-label">Taxa de Preenchimento</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">'+faltantes.length+'</div><div class="stat-label">Faltantes (7 dias)</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('internados')+'</div><div class="stat-label">Média Internados/Plantão</div></div>'
+    +'</div>';
+
+  // Segurança do Paciente
+  html += '<div class="settings-section"><div class="settings-title">⚠️ Segurança do Paciente</div>'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('quedas')+'</div><div class="stat-label">Quedas</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--yellow);"><div class="stat-num" style="color:var(--yellow)">'+soma('flebites')+'</div><div class="stat-label">Flebites</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('reacoes_med')+'</div><div class="stat-label">Reações Medicamentosas</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--yellow);"><div class="stat-num" style="color:var(--yellow)">'+soma('perfuro')+'</div><div class="stat-label">Perfuro-cortante</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('lpp_adm')+'</div><div class="stat-label">LPP na Admissão</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('lpp_adq')+'</div><div class="stat-label">LPP Adquirida</div></div>'
+    +'</div></div>';
+
+  // Hemoterapia e Assistencial
+  html += '<div class="settings-section"><div class="settings-title">🩸 Hemoterapia & Indicadores Assistenciais</div>'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card"><div class="stat-num">'+soma('hemo')+'</div><div class="stat-label">Hemotransfusões</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('reacoes_trans')+'</div><div class="stat-label">Reações Transfusionais</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('admissoes')+'</div><div class="stat-label">Total Admissões</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('altas')+'</div><div class="stat-label">Total Altas</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('obitos')+'</div><div class="stat-label">Total Óbitos</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('curativos')+'</div><div class="stat-label">Curativos</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('sng_perda')+'</div><div class="stat-label">Perda/Obstr. SNG</div></div>'
+    +'</div></div>';
+
+  // Perfil dos Pacientes
+  html += '<div class="settings-section"><div class="settings-title">👥 Perfil dos Pacientes (médias)</div>'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card"><div class="stat-num">'+media('traqueo')+'</div><div class="stat-label">Traqueostomia</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('intubados')+'</div><div class="stat-label">Intubados</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('acamados')+'</div><div class="stat-label">Acamados</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('isolamento')+'</div><div class="stat-label">Isolamento de Contato</div></div>'
+    +'</div></div>';
+
+  // Conformidade — faltantes últimos 7 dias
+  if(faltantes.length){
+    html += '<div class="settings-section"><div class="settings-title" style="color:var(--red);">❌ Plantões Não Preenchidos (últimos 7 dias)</div>'
+      +'<table class="stats-table"><thead><tr><th>Data</th><th>Unidade</th><th>Turno</th></tr></thead><tbody>'
+      +faltantes.slice(0,20).map(function(f){
+        return '<tr><td>'+f.data+'</td><td>'+esc(f.unidade)+'</td><td>'+f.turno+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div>';
+  } else {
+    html += '<div class="settings-section"><div style="color:var(--green);font-weight:600;font-size:13px;">✅ Todos os plantões dos últimos 7 dias foram preenchidos!</div></div>';
+  }
+
+  // Ranking de enfermeiros
+  html += '<div class="settings-section"><div class="settings-title">👩‍⚕️ Enfermeiros que Preencheram</div>'
+    +'<table class="stats-table"><thead><tr><th>Nome</th><th>COREN</th><th>Plantões</th></tr></thead><tbody>'
+    +enfRank.map(function(e){
+      return '<tr><td>'+esc(e.nome)+'</td><td>'+esc(e.coren)+'</td><td><strong>'+e.count+'</strong></td></tr>';
+    }).join('')
+    +'</tbody></table></div>';
+
+  get('enf-dashboard-content').innerHTML = html;
+  get('enf-dashboard-content').querySelectorAll('.enf-periodo-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      window._enfPeriodo = this.dataset.periodo;
+      renderDashboardEnf();
+    });
+  });
+}
 })();
 </script>
 <script>
