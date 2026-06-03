@@ -960,15 +960,15 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <div id="panel-enfermagem" style="display:none;">
+    <div id="panel-enfermagem" style="display:none;margin:-16px -24px;height:calc(100vh - 98px);">
 
       <!-- SELETOR DE VISÃO -->
-      <div id="enf-visao-selector" style="display:none;background:var(--surface);border-bottom:2px solid var(--accent);padding:8px 0;margin-bottom:12px;gap:8px;">
+      <div id="enf-visao-selector" style="display:none;position:absolute;top:54px;left:0;right:0;z-index:10;background:var(--surface);border-bottom:2px solid var(--accent);padding:8px 20px;display:flex;gap:8px;">
         <button class="btn btn-primary btn-sm" id="btn-enf-preencher" style="font-size:12px;">📝 Preencher Plantão</button>
         <button class="btn btn-ghost btn-sm" id="btn-enf-dashboard" style="font-size:12px;">📊 Dashboard Gerencial</button>
       </div>
 
-      <div style="display:flex;gap:0;min-height:500px;">
+      <div style="display:flex;height:100%;">
 
         <!-- SIDEBAR plantões anteriores -->
         <div style="width:180px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;">
@@ -982,7 +982,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
         </div>
 
         <!-- FORMULÁRIO -->
-        <div id="enfermagem-form-area" style="flex:1;padding:20px 24px;">
+        <div id="enfermagem-form-area" style="flex:1;overflow-y:auto;padding:20px 24px;">
 
           <!-- CABEÇALHO IDENTIFICAÇÃO -->
           <div class="fc-section">
@@ -2920,48 +2920,6 @@ function loadFila(){
 }
 function getLocalFila(){return filaAllData.filter(function(p){return p.status==='pendente';});}
 
-function initFiltrosFila(){
-  var btnToggle = get('btn-toggle-filtros');
-  var panel = get('filtros-panel');
-  if(btnToggle) btnToggle.addEventListener('click', function(){
-    panel.style.display = panel.style.display==='none' ? 'block' : 'none';
-  });
-
-  // Listeners de todos os filtros
-  document.querySelectorAll('.filtro-tipo, .filtro-status').forEach(function(el){
-    el.addEventListener('change', aplicarFiltrosFila);
-  });
-  document.querySelectorAll('input[name="filtro-periodo"]').forEach(function(el){
-    el.addEventListener('change', aplicarFiltrosFila);
-  });
-  ['filtro-medico','filtro-ordem'].forEach(function(id){
-    var el = get(id); if(el) el.addEventListener('change', aplicarFiltrosFila);
-  });
-  ['filtro-busca','filtro-cid'].forEach(function(id){
-    var el = get(id);
-    if(el) el.addEventListener('input', function(){
-      clearTimeout(el._t);
-      el._t = setTimeout(aplicarFiltrosFila, 300);
-    });
-  });
-
-  // Limpar filtros
-  var btnLimpar = get('btn-limpar-filtros');
-  if(btnLimpar) btnLimpar.addEventListener('click', function(){
-    document.querySelectorAll('.filtro-tipo').forEach(function(el){el.checked=false;});
-    document.querySelectorAll('.filtro-status').forEach(function(el){el.checked=el.value==='pendente';});
-    var periodoTodos = document.querySelector('input[name="filtro-periodo"][value="todos"]');
-    if(periodoTodos) periodoTodos.checked = true;
-    if(get('filtro-medico')) get('filtro-medico').value = '';
-    if(get('filtro-busca')) get('filtro-busca').value = '';
-    if(get('filtro-cid')) get('filtro-cid').value = '';
-    if(get('filtro-ordem')) get('filtro-ordem').value = 'urgencia';
-    aplicarFiltrosFila();
-  });
-
-  popularMedicosFiltro();
-}
-
 function aplicarFiltrosFila(){
   var lista = filaAllData.slice();
 
@@ -3253,6 +3211,13 @@ function loadStats(){
       return Math.round(hrs.reduce(function(a,b){return a+b;},0)/hrs.length);
     })();
 
+// ── RELATÓRIOS (globais) ──
+
+
+
+
+
+
     // Internamentos por tipo por médico
     var medMap = {};
     fila.forEach(function(x){
@@ -3468,11 +3433,1419 @@ function loadStats(){
   }
 }
 
+// ── FICHA PRÉ-ANESTÉSICA ──
+var SENHA_ANEST_DEFAULT = '1234';
+var anestesiaEditando = false;
+var fichaAtual = null;
+var senhaAnestCallback = null;
+
+function getSenhaAnest(){ return lsGet('senha_anest') || SENHA_ANEST_DEFAULT; }
+
+
+get('btn-buscar-ficha').addEventListener('click', function(){
+  var pront = get('anestesia-busca-pront').value.trim();
+  if(!pront){showToast('Digite o prontuário.','error');return;}
+  buscarFicha(pront);
+});
+
+get('anestesia-busca-pront').addEventListener('keydown', function(e){
+  if(e.key==='Enter') get('btn-buscar-ficha').click();
+});
+
+get('btn-nova-ficha').addEventListener('click', function(){
+  pedirSenhaAnest(function(){
+    fichaAtual = null;
+    anestesiaEditando = true;
+    renderFichaForm(null, get('anestesia-busca-pront').value.trim());
+  });
+});
+
+function buscarFicha(pront){
+  if(!sbClient){
+    var local = lsGet('fichas_anest') || {};
+    fichaAtual = local[pront] || null;
+    renderFichaView(fichaAtual, pront);
+    return;
+  }
+  sbClient.from('ficha_anestesica').select('*').eq('prontuario', pront).limit(1)
+    .then(function(r){
+      fichaAtual = (r.data && r.data.length) ? r.data[0] : null;
+      renderFichaView(fichaAtual, pront);
+    }).catch(function(){
+      fichaAtual = null;
+      renderFichaView(null, pront);
+    });
+}
+
+function pedirSenhaAnest(callback){
+  senhaAnestCallback = callback;
+  get('senha-anest-input').value = '';
+  get('senha-anest-erro').style.display = 'none';
+  openModal('modal-senha-anest');
+  setTimeout(function(){get('senha-anest-input').focus();}, 100);
+}
+
+get('btn-cancelar-senha-anest').addEventListener('click', function(){closeModal('modal-senha-anest');});
+get('senha-anest-input').addEventListener('keydown', function(e){if(e.key==='Enter') get('btn-confirmar-senha-anest').click();});
+get('btn-confirmar-senha-anest').addEventListener('click', function(){
+  var s = get('senha-anest-input').value;
+  if(s === getSenhaAnest()){
+    closeModal('modal-senha-anest');
+    if(senhaAnestCallback) senhaAnestCallback();
+  } else {
+    get('senha-anest-erro').style.display = 'block';
+    get('senha-anest-input').value = '';
+    get('senha-anest-input').focus();
+  }
+});
+
+get('btn-cancelar-alt-senha').addEventListener('click', function(){closeModal('modal-alterar-senha-anest');});
+get('btn-salvar-alt-senha').addEventListener('click', function(){
+  var atual = get('senha-anest-atual').value;
+  var nova = get('senha-anest-nova').value;
+  var conf = get('senha-anest-confirma').value;
+  var err = get('senha-anest-alt-erro');
+  err.style.display = 'none';
+  if(atual !== getSenhaAnest()){err.textContent='Senha atual incorreta.';err.style.display='block';return;}
+  if(!nova||nova.length<4){err.textContent='Nova senha deve ter pelo menos 4 caracteres.';err.style.display='block';return;}
+  if(nova!==conf){err.textContent='As senhas não conferem.';err.style.display='block';return;}
+  lsSet('senha_anest', nova);
+  closeModal('modal-alterar-senha-anest');
+  showToast('Senha do anestesista alterada!','success');
+});
+
+function renderFichaView(f, pront){
+  var c = get('anestesia-content');
+  if(!f){
+  c.innerHTML = '<div class="empty-state">Nenhuma ficha encontrada para o prontu&aacute;rio <strong>'+esc(pront)+'</strong>.<br><br></div>';
+  var btnCriar=document.createElement('button');
+  btnCriar.className='btn btn-primary';
+  btnCriar.textContent='+ Criar Nova Ficha';
+  btnCriar.addEventListener('click',function(){get('btn-nova-ficha').click();});
+  c.querySelector('.empty-state').appendChild(btnCriar);
+    return;
+  }
+  var com = f.comorbidades || {};
+  var ef = f.exame_fisico || {};
+  var lab = f.exames_lab || {};
+  var seg = f.seguimentos || {};
+
+  function simNao(val){ return val==='S'?'SIM':val==='N'?'NÃO':(val||'-'); }
+
+  c.innerHTML = '<div class="ficha-wrap" id="ficha-print-area">'
+    // HEADER
+    +'<div class="ficha-header">'
+    +'<div class="ficha-logo">HGF</div>'
+    +'<div style="font-size:11px;font-weight:600;letter-spacing:1px;opacity:.8">SETOR DE TRANSPLANTES — UNIDADE DE TRANSPLANTE HEPÁTICO</div>'
+    +'<h2>FICHA DE AVALIAÇÃO PRÉ-ANESTÉSICA</h2>'
+    +'<div style="font-size:11px;opacity:.8">Prontuário: <strong>'+esc(f.prontuario)+'</strong> | Data: '+(f.data_ficha?fmtDateShort(f.data_ficha):'-')+'</div>'
+    +'</div>'
+    // IDENTIFICAÇÃO
+    +'<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;">'
+    +'<div><span style="font-size:10px;opacity:.7">NOME</span><div style="font-weight:600;">'+esc(f.nome||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">SEXO</span><div>'+esc(f.sexo||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">IDADE</span><div>'+esc(f.idade||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">TIPO SANG.</span><div>'+esc(f.tipo_sanguineo||'-')+'</div></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">'
+    +'<div><span style="font-size:10px;opacity:.7">DIAGNÓSTICO</span><div>'+esc(f.diagnostico||'-')+'</div></div>'
+    +'<div><span style="font-size:10px;opacity:.7">CIRURGIA PROPOSTA</span><div>'+esc(f.cirurgia_proposta||'-')+'</div></div>'
+    +'</div>'
+    // METS
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">ESTIMATIVA DA CAPACIDADE FUNCIONAL</div>'
+    +'<div style="text-align:center;font-size:13px;font-weight:600;">'+esc(f.mets||'-')+'</div>'
+    +'</div>'
+    // COMORBIDADES resumo
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">COMORBIDADES</div>'
+    +'<table class="ficha-table"><thead><tr><th>Condição</th><th>Resultado</th><th>Observação</th></tr></thead><tbody>'
+    + renderComorbRow(com,'ic','Insuficiência cardíaca ou valvopatia grave')
+    + renderComorbRow(com,'dm','Diabetes Mellitus')
+    + renderComorbRow(com,'angina','Angina ou Doença Arterial Coronariana')
+    + renderComorbRow(com,'has','HAS ou uso de anti-hipertensivos')
+    + renderComorbRow(com,'tabag','Tabagismo')
+    + renderComorbRow(com,'asma','Asma / TB / DPOC / Infecção Resp. < 30 dias')
+    + renderComorbRow(com,'tosse','Tosse persistente / Catarro / Falta de ar')
+    + renderComorbRow(com,'fraq','Fraqueza muscular / Miopatia / Sarcopenia')
+    + renderComorbRow(com,'tireoide','Disfunção da tireoide')
+    + renderComorbRow(com,'renal','Disfunção renal / Síndrome Hepato-renal')
+    + renderComorbRow(com,'ictericia','Icterícia atual')
+    + renderComorbRow(com,'ascite','Ascite / PBE / Paracentese prévia')
+    + renderComorbRow(com,'coag','Problema na coagulação')
+    + renderComorbRow(com,'hda','Hemorragia digestiva')
+    + renderComorbRow(com,'hemor_sem','Hemorragia sem trauma')
+    + renderComorbRow(com,'hemor_pos','Hemorragia grave/demorada pós-trauma')
+    + renderComorbRow(com,'transf','Já recebeu transfusão')
+    + renderComorbRow(com,'psiq','Distúrbio psiquiátrico ou neurológico')
+    + renderComorbRow(com,'encef','Encefalopatia prévia')
+    + renderComorbRow(com,'alergia','Alergias / Alergia a látex')
+    + renderComorbRow(com,'ciruranterior','Cirurgias intra-abdominais prévias')
+    + renderComorbRow(com,'efeito_anest','Efeitos adversos prévios em anestesias')
+    + renderComorbRow(com,'etilismo','Etilismo / Uso de drogas ilícitas')
+    + renderComorbRow(com,'internamento','Internamento recente (< 6 meses)')
+    + renderComorbRow(com,'analgesico','Analgésico/remédio natural nos últ. 14 dias')
+    +'</tbody></table>'
+    +'<div style="margin-top:6px;font-size:11px;"><strong>Medicações em uso:</strong> '+esc(com.medicacoes||'-')+'</div>'
+    +'</div>'
+    // EXAME FÍSICO
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">EXAME FÍSICO</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">'
+    +'<div><strong>Peso:</strong> '+esc(ef.peso||'-')+' | <strong>Altura:</strong> '+esc(ef.altura||'-')+'</div>'
+    +'<div><strong>IOT Difícil:</strong> '+esc(ef.iot_dificil||'-')+' | <strong>Mallampati:</strong> '+esc(ef.mallampati||'-')+'</div>'
+    +'<div><strong>Ex. CV:</strong> '+esc(ef.ex_cv||'-')+'</div>'
+    +'<div><strong>Ex. Resp:</strong> '+esc(ef.ex_resp||'-')+'</div>'
+    +'<div><strong>Ex. Abdome:</strong> '+esc(ef.ex_abdom||'-')+'</div>'
+    +'<div><strong>Edema:</strong> '+esc(ef.edema||'-')+'</div>'
+    +'</div>'
+    +'</div>'
+    // EXAMES LAB
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">EXAMES LABORATORIAIS</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:11px;">'
+    +'<div><strong>Hb:</strong> '+esc(lab.hb||'-')+'</div>'
+    +'<div><strong>Plaq:</strong> '+esc(lab.plaq||'-')+'</div>'
+    +'<div><strong>INR:</strong> '+esc(lab.inr||'-')+'</div>'
+    +'<div><strong>TTPa:</strong> '+esc(lab.ttpa||'-')+'</div>'
+    +'<div><strong>Na+:</strong> '+esc(lab.na||'-')+'</div>'
+    +'<div><strong>K+:</strong> '+esc(lab.k||'-')+'</div>'
+    +'<div><strong>Cr:</strong> '+esc(lab.cr||'-')+'</div>'
+    +'<div><strong>Glic:</strong> '+esc(lab.glic||'-')+'</div>'
+    +'<div><strong>Alb:</strong> '+esc(lab.alb||'-')+'</div>'
+    +'<div><strong>BT:</strong> '+esc(lab.bt||'-')+'</div>'
+    +'<div><strong>Fibrin:</strong> '+esc(lab.fibrin||'-')+'</div>'
+    +'<div><strong>Colest:</strong> '+esc(lab.colest||'-')+'</div>'
+    +'<div><strong>ECG:</strong> '+esc(lab.ecg||'-')+'</div>'
+    +'<div><strong>ECOTT:</strong> '+esc(lab.ecott||'-')+'</div>'
+    +'<div><strong>FEVE:</strong> '+esc(lab.feve||'-')+'</div>'
+    +'<div><strong>PSAP:</strong> '+esc(lab.psap||'-')+'</div>'
+    +'</div>'
+    +'<div style="margin-top:6px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:11px;">'
+    +'<div><strong>pH:</strong> '+esc(lab.ph||'-')+'</div>'
+    +'<div><strong>PaO2:</strong> '+esc(lab.pao2||'-')+'</div>'
+    +'<div><strong>PaCO2:</strong> '+esc(lab.paco2||'-')+'</div>'
+    +'<div><strong>SpO2:</strong> '+esc(lab.spo2||'-')+'</div>'
+    +'</div>'
+    +'</div>'
+    // SEGUIMENTOS
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">SEGUIMENTOS, PENDÊNCIAS E POTENCIAIS PROBLEMAS</div>'
+    +'<table class="ficha-table"><tbody>'
+    + renderSegRow(seg,'eritropoiese','Estímulo à eritropoiese IV ou VO (ferro + folato)')
+    + renderSegRow(seg,'hemoce','Encaminhar ao HEMOCE para pesquisa de anticorpos irregulares')
+    + renderSegRow(seg,'meias','Meias de compressão antitrombo/antiembólica')
+    + renderSegRow(seg,'swan','Cateter de Swan-Ganz / Volumeview')
+    + renderSegRow(seg,'segundo','Convocação de um segundo candidato receptor no dia do transplante')
+    + renderSegRow(seg,'manejo','Requer manejo perioperatório especial')
+    +'</tbody></table>'
+    +'</div>'
+    // OBS
+    +(f.observacoes?'<div class="ficha-section"><div class="ficha-section-title">OBSERVAÇÕES</div><div style="font-size:12px;">'+esc(f.observacoes)+'</div></div>':'')
+    +'<div class="ficha-actions">'
+    +'<button class="btn-anestesia-edit" id="btn-editar-ficha">✏️ Editar Ficha</button>'
+    +'<button class="btn-anestesia-edit" id="btn-alterar-senha-anest" style="background:rgba(255,200,0,.2);border-color:rgba(255,200,0,.5);">🔑 Alterar Senha</button>'
+    +'<button class="btn-anestesia-print" id="btn-imprimir-ficha">🖨️ Imprimir</button>'
+    +'</div>'
+    +'</div>';
+
+  get('btn-editar-ficha').addEventListener('click', function(){
+    pedirSenhaAnest(function(){
+      anestesiaEditando=true;
+      renderFichaForm(fichaAtual, fichaAtual.prontuario);
+    });
+  });
+  get('btn-alterar-senha-anest').addEventListener('click', function(){
+    get('senha-anest-atual').value='';get('senha-anest-nova').value='';get('senha-anest-confirma').value='';
+    get('senha-anest-alt-erro').style.display='none';
+    openModal('modal-alterar-senha-anest');
+  });
+  get('btn-imprimir-ficha').addEventListener('click', function(){
+    window.print();
+  });
+}
+
+function renderComorbRow(com, key, label){
+  var v=com[key]||{};
+  return '<tr><td>'+label+'</td><td style="font-weight:600;color:'+(v.val==='S'?'#ff9':(v.val==='N'?'rgba(255,255,255,.6)':'rgba(255,255,255,.4)'))+';">'+(v.val==='S'?'SIM':v.val==='N'?'NÃO':'-')+'</td><td style="color:rgba(255,255,255,.8)">'+esc(v.obs||'')+'</td></tr>';
+}
+function renderSegRow(seg, key, label){
+  var v=seg[key]||'';
+  return '<tr><td style="width:70%">'+label+'</td><td style="font-weight:600;color:'+(v==='S'?'#ff9':'rgba(255,255,255,.6)')+';">'+(v==='S'?'SIM':v==='N'?'NÃO':'-')+'</td></tr>';
+}
+
+function renderFichaForm(f, prontInicial){
+  var com = f ? (f.comorbidades||{}) : {};
+  var ef  = f ? (f.exame_fisico||{}) : {};
+  var lab = f ? (f.exames_lab||{}) : {};
+  var seg = f ? (f.seguimentos||{}) : {};
+
+  function inp(id, val, ph, w){
+    return '<input class="ficha-input" id="fi-'+id+'" value="'+esc(val||'')+'" placeholder="'+(ph||'')+'" style="width:'+(w||'100%')+'">';
+  }
+  function sel(id, val, opts){
+    return '<select class="ficha-select" id="fi-'+id+'">'+opts.map(function(o){return '<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';
+  }
+  function snField(key, sub){
+    var v=(com[key]||{})[sub||'val']||'';
+    return '<select class="ficha-select" id="fi-com-'+key+'-val" style="width:70px">'
+      +'<option value="">-</option>'
+      +'<option value="S"'+(v==='S'?' selected':'')+'>SIM</option>'
+      +'<option value="N"'+(v==='N'?' selected':'')+'>NÃO</option>'
+      +'</select>';
+  }
+  function obsField(key){
+    var v=(com[key]||{}).obs||'';
+    return '<input class="ficha-obs-input" id="fi-com-'+key+'-obs" value="'+esc(v)+'" placeholder="Obs...">';
+  }
+  function snSeg(key){
+    var v=seg[key]||'';
+    return '<select class="ficha-select" id="fi-seg-'+key+'" style="width:80px">'
+      +'<option value="">-</option>'
+      +'<option value="S"'+(v==='S'?' selected':'')+'>SIM</option>'
+      +'<option value="N"'+(v==='N'?' selected':'')+'>NÃO</option>'
+      +'</select>';
+  }
+
+  var comorbidas = [
+    ['ic','Insuficiência cardíaca ou valvopatia grave'],
+    ['dm','Diabetes Mellitus'],
+    ['angina','Angina ou Doença Arterial Coronariana'],
+    ['has','HAS ou uso de anti-hipertensivos'],
+    ['tabag','Tabagismo'],
+    ['asma','Asma / TB / DPOC / Infecção Resp. < 30 dias'],
+    ['tosse','Tosse persistente / Catarro / Falta de ar'],
+    ['fraq','Fraqueza muscular / Miopatia / Sarcopenia'],
+    ['tireoide','Disfunção da tireoide'],
+    ['renal','Disfunção renal / Síndrome Hepato-renal'],
+    ['ictericia','Icterícia atual'],
+    ['ascite','Ascite / PBE / Paracentese prévia'],
+    ['coag','Problema na coagulação'],
+    ['hda','Hemorragia digestiva'],
+    ['hemor_sem','Hemorragia sem trauma'],
+    ['hemor_pos','Hemorragia grave/demorada pós-trauma'],
+    ['transf','Já recebeu transfusão'],
+    ['psiq','Distúrbio psiquiátrico ou neurológico'],
+    ['encef','Encefalopatia prévia'],
+    ['alergia','Alergias / Alergia a látex'],
+    ['ciruranterior','Cirurgias intra-abdominais prévias'],
+    ['efeito_anest','Efeitos adversos prévios em anestesias'],
+    ['etilismo','Etilismo / Uso de drogas ilícitas'],
+    ['internamento','Internamento recente (< 6 meses)'],
+    ['analgesico','Analgésico/remédio natural nos últ. 14 dias'],
+  ];
+
+  var html = '<div class="ficha-wrap">'
+    +'<div class="ficha-header"><div class="ficha-logo">HGF</div>'
+    +'<div style="font-size:11px;font-weight:600;letter-spacing:1px;opacity:.8">SETOR DE TRANSPLANTES — UNIDADE DE TRANSPLANTE HEPÁTICO</div>'
+    +'<h2>FICHA DE AVALIAÇÃO PRÉ-ANESTÉSICA</h2></div>'
+    // IDENTIFICAÇÃO
+    +'<div class="ficha-section">'
+    +'<div class="ficha-row"><div class="ficha-field"><label>PRONTUÁRIO</label>'+inp('pront', f?f.prontuario:prontInicial,'')+'</div>'
+    +'<div class="ficha-field"><label>DATA</label><input type="date" class="ficha-input" id="fi-data" value="'+(f&&f.data_ficha?f.data_ficha:'')+'"></div></div>'
+    +'<div class="ficha-row"><div class="ficha-field" style="flex:3"><label>NOME</label>'+inp('nome',f?f.nome:'','Nome completo')+'</div>'
+    +'<div class="ficha-field"><label>SEXO</label>'+sel('sexo',f?f.sexo:'',['','M','F'])+'</div>'
+    +'<div class="ficha-field"><label>IDADE</label>'+inp('idade',f?f.idade:'','Anos','60px')+'</div>'
+    +'<div class="ficha-field"><label>TIPO SANG.</label>'+sel('tipo_sang',f?f.tipo_sanguineo:'',['','O','A','AB','B'])+'</div></div>'
+    +'<div class="ficha-row"><div class="ficha-field" style="flex:2"><label>DIAGNÓSTICO</label>'+inp('diagnostico',f?f.diagnostico:'','')+'</div>'
+    +'<div class="ficha-field"><label>CIRURGIA PROPOSTA</label>'+inp('cirurgia',f?f.cirurgia_proposta:'','Transplante hepático')+'</div></div>'
+    +'</div>'
+    // METS
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">ESTIMATIVA DA CAPACIDADE FUNCIONAL</div>'
+    +'<div style="display:flex;gap:12px;justify-content:center;">'
+    +'<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="mets" value="< 4 METs" '+((!f||!f.mets||f.mets==='< 4 METs')?'checked':'')+'> &lt; 4 METs (ou desconhecida)</label>'
+    +'<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="mets" value=">= 4 METs" '+(f&&f.mets==='>= 4 METs'?'checked':'')+'>  ≥ 4 METs</label>'
+    +'</div></div>'
+    // COMORBIDADES
+    +'<div class="ficha-section">'
+    +'<div class="ficha-section-title">COMORBIDADES</div>'
+    +'<table class="ficha-table"><thead><tr><th>Condição</th><th style="width:80px">S/N</th><th>Observação</th></tr></thead><tbody>'
+    + comorbidas.map(function(c){return '<tr><td>'+c[1]+'</td><td>'+snField(c[0])+'</td><td>'+obsField(c[0])+'</td></tr>';}).join('')
+    +'</tbody></table>'
+    +'<div style="margin-top:6px;"><label style="font-size:11px;font-weight:600;">MEDICAÇÕES EM USO:</label>'
+    +'<input class="ficha-obs-input" id="fi-medicacoes" value="'+esc(com.medicacoes||'')+'" placeholder="Liste as medicações em uso..." style="margin-top:3px;"></div>'
+    +'</div>'
+    // EXAME FÍSICO
+    +'<div class="ficha-section"><div class="ficha-section-title">EXAME FÍSICO</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+    +'<div class="ficha-field"><label>Peso (kg)</label>'+inp('ef-peso',ef.peso,'')+'</div>'
+    +'<div class="ficha-field"><label>Altura (cm)</label>'+inp('ef-altura',ef.altura,'')+'</div>'
+    +'<div class="ficha-field"><label>IOT Difícil?</label>'+sel('ef-iot',ef.iot_dificil,['','Sim','Não'])+'</div>'
+    +'<div class="ficha-field"><label>Mallampati</label>'+sel('ef-mallampati',ef.mallampati,['','1','2','3','4'])+'</div>'
+    +'<div class="ficha-field" style="grid-column:1/-1"><label>Ex. Cardiovascular</label>'+inp('ef-cv',ef.ex_cv,'')+'</div>'
+    +'<div class="ficha-field" style="grid-column:1/-1"><label>Ex. Respiratório</label>'+inp('ef-resp',ef.ex_resp,'')+'</div>'
+    +'<div class="ficha-field" style="grid-column:1/-1"><label>Ex. Abdominal</label>'+inp('ef-abdom',ef.ex_abdom,'')+'</div>'
+    +'<div class="ficha-field"><label>Edema de extremidades</label>'+sel('ef-edema',ef.edema,['','Sim','Não'])+'</div>'
+    +'<div class="ficha-field"><label>DAOP</label>'+sel('ef-daop',ef.daop,['','Sim','Não'])+'</div>'
+    +'</div></div>'
+    // EXAMES LAB
+    +'<div class="ficha-section"><div class="ficha-section-title">EXAMES LABORATORIAIS</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">'
+    +'<div class="ficha-field"><label>Hb</label>'+inp('lab-hb',lab.hb,'')+'</div>'
+    +'<div class="ficha-field"><label>Plaquetas</label>'+inp('lab-plaq',lab.plaq,'')+'</div>'
+    +'<div class="ficha-field"><label>INR</label>'+inp('lab-inr',lab.inr,'')+'</div>'
+    +'<div class="ficha-field"><label>TTPa(R)</label>'+inp('lab-ttpa',lab.ttpa,'')+'</div>'
+    +'<div class="ficha-field"><label>Na+</label>'+inp('lab-na',lab.na,'')+'</div>'
+    +'<div class="ficha-field"><label>K+</label>'+inp('lab-k',lab.k,'')+'</div>'
+    +'<div class="ficha-field"><label>Creatinina</label>'+inp('lab-cr',lab.cr,'')+'</div>'
+    +'<div class="ficha-field"><label>Glicose</label>'+inp('lab-glic',lab.glic,'')+'</div>'
+    +'<div class="ficha-field"><label>Albumina</label>'+inp('lab-alb',lab.alb,'')+'</div>'
+    +'<div class="ficha-field"><label>BT</label>'+inp('lab-bt',lab.bt,'')+'</div>'
+    +'<div class="ficha-field"><label>Fibrinogênio</label>'+inp('lab-fibrin',lab.fibrin,'')+'</div>'
+    +'<div class="ficha-field"><label>Colesterol T</label>'+inp('lab-colest',lab.colest,'')+'</div>'
+    +'<div class="ficha-field"><label>ECG</label>'+inp('lab-ecg',lab.ecg,'')+'</div>'
+    +'<div class="ficha-field"><label>ECOTT</label>'+inp('lab-ecott',lab.ecott,'')+'</div>'
+    +'<div class="ficha-field"><label>FEVE (%)</label>'+inp('lab-feve',lab.feve,'')+'</div>'
+    +'<div class="ficha-field"><label>PSAP</label>'+inp('lab-psap',lab.psap,'')+'</div>'
+    +'<div class="ficha-field"><label>pH (GASO)</label>'+inp('lab-ph',lab.ph,'')+'</div>'
+    +'<div class="ficha-field"><label>PaO2</label>'+inp('lab-pao2',lab.pao2,'')+'</div>'
+    +'<div class="ficha-field"><label>PaCO2</label>'+inp('lab-paco2',lab.paco2,'')+'</div>'
+    +'<div class="ficha-field"><label>SpO2 (%)</label>'+inp('lab-spo2',lab.spo2,'')+'</div>'
+    +'</div></div>'
+    // SEGUIMENTOS
+    +'<div class="ficha-section"><div class="ficha-section-title">SEGUIMENTOS E PENDÊNCIAS</div>'
+    +'<table class="ficha-table"><tbody>'
+    +'<tr><td>Estímulo à eritropoiese IV ou VO (ferro + folato)</td><td>'+snSeg('eritropoiese')+'</td></tr>'
+    +'<tr><td>Encaminhar ao HEMOCE (anticorpos irregulares)</td><td>'+snSeg('hemoce')+'</td></tr>'
+    +'<tr><td>Meias de compressão antitrombo/antiembólica</td><td>'+snSeg('meias')+'</td></tr>'
+    +'<tr><td>Cateter de Swan-Ganz / Volumeview</td><td>'+snSeg('swan')+'</td></tr>'
+    +'<tr><td>Convocação de segundo candidato receptor</td><td>'+snSeg('segundo')+'</td></tr>'
+    +'<tr><td>Requer manejo perioperatório especial</td><td>'+snSeg('manejo')+'</td></tr>'
+    +'</tbody></table></div>'
+    // OBS
+    +'<div class="ficha-section"><div class="ficha-section-title">OBSERVAÇÕES</div>'
+    +'<textarea class="ficha-obs-input" id="fi-obs" style="min-height:60px;width:100%">'+esc(f?f.observacoes||'':'')+'</textarea>'
+    +'</div>'
+    +'<div class="ficha-actions">'
+    +'<button class="btn-anestesia-edit" id="btn-cancelar-form-ficha">Cancelar</button>'
+    +'<button class="btn-anestesia-print" id="btn-salvar-form-ficha">💾 Salvar Ficha</button>'
+    +'</div></div>';
+
+  get('anestesia-content').innerHTML = html;
+
+  get('btn-cancelar-form-ficha').addEventListener('click', function(){
+    if(fichaAtual) renderFichaView(fichaAtual, fichaAtual.prontuario);
+    else initAnestesia();
+  });
+
+  get('btn-salvar-form-ficha').addEventListener('click', function(){
+    var pront = get('fi-pront').value.trim();
+    var nome  = get('fi-nome').value.trim();
+    if(!pront||!nome){showToast('Prontuário e nome são obrigatórios.','error');return;}
+
+    var com2={};
+    ['ic','dm','angina','has','tabag','asma','tosse','fraq','tireoide','renal','ictericia','ascite','coag','hda','hemor_sem','hemor_pos','transf','psiq','encef','alergia','ciruranterior','efeito_anest','etilismo','internamento','analgesico'].forEach(function(k){
+      var vEl=get('fi-com-'+k+'-val'), oEl=get('fi-com-'+k+'-obs');
+      com2[k]={val:vEl?vEl.value:'', obs:oEl?oEl.value:''};
+    });
+    com2.medicacoes = get('fi-medicacoes').value;
+
+    var metsEl = document.querySelector('input[name="mets"]:checked');
+
+    var rec={
+      prontuario:pront, nome:nome,
+      sexo:get('fi-sexo').value,
+      idade:get('fi-idade').value,
+      tipo_sanguineo:get('fi-tipo_sang').value,
+      diagnostico:get('fi-diagnostico').value,
+      cirurgia_proposta:get('fi-cirurgia').value,
+      data_ficha:get('fi-data').value||null,
+      mets:metsEl?metsEl.value:'',
+      comorbidades:com2,
+      exame_fisico:{
+        peso:get('fi-ef-peso').value, altura:get('fi-ef-altura').value,
+        iot_dificil:get('fi-ef-iot').value, mallampati:get('fi-ef-mallampati').value,
+        ex_cv:get('fi-ef-cv').value, ex_resp:get('fi-ef-resp').value,
+        ex_abdom:get('fi-ef-abdom').value, edema:get('fi-ef-edema').value,
+        daop:get('fi-ef-daop').value
+      },
+      exames_lab:{
+        hb:get('fi-lab-hb').value, plaq:get('fi-lab-plaq').value,
+        inr:get('fi-lab-inr').value, ttpa:get('fi-lab-ttpa').value,
+        na:get('fi-lab-na').value, k:get('fi-lab-k').value,
+        cr:get('fi-lab-cr').value, glic:get('fi-lab-glic').value,
+        alb:get('fi-lab-alb').value, bt:get('fi-lab-bt').value,
+        fibrin:get('fi-lab-fibrin').value, colest:get('fi-lab-colest').value,
+        ecg:get('fi-lab-ecg').value, ecott:get('fi-lab-ecott').value,
+        feve:get('fi-lab-feve').value, psap:get('fi-lab-psap').value,
+        ph:get('fi-lab-ph').value, pao2:get('fi-lab-pao2').value,
+        paco2:get('fi-lab-paco2').value, spo2:get('fi-lab-spo2').value
+      },
+      seguimentos:{
+        eritropoiese:get('fi-seg-eritropoiese').value,
+        hemoce:get('fi-seg-hemoce').value,
+        meias:get('fi-seg-meias').value,
+        swan:get('fi-seg-swan').value,
+        segundo:get('fi-seg-segundo').value,
+        manejo:get('fi-seg-manejo').value
+      },
+      observacoes:get('fi-obs').value,
+      updated_at:new Date().toISOString()
+    };
+
+    if(sbClient){
+      sbClient.from('ficha_anestesica').upsert([rec],{onConflict:'prontuario'}).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        fichaAtual=rec;
+        showToast('Ficha salva!','success');
+        buscarFicha(pront);
+      });
+    } else {
+      var local=lsGet('fichas_anest')||{};
+      local[pront]=rec; lsSet('fichas_anest',local);
+      fichaAtual=rec;
+      showToast('Ficha salva!','success');
+      renderFichaView(rec, pront);
+    }
+  });
+}
+
+// ── RECEPTORES ──
+var grupoAtivo = 'O';
+var receptoresData = [];
+var receptorEditandoId = null;
+
+var PRIORIZACOES = ['NÃO','Hepatocarcinoma','Ascite Refratária','Encefalopatia Crônica',
+  'Prurido Intratável','Colangite de Repetição','Tumor Neuroendócrino Não Ressecável',
+  'Síndrome Hepatopulmonar','PAF','Carcinoma Fibrolamelar','Hepatite Fulminante',
+  'Não Funcionamento do Enxerto','Trombose de Artéria Hepática'];
+
+// Grupo buttons
+document.querySelectorAll('.grupo-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.grupo-btn').forEach(function(b){b.classList.remove('active');});
+    this.classList.add('active');
+    grupoAtivo = this.dataset.grupo;
+    renderReceptores();
+  });
+});
+
+// Busca
+get('receptores-busca').addEventListener('input', function(){renderReceptores();});
+
+function loadReceptores(){
+  if(!sbClient){renderReceptores();return;}
+  sbClient.from('receptores').select('*').order('meld',{ascending:false})
+    .then(function(r){receptoresData=r.data||[];window.receptoresData=receptoresData;renderReceptores();})
+    .catch(function(){renderReceptores();});
+}
+
+function meldColor(meld){
+  if(!meld) return 'baixo';
+  if(meld>=25) return 'alto';
+  if(meld>=15) return 'medio';
+  return 'baixo';
+}
+
+function renderReceptores(){
+  var busca = get('receptores-busca').value.toLowerCase().trim();
+  var lista = receptoresData.filter(function(r){
+    var grupoOk = busca ? true : r.grupo === grupoAtivo;
+    var buscaOk = !busca || (r.nome||'').toLowerCase().indexOf(busca) >= 0;
+    return grupoOk && buscaOk;
+  });
+  lista.sort(function(a,b){return (b.meld||0)-(a.meld||0);});
+
+  var ativos = lista.filter(function(r){return r.status==='Ativo';});
+  var inativos = lista.filter(function(r){return r.status!=='Ativo';});
+
+  var c = get('receptores-list');
+  if(!lista.length){c.innerHTML='<div class="empty-state">Nenhum receptor cadastrado neste grupo.</div>';return;}
+
+  function cardHtml(r){
+    var pri = r.priorizacao && r.priorizacao!=='NÃO' ? '<span class="rbadge rbadge-red">'+esc(r.priorizacao)+'</span>' : '';
+    var trom = r.trombose==='SIM'||r.trombose==='Parcial' ? '<span class="rbadge rbadge-red">Trombose '+esc(r.trombose)+'</span>' : '';
+    var equipe = r.equipe ? '<span class="rbadge rbadge-gray">'+esc(r.equipe)+'</span>' : '';
+    var valid = r.validade_exame ? '<span class="rbadge rbadge-gray">Val: '+fmtDateShort(r.validade_exame)+'</span>' : '';
+    return '<div class="receptor-card'+(r.status!=='Ativo'?' inativo':'')+'" data-id="'+esc(r.id)+'">'
+      +'<div class="meld-badge '+meldColor(r.meld)+'">'+(r.meld||'-')+'</div>'
+      +'<div class="receptor-info">'
+      +'<div class="receptor-nome">'+(r.posicao?r.posicao+'. ':'')+esc(r.nome)+'</div>'
+      +'<div class="receptor-sub">'+esc(r.diagnostico||'-')+' · '+esc(r.medico||'-')+(r.idade?' · '+r.idade+' anos':'')+'</div>'
+      +'<div class="receptor-badges">'+pri+trom+equipe+valid+'</div>'
+      +'</div>'
+      +'</div>';
+  }
+
+  c.innerHTML =
+    ativos.map(cardHtml).join('') +
+    (inativos.length ? '<div class="section-divider" style="margin-top:12px">Inativos</div>'+inativos.map(cardHtml).join('') : '');
+
+  c.querySelectorAll('.receptor-card').forEach(function(card){
+    card.addEventListener('click',function(){abrirDetalheReceptor(this.dataset.id);});
+  });
+}
+
+function abrirDetalheReceptor(id){
+  var r = receptoresData.find(function(x){return x.id===id;});
+  if(!r) return;
+  get('detalhe-titulo').textContent = 'Receptor — Grupo '+r.grupo;
+  get('btn-remover-detalhe').style.display = currentRole==='admin' ? 'inline-flex' : 'none';
+  get('btn-remover-detalhe').dataset.id = id;
+  get('btn-editar-detalhe').dataset.id = id;
+  get('btn-pdf-detalhe').dataset.id = id;
+
+  function dv(label, val){
+    return val ? '<div class="detail-field"><div class="detail-label">'+label+'</div><div class="detail-value">'+esc(val)+'</div></div>' : '';
+  }
+  function dvFull(label, val){
+    return val ? '<div class="detail-field detail-full"><div class="detail-label">'+label+'</div><div class="detail-value">'+esc(val)+'</div></div>' : '';
+  }
+
+  get('detalhe-content').innerHTML =
+    '<div class="detail-grid">'
+    + dv('Status', r.status)
+    + dv('Equipe', r.equipe)
+    + dv('MELD', r.meld)
+    + dv('Child', r.child)
+    + dv('Posição', r.posicao)
+    + dv('Validade Exame', r.validade_exame ? fmtDateShort(r.validade_exame) : '')
+    + dv('Peso', r.peso ? r.peso+'kg' : '')
+    + dv('Altura', r.altura ? r.altura+'cm' : '')
+    + dvFull('Diagnóstico', r.diagnostico)
+    + dv('Priorização', r.priorizacao)
+    + dv('Data Priorização', r.data_priorizacao ? fmtDateShort(r.data_priorizacao) : '')
+    + dv('Trombose', r.trombose)
+    + dv('AntiHbs', r.antihbs)
+    + dv('ATB de Indução', r.atb_inducao)
+    + dv('Corticóide', r.corticoide)
+    + dvFull('Descompensações', r.descompensacoes)
+    + dvFull('Comorbidades', r.comorbidades)
+    + dv('Médico Assistente', r.medico)
+    + dvFull('Observações', r.observacoes)
+    + '</div>';
+
+  openModal('modal-receptor-detalhe');
+}
+
+get('btn-fechar-detalhe').addEventListener('click',function(){closeModal('modal-receptor-detalhe');});
+
+get('btn-editar-detalhe').addEventListener('click',function(){
+  closeModal('modal-receptor-detalhe');
+  var id=this.dataset.id;
+  var r=receptoresData.find(function(x){return x.id===id;});
+  if(r) abrirFormReceptor(r);
+});
+
+get('btn-remover-detalhe').addEventListener('click',function(){
+  var id=this.dataset.id;
+  if(!confirm('Remover este receptor da lista?')) return;
+  if(sbClient){
+    sbClient.from('receptores').delete().eq('id',id).then(function(){
+      closeModal('modal-receptor-detalhe');
+      receptoresData=receptoresData.filter(function(x){return x.id!==id;});
+      renderReceptores();
+      showToast('Receptor removido.','success');
+    });
+  } else {
+    receptoresData=receptoresData.filter(function(x){return x.id!==id;});
+    renderReceptores();
+    closeModal('modal-receptor-detalhe');
+    showToast('Receptor removido.','success');
+  }
+});
+
+// FORM
+get('btn-novo-receptor').addEventListener('click',function(){abrirFormReceptor(null);});
+get('btn-cancelar-receptor').addEventListener('click',function(){closeModal('modal-receptor');});
+
+function abrirFormReceptor(r){
+  receptorEditandoId = r ? r.id : null;
+  get('modal-receptor-titulo').textContent = r ? 'Editar Receptor' : 'Novo Receptor';
+  get('rec-id').value = r ? r.id : '';
+  get('rec-grupo').value = r ? r.grupo : grupoAtivo;
+  get('rec-posicao').value = r ? (r.posicao||'') : '';
+  get('rec-nome').value = r ? (r.nome||'') : '';
+  get('rec-meld').value = r ? (r.meld||'') : '';
+  get('rec-idade').value = r ? (r.idade||'') : '';
+  get('rec-validade').value = r ? (r.validade_exame||'') : '';
+  get('rec-status').value = r ? (r.status||'Ativo') : 'Ativo';
+  get('rec-equipe').value = r ? (r.equipe||'HGF') : 'HGF';
+  get('rec-diagnostico').value = r ? (r.diagnostico||'') : '';
+  get('rec-priorizacao').value = r ? (r.priorizacao||'NÃO') : 'NÃO';
+  get('rec-data-priorizacao').value = r ? (r.data_priorizacao||'') : '';
+  get('rec-child').value = r ? (r.child||'') : '';
+  get('rec-peso').value = r ? (r.peso||'') : '';
+  get('rec-altura').value = r ? (r.altura||'') : '';
+  get('rec-trombose').value = r ? (r.trombose||'NÃO') : 'NÃO';
+  get('rec-antihbs').value = r ? (r.antihbs||'') : '';
+  get('rec-atb').value = r ? (r.atb_inducao||'') : '';
+  get('rec-corticoide').value = r ? (r.corticoide||'') : '';
+  get('rec-descompensacoes').value = r ? (r.descompensacoes||'') : '';
+  get('rec-comorbidades').value = r ? (r.comorbidades||'') : '';
+  get('rec-observacoes').value = r ? (r.observacoes||'') : '';
+  // medico
+  var docs=getDoctors();
+  get('rec-medico').innerHTML=docs.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('');
+  if(r&&r.medico) get('rec-medico').value=r.medico;
+  openModal('modal-receptor');
+}
+
+get('btn-salvar-receptor').addEventListener('click',function(){
+  var nome=get('rec-nome').value.trim();
+  var meld=get('rec-meld').value;
+  var diag=get('rec-diagnostico').value.trim();
+  if(!nome||!diag){showToast('Preencha nome e diagnóstico.','error');return;}
+
+  var rec={
+    grupo:get('rec-grupo').value,
+    posicao:get('rec-posicao').value?parseInt(get('rec-posicao').value):null,
+    nome:nome, meld:meld?parseInt(meld):null,
+    idade:get('rec-idade').value?parseInt(get('rec-idade').value):null,
+    validade_exame:get('rec-validade').value||null,
+    status:get('rec-status').value,
+    equipe:get('rec-equipe').value,
+    diagnostico:diag,
+    priorizacao:get('rec-priorizacao').value,
+    data_priorizacao:get('rec-data-priorizacao').value||null,
+    child:get('rec-child').value||null,
+    peso:get('rec-peso').value?parseFloat(get('rec-peso').value):null,
+    altura:get('rec-altura').value?parseFloat(get('rec-altura').value):null,
+    trombose:get('rec-trombose').value,
+    antihbs:get('rec-antihbs').value||null,
+    atb_inducao:get('rec-atb').value.trim()||null,
+    corticoide:get('rec-corticoide').value||null,
+    medico:get('rec-medico').value,
+    descompensacoes:get('rec-descompensacoes').value.trim()||null,
+    comorbidades:get('rec-comorbidades').value.trim()||null,
+    observacoes:get('rec-observacoes').value.trim()||null,
+    updated_at:new Date().toISOString()
+  };
+
+  if(sbClient){
+    if(receptorEditandoId){
+      sbClient.from('receptores').update(rec).eq('id',receptorEditandoId).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        showToast('Receptor atualizado!','success');
+        closeModal('modal-receptor');
+        loadReceptores();
+      });
+    } else {
+      rec.created_at=new Date().toISOString();
+      sbClient.from('receptores').insert([rec]).then(function(r){
+        if(r.error){showToast('Erro: '+r.error.message,'error');return;}
+        showToast('Receptor cadastrado!','success');
+        closeModal('modal-receptor');
+        loadReceptores();
+      });
+    }
+  } else {
+    if(receptorEditandoId){
+      var idx=receptoresData.findIndex(function(x){return x.id===receptorEditandoId;});
+      if(idx!==-1) Object.assign(receptoresData[idx],rec);
+    } else {
+      rec.id=Date.now().toString();
+      rec.created_at=new Date().toISOString();
+      receptoresData.push(rec);
+    }
+    showToast('Receptor salvo!','success');
+    closeModal('modal-receptor');
+    renderReceptores();
+  }
+});
+
+// PDF
+get('btn-pdf-detalhe').addEventListener('click',function(){
+  var id=this.dataset.id;
+  var r=receptoresData.find(function(x){return x.id===id;});
+  if(r) gerarPDFReceptor(r);
+});
+
+
+
+function gerarPDFReceptor(r){
+  var now = new Date().toLocaleDateString('pt-BR');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>body{font-family:Arial,sans-serif;font-size:13px;color:#1a2535;padding:30px;max-width:700px;margin:0 auto;}'
+    +'h1{font-size:18px;color:#185FA5;margin-bottom:4px;}h2{font-size:13px;color:#4a5e78;font-weight:normal;margin-bottom:20px;}'
+    +'.section{margin-bottom:16px;} .section-title{font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;border-bottom:1px solid #dde3ed;padding-bottom:4px;margin-bottom:8px;}'
+    +'.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}'
+    +'.field{margin-bottom:4px;} .label{font-size:10px;font-weight:bold;color:#8a9ab5;text-transform:uppercase;} .value{font-size:13px;color:#1a2535;}'
+    +'.full{grid-column:1/-1;} .footer{margin-top:30px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
+    +'.badge{display:inline-block;background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:4px;}'
+    +'</style>'
+    +'</head><body>'
+    +'<h1>Resumo Pré-Transplante — HGF</h1>'
+    +'<h2>Programa de Transplante Hepático do Ceará</h2>'
+    +'<div class="section"><div class="section-title">Identificação</div><div class="grid">'
+    +'<div class="field full"><div class="label">Paciente</div><div class="value" style="font-size:16px;font-weight:bold;">'+esc(r.nome)+'</div></div>'
+    +(r.idade?'<div class="field"><div class="label">Idade</div><div class="value">'+r.idade+' anos</div></div>':'')
+    +'<div class="field"><div class="label">Grupo Sanguíneo</div><div class="value">'+esc(r.grupo)+'</div></div>'
+    +(r.equipe?'<div class="field"><div class="label">Equipe</div><div class="value">'+esc(r.equipe)+'</div></div>':'')
+    +(r.medico?'<div class="field"><div class="label">Médico Assistente</div><div class="value">'+esc(r.medico)+'</div></div>':'')
+    +(r.status?'<div class="field"><div class="label">Status</div><div class="value">'+esc(r.status)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Dados Clínicos</div><div class="grid">'
+    +(r.meld?'<div class="field"><div class="label">MELD</div><div class="value" style="font-size:18px;font-weight:bold;color:#185FA5;">'+r.meld+'</div></div>':'')
+    +(r.child?'<div class="field"><div class="label">Child-Pugh</div><div class="value">'+esc(r.child)+'</div></div>':'')
+    +(r.peso?'<div class="field"><div class="label">Peso</div><div class="value">'+r.peso+' kg</div></div>':'')
+    +(r.altura?'<div class="field"><div class="label">Altura</div><div class="value">'+r.altura+' cm</div></div>':'')
+    +(r.diagnostico?'<div class="field full"><div class="label">Diagnóstico</div><div class="value">'+esc(r.diagnostico)+'</div></div>':'')
+    +(r.priorizacao&&r.priorizacao!=='NÃO'?'<div class="field full"><div class="label">Priorização</div><div class="value"><span class="badge">'+esc(r.priorizacao)+'</span>'+(r.data_priorizacao?' desde '+fmtDateShort(r.data_priorizacao):'')+'</div></div>':'')
+    +(r.trombose&&r.trombose!=='NÃO'?'<div class="field"><div class="label">Trombose</div><div class="value"><span class="badge">'+esc(r.trombose)+'</span></div></div>':'')
+    +(r.descompensacoes?'<div class="field full"><div class="label">Descompensações</div><div class="value">'+esc(r.descompensacoes)+'</div></div>':'')
+    +(r.comorbidades?'<div class="field full"><div class="label">Comorbidades</div><div class="value">'+esc(r.comorbidades)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Protocolo de Transplante</div><div class="grid">'
+    +(r.antihbs?'<div class="field"><div class="label">AntiHbs</div><div class="value">'+esc(r.antihbs)+'</div></div>':'')
+    +(r.atb_inducao?'<div class="field full"><div class="label">ATB de Indução</div><div class="value">'+esc(r.atb_inducao)+'</div></div>':'')
+    +(r.corticoide?'<div class="field"><div class="label">Corticóide</div><div class="value">'+esc(r.corticoide)+'</div></div>':'')
+    +'</div></div>'
+    +(r.observacoes?'<div class="section"><div class="section-title">Observações</div><div style="padding:8px;background:#f5f7fa;border-radius:6px;font-size:13px;">'+esc(r.observacoes)+'</div></div>':'')
+    +'<div class="footer">Documento gerado em '+now+' — Alertas Tx Hepático HGF</div>'
+    +'</body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},500);
+}
+
+// ── PLANTAO ──
+
+// CONFIGURACOES
+function loadConfigFields(){
+  if(currentRole!=='admin')return;
+  var cfg=getConfig();
+  if(cfg.sbUrl)get('cfg-url').value=cfg.sbUrl;if(cfg.sbKey)get('cfg-key').value=cfg.sbKey;
+  if(cfg.ejsService)get('cfg-ejs-service').value=cfg.ejsService;if(cfg.ejsTemplate)get('cfg-ejs-template').value=cfg.ejsTemplate;
+  if(cfg.ejsPubkey)get('cfg-ejs-pubkey').value=cfg.ejsPubkey;if(cfg.alertEmail)get('cfg-alert-email').value=cfg.alertEmail;
+  renderDoctorList();
+}
+
+get('btn-salvar-supabase').addEventListener('click',function(){
+  var url=get('cfg-url').value.trim(),key=get('cfg-key').value.trim();
+  if(!url||!key){showToast('Preencha URL e Key.','error');return;}
+  saveConfig({sbUrl:url,sbKey:key});sbClient=null;
+  if(initSupabase()){setupRealtime();showToast('Supabase conectado!','success');loadFila();loadSessao();}
+  else showToast('Erro ao conectar.','error');
+});
+
+get('btn-salvar-email').addEventListener('click',function(){
+  saveConfig({ejsService:get('cfg-ejs-service').value.trim(),ejsTemplate:get('cfg-ejs-template').value.trim(),ejsPubkey:get('cfg-ejs-pubkey').value.trim(),alertEmail:get('cfg-alert-email').value.trim()});
+  showToast('Configuracoes de email salvas!','success');
+});
+
+get('btn-add-doctor').addEventListener('click',function(){
+  var name=get('new-doctor-name').value.trim();if(!name)return;
+  var docs=getDoctors();docs.push(name);lsSet('doctors',docs);
+  get('new-doctor-name').value='';renderDoctorList();populateDoctorSelects();showToast('Medico adicionado!','success');
+});
+
+function renderDoctorList(){
+  get('doctor-list').innerHTML=getDoctors().map(function(d,i){return '<div class="doctor-item"><span>'+esc(d)+'</span><button class="btn btn-danger btn-sm" data-idx="'+i+'">Remover</button></div>';}).join('');
+  get('doctor-list').querySelectorAll('button[data-idx]').forEach(function(btn){btn.addEventListener('click',function(){var docs2=getDoctors();docs2.splice(parseInt(this.dataset.idx),1);lsSet('doctors',docs2);renderDoctorList();populateDoctorSelects();});});
+}
+
+function sendAlertEmail(rec){
+  var cfg=getConfig();if(!cfg.ejsService||!cfg.ejsTemplate||!cfg.ejsPubkey||!cfg.alertEmail)return;
+  if(!window.emailjs)return;
+  window.emailjs.init(cfg.ejsPubkey);
+  window.emailjs.send(cfg.ejsService,cfg.ejsTemplate,{to_email:cfg.alertEmail,paciente:rec.nome,prontuario:rec.prontuario,diagnostico:rec.diagnostico,cid:rec.cid_code?rec.cid_code+' - '+rec.cid_desc:'Nao informado',medico:rec.medico,data:fmtDate(rec.created_at)})
+    .then(function(){showToast('🔴 Alerta enviado!','success');}).catch(function(){showToast('Alerta nao enviado.','error');});
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+
+// ── PENDÊNCIAS DIÁRIAS ──
+var LEITOS_PEND = ['208-1','208-2','208-3','208-4','208-5','209-1','209-2','209-3','209-4','Leito Ectopico'];
+var pendenciasData = {};
+
+function loadPendencias(){
+  pendenciasData = lsGet('pendencias_diarias') || {};
+  window.pendenciasData = pendenciasData;
+  renderPendencias();
+  if(sbClient){
+    sbClient.from('pendencias_diarias').select('*')
+      .then(function(r){
+        if(r.data && r.data.length){
+          r.data.forEach(function(row){ pendenciasData[row.leito] = row; });
+          window.pendenciasData = pendenciasData;
+          renderPendencias();
+        }
+      }).catch(function(){});
+  }
+}
+
+function renderPendencias(){
+  // Preencher valores nas textareas já existentes no HTML
+  LEITOS_PEND.forEach(function(leito){
+    var d = pendenciasData[leito] || {};
+    var leitoId = leito.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+    var txt = get('pend-txt-' + leitoId);
+    var meta = get('pend-meta-' + leitoId);
+    if(txt && d.texto) txt.value = d.texto;
+    if(meta && d.updated_at) meta.textContent = 'Atualizado: ' + fmtDate(d.updated_at) + (d.medico ? ' por ' + esc(d.medico) : '');
+  });
+  // Adicionar listeners nos botões
+  var grid = get('pendencias-grid');
+  if(!grid) return;
+  grid.querySelectorAll('.pend-salvar-btn').forEach(function(btn){
+    btn.onclick = function(){
+      salvarPendencia(this.dataset.id, this.dataset.leito);
+    };
+  });
+}
+
+function salvarPendencia(leitoId, leito){
+  var txtEl = get('pend-txt-' + leitoId);
+  if(!txtEl) return;
+  var texto = txtEl.value.trim();
+  var docs = getDoctors();
+  var cfg = getConfig();
+  var medico = cfg.medicoNome || (currentRole === 'admin' ? 'Admin' : currentRole === 'diarista' ? 'Diarista' : 'Ambulatorio');
+  var rec = {leito: leito, texto: texto, medico: medico, updated_at: new Date().toISOString()};
+  if(sbClient){
+    sbClient.from('pendencias_diarias').upsert([rec], {onConflict: 'leito'})
+      .then(function(r){
+        if(r.error){ showToast('Erro: ' + r.error.message, 'error'); return; }
+        pendenciasData[leito] = rec;
+        var metaEl = get('pend-meta-' + leitoId);
+        if(metaEl) metaEl.textContent = 'Atualizado: ' + fmtDate(rec.updated_at) + ' por ' + medico;
+        showToast('Leito ' + leito + ' salvo!', 'success');
+      });
+  } else {
+    var local = lsGet('pendencias_diarias') || {};
+    local[leito] = rec;
+    lsSet('pendencias_diarias', local);
+    pendenciasData[leito] = rec;
+    var metaEl = get('pend-meta-' + leitoId);
+    if(metaEl) metaEl.textContent = 'Atualizado: ' + fmtDate(rec.updated_at) + ' por ' + medico;
+    showToast('Leito ' + leito + ' salvo!', 'success');
+  }
+}
+
+
+function gerarPDFReceptor(r){
+  var now = new Date().toLocaleDateString('pt-BR');
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>body{font-family:Arial,sans-serif;font-size:13px;color:#1a2535;padding:30px;max-width:700px;margin:0 auto;}'
+    +'h1{font-size:18px;color:#185FA5;margin-bottom:4px;}h2{font-size:13px;color:#4a5e78;font-weight:normal;margin-bottom:20px;}'
+    +'.section{margin-bottom:16px;} .section-title{font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#8a9ab5;border-bottom:1px solid #dde3ed;padding-bottom:4px;margin-bottom:8px;}'
+    +'.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}'
+    +'.field{margin-bottom:4px;} .label{font-size:10px;font-weight:bold;color:#8a9ab5;text-transform:uppercase;} .value{font-size:13px;color:#1a2535;}'
+    +'.full{grid-column:1/-1;} .footer{margin-top:30px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
+    +'.badge{display:inline-block;background:#fdf0ef;color:#d93025;border:1px solid #f5a9a3;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:4px;}'
+    +'</style>'
+    +'</head><body>'
+    +'<h1>Resumo Pré-Transplante — HGF</h1>'
+    +'<h2>Programa de Transplante Hepático do Ceará</h2>'
+    +'<div class="section"><div class="section-title">Identificação</div><div class="grid">'
+    +'<div class="field full"><div class="label">Paciente</div><div class="value" style="font-size:16px;font-weight:bold;">'+esc(r.nome)+'</div></div>'
+    +(r.idade?'<div class="field"><div class="label">Idade</div><div class="value">'+r.idade+' anos</div></div>':'')
+    +'<div class="field"><div class="label">Grupo Sanguíneo</div><div class="value">'+esc(r.grupo)+'</div></div>'
+    +(r.equipe?'<div class="field"><div class="label">Equipe</div><div class="value">'+esc(r.equipe)+'</div></div>':'')
+    +(r.medico?'<div class="field"><div class="label">Médico Assistente</div><div class="value">'+esc(r.medico)+'</div></div>':'')
+    +(r.status?'<div class="field"><div class="label">Status</div><div class="value">'+esc(r.status)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Dados Clínicos</div><div class="grid">'
+    +(r.meld?'<div class="field"><div class="label">MELD</div><div class="value" style="font-size:18px;font-weight:bold;color:#185FA5;">'+r.meld+'</div></div>':'')
+    +(r.child?'<div class="field"><div class="label">Child-Pugh</div><div class="value">'+esc(r.child)+'</div></div>':'')
+    +(r.peso?'<div class="field"><div class="label">Peso</div><div class="value">'+r.peso+' kg</div></div>':'')
+    +(r.altura?'<div class="field"><div class="label">Altura</div><div class="value">'+r.altura+' cm</div></div>':'')
+    +(r.diagnostico?'<div class="field full"><div class="label">Diagnóstico</div><div class="value">'+esc(r.diagnostico)+'</div></div>':'')
+    +(r.priorizacao&&r.priorizacao!=="NÃO"?'<div class="field full"><div class="label">Priorização</div><div class="value"><span class="badge">'+esc(r.priorizacao)+'</span>'+(r.data_priorizacao?' desde '+fmtDateShort(r.data_priorizacao):'')+'</div></div>':'')
+    +(r.trombose&&r.trombose!=="NÃO"?'<div class="field"><div class="label">Trombose</div><div class="value"><span class="badge">'+esc(r.trombose)+'</span></div></div>':'')
+    +(r.descompensacoes?'<div class="field full"><div class="label">Descompensações</div><div class="value">'+esc(r.descompensacoes)+'</div></div>':'')
+    +(r.comorbidades?'<div class="field full"><div class="label">Comorbidades</div><div class="value">'+esc(r.comorbidades)+'</div></div>':'')
+    +'</div></div>'
+    +'<div class="section"><div class="section-title">Protocolo de Transplante</div><div class="grid">'
+    +(r.antihbs?'<div class="field"><div class="label">AntiHbs</div><div class="value">'+esc(r.antihbs)+'</div></div>':'')
+    +(r.atb_inducao?'<div class="field full"><div class="label">ATB de Indução</div><div class="value">'+esc(r.atb_inducao)+'</div></div>':'')
+    +(r.corticoide?'<div class="field"><div class="label">Corticóide</div><div class="value">'+esc(r.corticoide)+'</div></div>':'')
+    +'</div></div>'
+    +(r.observacoes?'<div class="section"><div class="section-title">Observações</div><div style="padding:8px;background:#f5f7fa;border-radius:6px;font-size:13px;">'+esc(r.observacoes)+'</div></div>':'')
+    +'<div class="footer">Documento gerado em '+now+' — Alertas Tx Hepático HGF</div>'
+    +'</body></html>';
+
+  var win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},500);
+}
+
+// ── DECISÕES DA VISITA ──
+var decisoesData = [];
+
+get('tab-decisoes').addEventListener('click', function(){ switchTab('decisoes'); });
+
+function loadDecisoes(){
+  var hoje = new Date();
+  get('decisoes-data-hoje').textContent = hoje.toLocaleDateString('pt-BR');
+  decisoesData = [];
+  if(sbClient){
+    sbClient.from('decisoes_visita').select('*').order('created_at', {ascending: false})
+      .then(function(r){
+        decisoesData = r.data || [];
+        renderDecisoesSidebar();
+      }).catch(function(){
+        decisoesData = lsGet('decisoes_visita') || [];
+        renderDecisoesSidebar();
+      });
+  } else {
+    decisoesData = lsGet('decisoes_visita') || [];
+    renderDecisoesSidebar();
+  }
+}
+
+function renderDecisoesSidebar(){
+  var sb = get('decisoes-sidebar');
+  if(!sb) return;
+  if(!decisoesData.length){
+    sb.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhum registro</div>';
+    return;
+  }
+      sb.innerHTML = decisoesData.map(function(d){
+    var data = d.created_at ? new Date(d.created_at).toLocaleDateString('pt-BR') : '-';
+    var did = esc(d.id||d.created_at);
+    return '<div class="leito-card" style="padding:8px 10px;cursor:pointer;gap:4px;" data-id="'+did+'">'
+      +'<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);">'+data+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);">'+esc(d.medico||'')+'</div>'
+      +'<div style="font-size:9px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);padding:1px 6px;border-radius:10px;display:inline-block;font-weight:600;">🔒 Salvo</div>'
+      +'</div>';
+  }).join('');
+  sb.querySelectorAll('[data-id]').forEach(function(el){
+    el.addEventListener('click', function(){ abrirDecisaoAnterior(this.dataset.id); });
+  });
+}
+
+function abrirDecisaoAnterior(id){
+  var d = decisoesData.find(function(x){ return (x.id||x.created_at) == id; });
+  if(!d) return;
+  var data = d.created_at ? new Date(d.created_at).toLocaleString('pt-BR') : '-';
+  get('decisao-modal-data').textContent = '📅 ' + data;
+  get('decisao-modal-medico').textContent = 'Salvo por: ' + (d.medico||'-');
+  get('decisao-modal-texto').textContent = d.texto || '';
+  get('decisoes-overlay').style.display = 'flex';
+
+  get('btn-decisao-imprimir').onclick = function(){
+    var win = window.open('','_blank');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+      +'<style>body{font-family:Arial,sans-serif;font-size:13px;padding:30px;max-width:700px;margin:0 auto;color:#1a2535;}'
+      +'h2{font-size:16px;color:#185FA5;margin-bottom:4px;}p{font-size:11px;color:#8a9ab5;margin-bottom:20px;}'
+      +'.texto{line-height:1.8;white-space:pre-wrap;font-size:13px;}'
+      +'.footer{margin-top:40px;font-size:10px;color:#8a9ab5;border-top:1px solid #dde3ed;padding-top:8px;}'
+      +'</style></head><body>'
+      +'<h2>Decisões da Visita — HGF Transplante Hepático</h2>'
+      +'<p>Data: '+data+' &nbsp;|&nbsp; '+esc(d.medico||'')+'</p>'
+      +'<div class="texto">'+esc(d.texto||'').split('\n').join('<br>')+'</div>'
+      +'<div class="footer">Hospital Geral de Fortaleza — Unidade de Transplante Hepático</div>'
+      +'</body></html>');
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 500);
+  };
+}
+
+get('btn-decisao-fechar').addEventListener('click', function(){
+  get('decisoes-overlay').style.display = 'none';
+});
+get('decisoes-overlay').addEventListener('click', function(e){
+  if(e.target === this) this.style.display = 'none';
+});
+
+get('btn-decisoes-limpar').addEventListener('click', function(){
+  if(confirm('Limpar o texto atual?')) get('decisoes-textarea').value = '';
+});
+
+get('btn-decisoes-salvar').addEventListener('click', function(){
+  var texto = get('decisoes-textarea').value.trim();
+  if(!texto){ showToast('Digite as decisões antes de salvar.', 'error'); return; }
+  if(!confirm('Salvar e bloquear? Após salvo não poderá mais editar este registro.')) return;
+  var cfg = getConfig();
+  var medico = cfg.medicoNome || (currentRole==='admin'?'Admin':'Equipe');
+  var rec = { texto: texto, medico: medico, created_at: new Date().toISOString() };
+  if(sbClient){
+    sbClient.from('decisoes_visita').insert([rec])
+      .then(function(r){
+        if(r.error){ showToast('Erro: '+r.error.message, 'error'); return; }
+        showToast('Decisões salvas e bloqueadas!', 'success');
+        get('decisoes-textarea').value = '';
+        loadDecisoes();
+      });
+  } else {
+    var local = lsGet('decisoes_visita') || [];
+    rec.id = Date.now().toString();
+    local.unshift(rec);
+    lsSet('decisoes_visita', local);
+    showToast('Decisões salvas e bloqueadas!', 'success');
+    get('decisoes-textarea').value = '';
+    loadDecisoes();
+  }
+});
+
+
+// ── FICHA DE COLETA ──
+var fichasColetaData = [];
+var fichaColetaAtiva = null;
+
+get('tab-coleta').addEventListener('click', function(){ switchTab('coleta'); });
+
+function loadFichasColeta(){
+  fichasColetaData = [];
+  if(sbClient){
+    sbClient.from('fichas_coleta').select('*').order('created_at',{ascending:false})
+      .then(function(r){
+        fichasColetaData = r.data||[];
+        renderColetaSidebar();
+      }).catch(function(){
+        fichasColetaData = lsGet('fichas_coleta')||[];
+        renderColetaSidebar();
+      });
+  } else {
+    fichasColetaData = lsGet('fichas_coleta')||[];
+    renderColetaSidebar();
+  }
+}
+
+function renderColetaSidebar(){
+  var sb = get('coleta-sidebar');
+  if(!sb) return;
+  if(!fichasColetaData.length){
+    sb.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhuma ficha</div>';
+    return;
+  }
+  sb.innerHTML = fichasColetaData.map(function(f){
+    var data = f.created_at ? new Date(f.created_at).toLocaleDateString('pt-BR') : '-';
+    var pront = (f.dados&&f.dados.prontuario)||'-';
+    return '<div class="leito-card" style="padding:9px 10px;cursor:pointer;gap:4px;" data-id="'+esc(f.id||f.created_at)+'">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Pront: '+esc(pront)+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);font-family:var(--mono);">'+data+'</div>'
+      +'<div style="font-size:9px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);padding:1px 6px;border-radius:10px;display:inline-block;font-weight:600;">✓ Salvo</div>'
+      +'</div>';
+  }).join('');
+  sb.querySelectorAll('[data-id]').forEach(function(el){
+    el.addEventListener('click', function(){ carregarFichaColeta(this.dataset.id); });
+  });
+}
+
+function coletarDadosFC(){
+  var dados = {};
+  // Inputs e selects
+  var ids = ['prontuario','data-tx','tipo-sang','idade','peso','altura','meld-puro','meld-prior','tempo-int','cv-hbv','cv-hcv','obs'];
+  ids.forEach(function(id){
+    var el = get('fc-'+id);
+    if(el) dados[id.replace(/-/g,'_')] = el.value;
+  });
+  // Radios
+  var radios = ['hosp','proc','orig','sexo','prior','vaso','infec','corti','anvas','anbil','anart','lesao','esteat','has','dm','disl','etil','tab','dac','tgp','inr','atb','mr','desf'];
+  radios.forEach(function(name){
+    var el = document.querySelector('input[name="fc-'+name+'"]:checked');
+    if(el) dados[name] = el.value;
+  });
+  // Checkboxes
+  var cbs = ['prior-chc','prior-paf','prior-shp','prior-hpp','prior-met','prior-ade','prior-hem','prior-pol','prior-asc','prior-bud','prior-iha','prior-ret','prior-tah','prior-out',
+             'cir-alc','cir-hbv','cir-hcv','cir-hbhc','cir-cri','cir-aut','cir-nas','cir-bil','cir-col','cir-met','cir-out',
+             'imuno-tac-mico','imuno-tac-ever','imuno-tac-iso','imuno-out',
+             'sit-pul','sit-uri','sit-abd','sit-san','sit-cir','sit-cat','sit-out',
+             'comp-nen','comp-tah','comp-nfe','comp-rej','comp-bil','comp-tvp'];
+  cbs.forEach(function(id){
+    var el = get('fc-'+id);
+    if(el) dados[id.replace(/-/g,'_')] = el.checked;
+  });
+  // Sorologia - radios com nomes especiais
+  var sorRadios = ['hcv-r','hbs-r','hbs-d','hbc-r','hbc-d','hbsab-r','hbsab-d','cmv-r','cmv-d','hiv-r','hiv-d'];
+  sorRadios.forEach(function(name){
+    var el = document.querySelector('input[name="fc-'+name+'"]:checked');
+    if(el) dados['sor_'+name.replace(/-/g,'_')] = el.value;
+  });
+  return dados;
+}
+
+function limparFichaColeta(){
+  // Limpar inputs
+  document.querySelectorAll('#coleta-form-area input[type="text"], #coleta-form-area input[type="date"], #coleta-form-area input[type="number"], #coleta-form-area select, #coleta-form-area textarea').forEach(function(el){
+    if(el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  // Limpar radios e checkboxes
+  document.querySelectorAll('#coleta-form-area input[type="radio"], #coleta-form-area input[type="checkbox"]').forEach(function(el){
+    el.checked = false;
+  });
+  fichaColetaAtiva = null;
+}
+
+function carregarFichaColeta(id){
+  var f = fichasColetaData.find(function(x){ return (x.id||x.created_at) == id; });
+  if(!f||!f.dados) return;
+  fichaColetaAtiva = f;
+  limparFichaColeta();
+  var d = f.dados;
+  // Inputs
+  var ids = ['prontuario','data-tx','tipo-sang','idade','peso','altura','meld-puro','meld-prior','tempo-int','cv-hbv','cv-hcv','obs'];
+  ids.forEach(function(id){
+    var el = get('fc-'+id);
+    var key = id.replace(/-/g,'_');
+    if(el && d[key]!==undefined) el.value = d[key];
+  });
+  // Radios
+  var radios = ['hosp','proc','orig','sexo','prior','vaso','infec','corti','anvas','anbil','anart','lesao','esteat','has','dm','disl','etil','tab','dac','tgp','inr','atb','mr','desf'];
+  radios.forEach(function(name){
+    if(d[name]){
+      var el = document.querySelector('input[name="fc-'+name+'"][value="'+d[name]+'"]');
+      if(el) el.checked = true;
+    }
+  });
+  // Checkboxes
+  var cbs = ['prior-chc','prior-paf','prior-shp','prior-hpp','prior-met','prior-ade','prior-hem','prior-pol','prior-asc','prior-bud','prior-iha','prior-ret','prior-tah','prior-out',
+             'cir-alc','cir-hbv','cir-hcv','cir-hbhc','cir-cri','cir-aut','cir-nas','cir-bil','cir-col','cir-met','cir-out',
+             'imuno-tac-mico','imuno-tac-ever','imuno-tac-iso','imuno-out',
+             'sit-pul','sit-uri','sit-abd','sit-san','sit-cir','sit-cat','sit-out',
+             'comp-nen','comp-tah','comp-nfe','comp-rej','comp-bil','comp-tvp'];
+  cbs.forEach(function(id){
+    var el = get('fc-'+id);
+    var key = id.replace(/-/g,'_');
+    if(el && d[key]) el.checked = true;
+  });
+  // Sorologia
+  var sorRadios = ['hcv-r','hbs-r','hbs-d','hbc-r','hbc-d','hbsab-r','hbsab-d','cmv-r','cmv-d','hiv-r','hiv-d'];
+  sorRadios.forEach(function(name){
+    var key = 'sor_'+name.replace(/-/g,'_');
+    if(d[key]){
+      var el = document.querySelector('input[name="fc-'+name+'"][value="'+d[key]+'"]');
+      if(el) el.checked = true;
+    }
+  });
+  get('coleta-form-area').scrollTop = 0;
+}
+
+get('btn-nova-ficha-coleta').addEventListener('click', function(){
+  limparFichaColeta();
+  get('coleta-form-area').scrollTop = 0;
+  document.querySelectorAll('#coleta-sidebar [data-id]').forEach(function(el){ el.style.borderColor=''; el.style.background=''; });
+});
+
+get('btn-fc-limpar').addEventListener('click', function(){
+  if(confirm('Limpar todos os campos?')) limparFichaColeta();
+});
+
+get('btn-fc-salvar').addEventListener('click', function(){
+  var pront = get('fc-prontuario').value.trim();
+  if(!pront){ showToast('Informe o prontuário.','error'); return; }
+  var dados = coletarDadosFC();
+  var rec = { dados: dados, created_at: new Date().toISOString() };
+  if(sbClient){
+    var query = fichaColetaAtiva
+      ? sbClient.from('fichas_coleta').update({dados:dados,updated_at:new Date().toISOString()}).eq('id',fichaColetaAtiva.id)
+      : sbClient.from('fichas_coleta').insert([rec]);
+    query.then(function(r){
+      if(r.error){ showToast('Erro: '+r.error.message,'error'); return; }
+      showToast('Ficha salva!','success');
+      loadFichasColeta();
+    });
+  } else {
+    var local = lsGet('fichas_coleta')||[];
+    if(fichaColetaAtiva){
+      var idx = local.findIndex(function(x){ return x.id===fichaColetaAtiva.id; });
+      if(idx>=0) local[idx].dados = dados;
+    } else {
+      rec.id = Date.now().toString();
+      local.unshift(rec);
+    }
+    lsSet('fichas_coleta', local);
+    fichasColetaData = local;
+    renderColetaSidebar();
+    showToast('Ficha salva!','success');
+  }
+});
+
+get('btn-fc-imprimir').addEventListener('click', function(){
+  var d = coletarDadosFC();
+  var now = new Date().toLocaleDateString('pt-BR');
+  function yn(v){ return v==='Sim'?'Sim':v==='Nao'?'Não':(v||'—'); }
+  function cb(v){ return v?'☑':'☐'; }
+  function rd(v,opt){ return v===opt?'●':'○'; }
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box;}'
+    +'body{font-family:Arial,sans-serif;font-size:10px;color:#000;padding:10mm;}'
+    +'.title{text-align:center;font-size:14px;font-weight:bold;margin-bottom:2px;}'
+    +'.subtitle{text-align:center;font-size:9px;color:#555;margin-bottom:8px;}'
+    +'.section{border:1px solid #333;border-radius:3px;margin-bottom:6px;overflow:hidden;}'
+    +'.sec-header{background:#185FA5;color:#fff;padding:4px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;}'
+    +'.sec-header.orange{background:#c47f00;}'
+    +'.sec-header.green{background:#1e9e5e;}'
+    +'.sec-header.purple{background:#6d3fa0;}'
+    +'.sec-header.red{background:#c0392b;}'
+    +'.sec-header.gray{background:#4a5e78;}'
+    +'.sec-body{padding:6px 8px;display:flex;flex-direction:column;gap:4px;}'
+    +'.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}'
+    +'.field{display:flex;flex-direction:column;gap:1px;}'
+    +'.lbl{font-size:8px;font-weight:bold;color:#666;text-transform:uppercase;}'
+    +'.val{font-size:10px;color:#000;}'
+    +'table{width:100%;border-collapse:collapse;font-size:9px;}'
+    +'th{background:#f0f4f8;padding:3px 6px;text-align:left;border-bottom:1px solid #ccc;font-weight:bold;}'
+    +'td{padding:3px 6px;border-bottom:.5px solid #eee;vertical-align:middle;}'
+    +'.footer{margin-top:10px;display:flex;justify-content:space-between;font-size:9px;color:#666;border-top:1px solid #ccc;padding-top:6px;}'
+    +'@media print{@page{margin:10mm;}}'
+    +'</style></head><body>'
+    +'<div class="title">FICHA DE COLETA — TRANSPLANTE HEPÁTICO</div>'
+    +'<div class="subtitle">TransplantData HGF • Registro de Dados Clínicos e Cirúrgicos</div>'
+
+    // IDENTIFICAÇÃO
+    +'<div class="section"><div class="sec-header">🏷 Identificação do Paciente</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Prontuário</div><div class="val">'+(d.prontuario||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Data Tx</div><div class="val">'+(d.data_tx||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Tipo Sang.</div><div class="val">'+(d.tipo_sang||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Sexo</div><div class="val">'+(d.sexo||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Idade</div><div class="val">'+(d.idade||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Peso (kg)</div><div class="val">'+(d.peso||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Altura (cm)</div><div class="val">'+(d.altura||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">MELD Puro</div><div class="val">'+(d.meld_puro||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">MELD Prior.</div><div class="val">'+(d.meld_prior||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Hospital</div><div class="val">'+(d.hosp||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Procedência</div><div class="val">'+(d.proc||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Origem</div><div class="val">'+(d.orig||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="field"><div class="lbl">Priorização</div><div class="val">'
+    +[['prior_chc','CHC'],['prior_paf','PAF'],['prior_shp','SHP'],['prior_hpp','HPP'],['prior_met','Met.Neuroend.'],['prior_ade','Adenomatose'],['prior_hem','Hemangiend.'],['prior_pol','Policística'],['prior_asc','Ascite Refrat.'],['prior_bud','Budd-Chiari'],['prior_iha','IHA'],['prior_ret','Retransplante'],['prior_tah','Trombose AH'],['prior_out','Outra']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||d.prior||'Não priorizado'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Tipo de Cirrose</div><div class="val">'
+    +[['cir_alc','Alcoólica'],['cir_hbv','HBV'],['cir_hcv','HCV'],['cir_hbhc','HBV+HCV'],['cir_cri','Criptogênica'],['cir_aut','Autoimune'],['cir_nas','NASH'],['cir_bil','Biliar primária'],['cir_col','Colangite esclerosante'],['cir_met','Metabólica'],['cir_out','Outra']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'—'
+    +'</div></div>'
+    +'</div></div>'
+
+    // DADOS CIRÚRGICOS
+    +'<div class="section"><div class="sec-header orange">🔪 Dados Cirúrgicos</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Isquemia Fria (min)</div><div class="val">'+(d.isq_fria||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Isquemia Quente (min)</div><div class="val">'+(d.isq_quente||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Tempo Cirúrgico (min)</div><div class="val">'+(d.tempo_cir||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">TGP Doador (U/L)</div><div class="val">'+(d.tgp_doador||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Sódio Doador (mEq/L)</div><div class="val">'+(d.na_doador||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Droga Vasoativa</div><div class="val">'+yn(d.vaso)+'</div></div>'
+    +'<div class="field"><div class="lbl">Infecção Doador</div><div class="val">'+yn(d.infec)+'</div></div>'
+    +'<div class="field"><div class="lbl">Corticoide Intraop.</div><div class="val">'+yn(d.corti)+'</div></div>'
+    +'<div class="field"><div class="lbl">Anastomose Vascular</div><div class="val">'+(d.anvas||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Anastomose Biliar</div><div class="val">'+(d.anbil||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Anastomose Arterial</div><div class="val">'+(d.anart||'—')+'</div></div>'
+    +'</div>'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Lesão Pós-Reperfusão</div><div class="val">'+(d.lesao||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Esteatose</div><div class="val">'+(d.esteat||'—')+'</div></div>'
+    +'</div>'
+    +'</div></div>'
+
+    // SOROLOGIA
+    +'<div class="section"><div class="sec-header green">🧪 Sorologia</div><div class="sec-body">'
+    +'<table><thead><tr><th>Marcador</th><th>Receptor</th><th>Doador</th></tr></thead><tbody>'
+    +'<tr><td>Anti-HCV</td><td>'+(d.sor_hcv_r||'—')+'</td><td>—</td></tr>'
+    +'<tr><td>AgHBs</td><td>'+(d.sor_hbs_r||'—')+'</td><td>'+(d.sor_hbs_d||'—')+'</td></tr>'
+    +'<tr><td>Anti-HBc</td><td>'+(d.sor_hbc_r||'—')+'</td><td>'+(d.sor_hbc_d||'—')+'</td></tr>'
+    +'<tr><td>Anti-HBs</td><td>'+(d.sor_hbsab_r||'—')+'</td><td>'+(d.sor_hbsab_d||'—')+'</td></tr>'
+    +'<tr><td>CMV IgG</td><td>'+(d.sor_cmv_r||'—')+'</td><td>'+(d.sor_cmv_d||'—')+'</td></tr>'
+    +'<tr><td>HIV</td><td>'+(d.sor_hiv_r||'—')+'</td><td>'+(d.sor_hiv_d||'—')+'</td></tr>'
+    +'<tr><td>Carga Viral HBV</td><td>'+(d.cv_hbv||'—')+'</td><td>—</td></tr>'
+    +'<tr><td>Carga Viral HCV</td><td>'+(d.cv_hcv||'—')+'</td><td>—</td></tr>'
+    +'</tbody></table>'
+    +'</div></div>'
+
+    // COMORBIDADES
+    +'<div class="section"><div class="sec-header purple">❤️ Comorbidades</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Hipertensão</div><div class="val">'+yn(d.has)+'</div></div>'
+    +'<div class="field"><div class="lbl">Diabetes</div><div class="val">'+yn(d.dm)+'</div></div>'
+    +'<div class="field"><div class="lbl">Dislipidemia</div><div class="val">'+yn(d.disl)+'</div></div>'
+    +'<div class="field"><div class="lbl">Etilismo</div><div class="val">'+yn(d.etil)+'</div></div>'
+    +'<div class="field"><div class="lbl">Tabagismo</div><div class="val">'+yn(d.tab)+'</div></div>'
+    +'<div class="field"><div class="lbl">D. Coronariana</div><div class="val">'+yn(d.dac)+'</div></div>'
+    +'</div>'
+    +'</div></div>'
+
+    // INTERNAMENTO
+    +'<div class="section"><div class="sec-header red">🏥 Informações do Internamento</div><div class="sec-body">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Imunossupressão</div><div class="val">'
+    +[['imuno_tac_mico','Tac+Mico'],['imuno_tac_ever','Tac+Ever'],['imuno_tac_iso','Tac isolado'],['imuno_out','Outros']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'—'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Pico TGP</div><div class="val">'+(d.tgp||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">INR Pico</div><div class="val">'+(d.inr||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Tempo Internamento</div><div class="val">'+(d.tempo_int||'—')+' dias</div></div>'
+    +'<div class="field"><div class="lbl">Uso ATB</div><div class="val">'+yn(d.atb)+'</div></div>'
+    +'<div class="field"><div class="lbl">Germe MR</div><div class="val">'+yn(d.mr)+'</div></div>'
+    +'</div>'
+    +'<div class="field"><div class="lbl">Sítios de Infecção</div><div class="val">'
+    +[['sit_pul','Pulmonar'],['sit_uri','Urinário'],['sit_abd','Abdominal'],['sit_san','Corrente sanguínea'],['sit_cir','Sítio cirúrgico'],['sit_cat','Cateter'],['sit_out','Outro']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'Nenhum'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Complicações</div><div class="val">'
+    +[['comp_nen','Nenhuma'],['comp_tah','Trombose AH'],['comp_nfe','NF primário enxerto'],['comp_rej','Rejeição aguda'],['comp_bil','Compl. biliares'],['comp_tvp','Trombose VP']].filter(function(x){return d[x[0]];}).map(function(x){return x[1];}).join(', ')||'—'
+    +'</div></div>'
+    +'<div class="field"><div class="lbl">Desfecho</div><div class="val">'+(d.desf||'—')+'</div></div>'
+    +'</div></div>'
+
+    +(d.obs?'<div class="section"><div class="sec-header gray">📝 Observações</div><div class="sec-body"><div class="val">'+esc(d.obs)+'</div></div></div>':'')
+
+    +'<div class="footer">'
+    +'<div>TransplantData HGF — Sistema de Pesquisa em Transplante Hepático</div>'
+    +'<div>Gerado em: '+now+'&nbsp;&nbsp;&nbsp;Assinatura / Carimbo: ___________________</div>'
+    +'</div>'
+    +'</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 600);
+});
+
+
+// Listeners dos filtros da fila
+function initFiltrosFila(){
+  var btnToggle = get('btn-toggle-filtros');
+  var panel = get('filtros-panel');
+  if(btnToggle) btnToggle.addEventListener('click', function(){
+    panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+  });
+
+  // Listeners de todos os filtros
+  document.querySelectorAll('.filtro-tipo, .filtro-status').forEach(function(el){
+    el.addEventListener('change', aplicarFiltrosFila);
+  });
+  document.querySelectorAll('input[name="filtro-periodo"]').forEach(function(el){
+    el.addEventListener('change', aplicarFiltrosFila);
+  });
+  ['filtro-medico','filtro-ordem'].forEach(function(id){
+    var el = get(id); if(el) el.addEventListener('change', aplicarFiltrosFila);
+  });
+  ['filtro-busca','filtro-cid','filtro-livre'].forEach(function(id){
+    var el = get(id);
+    if(el) el.addEventListener('input', function(){
+      clearTimeout(el._t);
+      el._t = setTimeout(aplicarFiltrosFila, 300);
+    });
+  });
+
+  // Limpar filtros
+  var btnLimpar = get('btn-limpar-filtros');
+  if(btnLimpar) btnLimpar.addEventListener('click', function(){
+    document.querySelectorAll('.filtro-tipo').forEach(function(el){el.checked=false;});
+    document.querySelectorAll('.filtro-status').forEach(function(el){el.checked=el.value==='pendente';});
+    var periodoTodos = document.querySelector('input[name="filtro-periodo"][value="todos"]');
+    if(periodoTodos) periodoTodos.checked = true;
+    if(get('filtro-medico')) get('filtro-medico').value = '';
+    if(get('filtro-busca')) get('filtro-busca').value = '';
+    if(get('filtro-cid')) get('filtro-cid').value = '';
+    if(get('filtro-livre')) get('filtro-livre').value = '';
+    if(get('filtro-ordem')) get('filtro-ordem').value = 'urgencia';
+    aplicarFiltrosFila();
+  });
+
+  popularMedicosFiltro();
+}
+
+
+get('tab-enfermagem').addEventListener('click', function(){ switchTab('enfermagem'); });
+
+// ── RELATÓRIOS ──
+
+
+
+
 // ── ESTATÍSTICA DE ENFERMAGEM ──
 var plantoesData = [];
 var plantaoAtivo = null;
-
-get('tab-enfermagem').addEventListener('click', function(){ switchTab('enfermagem'); });
 
 function loadEnfermagem(){
   mostrarSeletorEnf();
@@ -3480,60 +4853,19 @@ function loadEnfermagem(){
   var hoje = new Date().toISOString().split('T')[0];
   if(get('enf-data')) get('enf-data').value = hoje;
   plantoesData = [];
-  function aposCarregar(){
-    renderEnfermagemSidebar();
-    // Se o dashboard estiver visivel, re-renderizar com os dados carregados
-    var dashArea = get('enf-dashboard-area');
-    if(dashArea && dashArea.style.display !== 'none' && dashArea.style.display !== ''){
-      renderDashboardEnf();
-    }
-  }
   if(sbClient){
     sbClient.from('plantoes_enfermagem').select('*').order('created_at',{ascending:false})
-      .then(function(r){ plantoesData=r.data||[]; aposCarregar(); })
-      .catch(function(){ plantoesData=lsGet('plantoes_enfermagem')||[]; aposCarregar(); });
+      .then(function(r){
+        plantoesData = r.data||[];
+        renderEnfermagemSidebar();
+      }).catch(function(){
+        plantoesData = lsGet('plantoes_enfermagem')||[];
+        renderEnfermagemSidebar();
+      });
   } else {
     plantoesData = lsGet('plantoes_enfermagem')||[];
-    aposCarregar();
+    renderEnfermagemSidebar();
   }
-}
-
-function mostrarSeletorEnf(){
-  var sel = get('enf-visao-selector');
-  if(!sel) return;
-  var canDash = currentRole==='admin' || currentRole==='chefe_enf';
-  sel.style.display = canDash ? 'flex' : 'none';
-}
-
-var _enfVisaoInit = false;
-function initEnfermagemVisao(){
-  if(_enfVisaoInit) return;
-  _enfVisaoInit = true;
-  var btnP = get('btn-enf-preencher');
-  var btnD = get('btn-enf-dashboard');
-  if(!btnP || !btnD) return;
-  btnP.addEventListener('click', function(){
-    get('enfermagem-form-area').style.display = 'block';
-    if(get('enf-dashboard-area')) get('enf-dashboard-area').style.display = 'none';
-    btnP.className = 'btn btn-primary btn-sm';
-    btnD.className = 'btn btn-ghost btn-sm';
-  });
-  btnD.addEventListener('click', function(){
-    get('enfermagem-form-area').style.display = 'none';
-    if(get('enf-dashboard-area')) get('enf-dashboard-area').style.display = 'block';
-    btnD.className = 'btn btn-primary btn-sm';
-    btnP.className = 'btn btn-ghost btn-sm';
-    // Recarregar dados do banco antes de renderizar o dashboard
-    if(sbClient){
-      get('enf-dashboard-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando dados...</div>';
-      sbClient.from('plantoes_enfermagem').select('*').order('created_at',{ascending:false})
-        .then(function(r){ plantoesData=r.data||[]; renderDashboardEnf(); })
-        .catch(function(){ plantoesData=lsGet('plantoes_enfermagem')||[]; renderDashboardEnf(); });
-    } else {
-      plantoesData = lsGet('plantoes_enfermagem')||[];
-      renderDashboardEnf();
-    }
-  });
 }
 
 function renderEnfermagemSidebar(){
@@ -3545,9 +4877,12 @@ function renderEnfermagemSidebar(){
   }
   sb.innerHTML = plantoesData.map(function(p){
     var d = p.dados||{};
+    var data = d.data||'—';
+    var turno = d.turno||'—';
+    var unidade = d.unidade||'—';
     return '<div class="leito-card" style="padding:9px 10px;cursor:pointer;gap:3px;" data-id="'+esc(p.id||p.created_at)+'">'
-      +'<div style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono);">'+(d.data||'—')+'</div>'
-      +'<div style="font-size:10px;color:var(--text2);">'+(d.turno||'—')+' — '+(d.unidade||'—')+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono);">'+data+'</div>'
+      +'<div style="font-size:10px;color:var(--text2);">'+turno+' — '+unidade+'</div>'
       +'<div style="font-size:10px;color:var(--text3);">'+esc(d.nome||'')+'</div>'
       +'</div>';
   }).join('');
@@ -3558,359 +4893,413 @@ function renderEnfermagemSidebar(){
 
 function coletarDadosEnf(){
   var d = {};
+  // Radios
   ['unidade','turno','sng-tipo'].forEach(function(n){
     var el = document.querySelector('input[name="enf-'+n+'"]:checked');
     if(el) d[n.replace(/-/g,'_')] = el.value;
   });
+  // Inputs texto
   ['nome','coren','data'].forEach(function(id){
-    var el = get('enf-'+id); if(el) d[id] = el.value;
+    var el = get('enf-'+id);
+    if(el) d[id] = el.value;
   });
+  // Inputs numéricos
   ['internados','admissoes','altas','obitos','transferencias','tempo-medio',
    'proc-total','quedas','flebites','reacoes-med','perfuro','hemo','reacoes-trans',
    'curativos','lpp-adm','lpp-adq','sng-perda','traqueo','intubados','acamados','isolamento']
   .forEach(function(id){
     var el = get('enf-'+id);
-    if(el) d[id.replace(/-/g,'_')] = parseInt(el.value)||0;
+    var key = id.replace(/-/g,'_');
+    if(el) d[key] = parseInt(el.value)||0;
   });
+  // Checkboxes procedimentos
   ['svd','svp','acv','avp','sng','col','adm','out'].forEach(function(id){
-    var el = get('enf-proc-'+id); if(el) d['proc_'+id] = el.checked;
+    var el = get('enf-proc-'+id);
+    if(el) d['proc_'+id] = el.checked;
   });
+  // Textarea
   var obs = get('enf-obs'); if(obs) d.obs = obs.value;
-  var po = get('enf-proc-obs'); if(po) d.proc_obs = po.value;
+  var procObs = get('enf-proc-obs'); if(procObs) d.proc_obs = procObs.value;
   return d;
 }
 
 function limparEnfermagem(){
-  document.querySelectorAll('#enfermagem-form-area input[type="text"],#enfermagem-form-area input[type="date"],#enfermagem-form-area textarea').forEach(function(el){el.value='';});
-  document.querySelectorAll('#enfermagem-form-area input[type="number"]').forEach(function(el){el.value='0';});
-  document.querySelectorAll('#enfermagem-form-area input[type="radio"],#enfermagem-form-area input[type="checkbox"]').forEach(function(el){el.checked=false;});
+  document.querySelectorAll('#enfermagem-form-area input[type="text"], #enfermagem-form-area input[type="date"], #enfermagem-form-area textarea').forEach(function(el){ el.value=''; });
+  document.querySelectorAll('#enfermagem-form-area input[type="number"]').forEach(function(el){ el.value='0'; });
+  document.querySelectorAll('#enfermagem-form-area input[type="radio"], #enfermagem-form-area input[type="checkbox"]').forEach(function(el){ el.checked=false; });
   var hoje = new Date().toISOString().split('T')[0];
   if(get('enf-data')) get('enf-data').value = hoje;
   plantaoAtivo = null;
 }
 
 function carregarPlantao(id){
-  var p = plantoesData.find(function(x){return (x.id||x.created_at)==id;});
+  var p = plantoesData.find(function(x){ return (x.id||x.created_at)==id; });
   if(!p||!p.dados) return;
   plantaoAtivo = p;
   limparEnfermagem();
   var d = p.dados;
+  // Radios
   ['unidade','turno','sng_tipo'].forEach(function(key){
     var name = 'enf-'+key.replace(/_/g,'-');
-    if(d[key]){ var el=document.querySelector('input[name="'+name+'"][value="'+d[key]+'"]'); if(el) el.checked=true; }
+    if(d[key]){
+      var el = document.querySelector('input[name="'+name+'"][value="'+d[key]+'"]');
+      if(el) el.checked = true;
+    }
   });
-  ['nome','coren','data'].forEach(function(id){ var el=get('enf-'+id); if(el&&d[id]!==undefined) el.value=d[id]; });
+  // Inputs texto
+  ['nome','coren','data'].forEach(function(id){
+    var el = get('enf-'+id);
+    if(el && d[id]!==undefined) el.value = d[id];
+  });
+  // Numéricos
   ['internados','admissoes','altas','obitos','transferencias','tempo_medio',
    'proc_total','quedas','flebites','reacoes_med','perfuro','hemo','reacoes_trans',
    'curativos','lpp_adm','lpp_adq','sng_perda','traqueo','intubados','acamados','isolamento']
-  .forEach(function(key){ var id='enf-'+key.replace(/_/g,'-'); var el=get(id); if(el&&d[key]!==undefined) el.value=d[key]; });
-  ['svd','svp','acv','avp','sng','col','adm','out'].forEach(function(id){
-    var el=get('enf-proc-'+id); if(el) el.checked=!!d['proc_'+id];
+  .forEach(function(key){
+    var id = 'enf-'+key.replace(/_/g,'-');
+    var el = get(id);
+    if(el && d[key]!==undefined) el.value = d[key];
   });
-  if(get('enf-obs')&&d.obs) get('enf-obs').value=d.obs;
-  if(get('enf-proc-obs')&&d.proc_obs) get('enf-proc-obs').value=d.proc_obs;
-  if(get('enfermagem-form-area')) get('enfermagem-form-area').scrollTop=0;
+  // Checkboxes
+  ['svd','svp','acv','avp','sng','col','adm','out'].forEach(function(id){
+    var el = get('enf-proc-'+id);
+    if(el) el.checked = !!d['proc_'+id];
+  });
+  // Textareas
+  if(get('enf-obs') && d.obs) get('enf-obs').value = d.obs;
+  if(get('enf-proc-obs') && d.proc_obs) get('enf-proc-obs').value = d.proc_obs;
+  get('enfermagem-form-area').scrollTop = 0;
 }
 
-get('btn-novo-plantao').addEventListener('click', function(){ limparEnfermagem(); });
-get('btn-enf-limpar').addEventListener('click', function(){ if(confirm('Limpar todos os campos?')) limparEnfermagem(); });
+get('btn-novo-plantao').addEventListener('click', function(){
+  limparEnfermagem();
+  get('enfermagem-form-area').scrollTop = 0;
+});
+
+get('btn-enf-limpar').addEventListener('click', function(){
+  if(confirm('Limpar todos os campos?')) limparEnfermagem();
+});
 
 get('btn-enf-salvar').addEventListener('click', function(){
-  var nome=get('enf-nome').value.trim();
-  var coren=get('enf-coren').value.trim();
-  var data=get('enf-data').value;
-  var turno=document.querySelector('input[name="enf-turno"]:checked');
-  var unidade=document.querySelector('input[name="enf-unidade"]:checked');
-  if(!nome){showToast('Informe o nome do enfermeiro.','error');return;}
-  if(!coren){showToast('Informe o COREN.','error');return;}
-  if(!data){showToast('Informe a data do plantao.','error');return;}
-  if(!turno){showToast('Selecione o turno.','error');return;}
-  if(!unidade){showToast('Selecione a unidade.','error');return;}
-  var dados=coletarDadosEnf();
-  var rec={dados:dados,created_at:new Date().toISOString()};
+  var nome = get('enf-nome').value.trim();
+  var coren = get('enf-coren').value.trim();
+  var data = get('enf-data').value;
+  var turno = document.querySelector('input[name="enf-turno"]:checked');
+  var unidade = document.querySelector('input[name="enf-unidade"]:checked');
+  if(!nome){ showToast('Informe o nome do enfermeiro.','error'); return; }
+  if(!coren){ showToast('Informe o COREN.','error'); return; }
+  if(!data){ showToast('Informe a data do plantão.','error'); return; }
+  if(!turno){ showToast('Selecione o turno.','error'); return; }
+  if(!unidade){ showToast('Selecione a unidade.','error'); return; }
+  var dados = coletarDadosEnf();
+  var rec = { dados: dados, created_at: new Date().toISOString() };
   if(sbClient){
-    var q=plantaoAtivo
-      ?sbClient.from('plantoes_enfermagem').update({dados:dados,updated_at:new Date().toISOString()}).eq('id',plantaoAtivo.id)
-      :sbClient.from('plantoes_enfermagem').insert([rec]);
+    var q = plantaoAtivo
+      ? sbClient.from('plantoes_enfermagem').update({dados:dados,updated_at:new Date().toISOString()}).eq('id',plantaoAtivo.id)
+      : sbClient.from('plantoes_enfermagem').insert([rec]);
     q.then(function(r){
-      if(r.error){showToast('Erro: '+r.error.message,'error');return;}
-      showToast('Plantao salvo! Formulario limpo para o proximo plantao.','success');
+      if(r.error){ showToast('Erro: '+r.error.message,'error'); return; }
+      showToast('Plantão salvo! Formulário limpo para o próximo plantão.','success');
       limparEnfermagem();
       loadEnfermagem();
     });
   } else {
-    var local=lsGet('plantoes_enfermagem')||[];
-    if(plantaoAtivo){var idx2=local.findIndex(function(x){return x.id===plantaoAtivo.id;});if(idx2>=0)local[idx2].dados=dados;}
-    else{rec.id=Date.now().toString();local.unshift(rec);}
-    lsSet('plantoes_enfermagem',local);
-    plantoesData=local;
+    var local = lsGet('plantoes_enfermagem')||[];
+    if(plantaoAtivo){
+      var idx2 = local.findIndex(function(x){ return x.id===plantaoAtivo.id; });
+      if(idx2>=0) local[idx2].dados = dados;
+    } else {
+      rec.id = Date.now().toString();
+      local.unshift(rec);
+    }
+    lsSet('plantoes_enfermagem', local);
+    plantoesData = local;
     renderEnfermagemSidebar();
-    limparEnfermagem();
-    showToast('Plantao salvo! Formulario limpo para o proximo plantao.','success');
+    showToast('Plantão salvo!','success');
   }
 });
 
 get('btn-enf-imprimir').addEventListener('click', function(){
-  var d=coletarDadosEnf();
-  var now=new Date().toLocaleDateString('pt-BR');
-  var procs=[];
-  if(d.proc_svd)procs.push('SVD');if(d.proc_svp)procs.push('SVP');
-  if(d.proc_acv)procs.push('ACV');if(d.proc_avp)procs.push('AVP');
-  if(d.proc_sng)procs.push('SNG');if(d.proc_col)procs.push('Coleta');
-  if(d.proc_adm)procs.push('Adm Med');if(d.proc_out)procs.push('Outros');
-  var win=window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;padding:10mm;}.titulo{font-size:14px;font-weight:bold;color:#185FA5;text-align:center;margin-bottom:8px;}.sec{border:1px solid #dde3ed;border-radius:3px;margin-bottom:6px;overflow:hidden;}.sec-h{background:#185FA5;color:#fff;padding:4px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;}.sec-b{padding:8px;}.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;}.field{display:flex;flex-direction:column;gap:1px;min-width:80px;}.lbl{font-size:8px;font-weight:bold;color:#888;text-transform:uppercase;}.val{font-size:10px;color:#1a2535;font-weight:600;}.footer{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#aaa;border-top:1px solid #dde3ed;padding-top:6px;}@media print{@page{margin:10mm;}}</style></head><body>'
-    +'<div class="titulo">Estatistica de Enfermagem — HGF</div>'
-    +'<div class="sec"><div class="sec-h">Identificacao</div><div class="sec-b"><div class="row">'
+  var d = coletarDadosEnf();
+  var now = new Date().toLocaleDateString('pt-BR');
+  function yn(v){ return v>0?String(v):'0'; }
+  var procs = [];
+  if(d.proc_svd) procs.push('SVD');
+  if(d.proc_svp) procs.push('SVP');
+  if(d.proc_acv) procs.push('ACV Central');
+  if(d.proc_avp) procs.push('AVP');
+  if(d.proc_sng) procs.push('Passagem SNG');
+  if(d.proc_col) procs.push('Coleta de Exames');
+  if(d.proc_adm) procs.push('Adm. Medicamentos');
+  if(d.proc_out) procs.push('Outros');
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;padding:10mm;}'
+    +'.titulo{font-size:14px;font-weight:bold;color:#185FA5;text-align:center;margin-bottom:2px;}'
+    +'.subtitulo{font-size:9px;color:#666;text-align:center;margin-bottom:10px;}'
+    +'.sec{border:1px solid #dde3ed;border-radius:3px;margin-bottom:6px;overflow:hidden;}'
+    +'.sec-h{background:#185FA5;color:#fff;padding:4px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;}'
+    +'.sec-h.or{background:#c47f00;}.sec-h.re{background:#c0392b;}.sec-h.pu{background:#6d3fa0;}.sec-h.gr{background:#1e9e5e;}.sec-h.gy{background:#4a5e78;}'
+    +'.sec-b{padding:8px;}'
+    +'.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;}'
+    +'.field{display:flex;flex-direction:column;gap:1px;min-width:80px;}'
+    +'.lbl{font-size:8px;font-weight:bold;color:#888;text-transform:uppercase;}'
+    +'.val{font-size:10px;color:#1a2535;font-weight:600;}'
+    +'.footer{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#aaa;border-top:1px solid #dde3ed;padding-top:6px;}'
+    +'.ass{margin-top:20px;border-top:1px solid #1a2535;width:200px;text-align:center;font-size:8px;padding-top:3px;}'
+    +'@media print{@page{margin:10mm;}}'
+    +'</style></head><body>'
+    +'<div class="titulo">Estatística de Enfermagem</div>'
+    +'<div class="subtitulo">Hospital Geral de Fortaleza</div>'
+    +'<div class="sec"><div class="sec-h">Identificação</div><div class="sec-b">'
+    +'<div class="row">'
     +'<div class="field"><div class="lbl">Unidade</div><div class="val">'+(d.unidade||'—')+'</div></div>'
     +'<div class="field"><div class="lbl">Enfermeiro</div><div class="val">'+(d.nome||'—')+'</div></div>'
     +'<div class="field"><div class="lbl">COREN</div><div class="val">'+(d.coren||'—')+'</div></div>'
     +'<div class="field"><div class="lbl">Data</div><div class="val">'+(d.data||'—')+'</div></div>'
     +'<div class="field"><div class="lbl">Turno</div><div class="val">'+(d.turno||'—')+'</div></div>'
     +'</div></div></div>'
-    +'<div class="sec"><div class="sec-h">Censo</div><div class="sec-b"><div class="row">'
-    +'<div class="field"><div class="lbl">Internados</div><div class="val">'+(d.internados||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Admissoes</div><div class="val">'+(d.admissoes||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Altas</div><div class="val">'+(d.altas||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Obitos</div><div class="val">'+(d.obitos||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Transferencias</div><div class="val">'+(d.transferencias||0)+'</div></div>'
+    +'<div class="sec"><div class="sec-h">Censo do Plantão</div><div class="sec-b">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Internados</div><div class="val">'+yn(d.internados)+'</div></div>'
+    +'<div class="field"><div class="lbl">Admissões</div><div class="val">'+yn(d.admissoes)+'</div></div>'
+    +'<div class="field"><div class="lbl">Altas</div><div class="val">'+yn(d.altas)+'</div></div>'
+    +'<div class="field"><div class="lbl">Óbitos</div><div class="val">'+yn(d.obitos)+'</div></div>'
+    +'<div class="field"><div class="lbl">Transferências</div><div class="val">'+yn(d.transferencias)+'</div></div>'
+    +'<div class="field"><div class="lbl">Tempo Médio</div><div class="val">'+(d.tempo_medio||'—')+' dias</div></div>'
     +'</div></div></div>'
-    +'<div class="sec"><div class="sec-h">Seguranca</div><div class="sec-b"><div class="row">'
-    +'<div class="field"><div class="lbl">Quedas</div><div class="val">'+(d.quedas||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Flebites</div><div class="val">'+(d.flebites||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Reac Med</div><div class="val">'+(d.reacoes_med||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Perfuro</div><div class="val">'+(d.perfuro||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">LPP Adm</div><div class="val">'+(d.lpp_adm||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">LPP Adq</div><div class="val">'+(d.lpp_adq||0)+'</div></div>'
+    +'<div class="sec"><div class="sec-h or">Procedimentos</div><div class="sec-b">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Total</div><div class="val">'+yn(d.proc_total)+'</div></div>'
+    +'<div class="field" style="flex:1"><div class="lbl">Tipos</div><div class="val">'+(procs.length?procs.join(', '):'—')+'</div></div>'
+    +'</div>'
+    +(d.proc_obs?'<div style="font-size:9px;margin-top:4px;"><strong>Obs:</strong> '+esc(d.proc_obs)+'</div>':'')
+    +'</div></div>'
+    +'<div class="sec"><div class="sec-h re">Segurança do Paciente</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Quedas</div><div class="val">'+yn(d.quedas)+'</div></div>'
+    +'<div class="field"><div class="lbl">Flebites</div><div class="val">'+yn(d.flebites)+'</div></div>'
+    +'<div class="field"><div class="lbl">Reações Med.</div><div class="val">'+yn(d.reacoes_med)+'</div></div>'
+    +'<div class="field"><div class="lbl">Perfuro-cortante</div><div class="val">'+yn(d.perfuro)+'</div></div>'
     +'</div></div></div>'
-    +'<div class="sec"><div class="sec-h">Hemoterapia</div><div class="sec-b"><div class="row">'
-    +'<div class="field"><div class="lbl">Hemotransfusoes</div><div class="val">'+(d.hemo||0)+'</div></div>'
-    +'<div class="field"><div class="lbl">Reac Transf</div><div class="val">'+(d.reacoes_trans||0)+'</div></div>'
+    +'<div class="sec"><div class="sec-h pu">Hemoterapia</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Hemotransfusões</div><div class="val">'+yn(d.hemo)+'</div></div>'
+    +'<div class="field"><div class="lbl">Reações Transfusionais</div><div class="val">'+yn(d.reacoes_trans)+'</div></div>'
     +'</div></div></div>'
-    +'<div class="sec"><div class="sec-h">Procedimentos</div><div class="sec-b"><div class="row">'
-    +'<div class="field"><div class="lbl">Total</div><div class="val">'+(d.proc_total||0)+'</div></div>'
-    +'<div class="field" style="flex:1"><div class="lbl">Tipos</div><div class="val">'+(procs.join(', ')||'—')+'</div></div>'
+    +'<div class="sec"><div class="sec-h gr">Feridas e Dispositivos</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Curativos</div><div class="val">'+yn(d.curativos)+'</div></div>'
+    +'<div class="field"><div class="lbl">LPP Admissão</div><div class="val">'+yn(d.lpp_adm)+'</div></div>'
+    +'<div class="field"><div class="lbl">LPP Adquirida</div><div class="val">'+yn(d.lpp_adq)+'</div></div>'
+    +'<div class="field"><div class="lbl">Perda/Obstr. SNG</div><div class="val">'+yn(d.sng_perda)+'</div></div>'
+    +'<div class="field"><div class="lbl">Tipo SNG</div><div class="val">'+(d.sng_tipo||'—')+'</div></div>'
     +'</div></div></div>'
-    +(d.obs?'<div class="sec"><div class="sec-h">Observacoes</div><div class="sec-b"><div style="font-size:9px;">'+esc(d.obs)+'</div></div></div>':'')
-    +'<div class="footer"><div>HGF - Transplante Hepatico</div><div>'+now+'</div></div>'
+    +'<div class="sec"><div class="sec-h gy">Perfil dos Pacientes</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Traqueostomia</div><div class="val">'+yn(d.traqueo)+'</div></div>'
+    +'<div class="field"><div class="lbl">Intubados</div><div class="val">'+yn(d.intubados)+'</div></div>'
+    +'<div class="field"><div class="lbl">Acamados</div><div class="val">'+yn(d.acamados)+'</div></div>'
+    +'<div class="field"><div class="lbl">Isolamento</div><div class="val">'+yn(d.isolamento)+'</div></div>'
+    +'</div></div></div>'
+    +(d.obs?'<div class="sec"><div class="sec-h gy">Observações</div><div class="sec-b"><div style="font-size:9px;">'+esc(d.obs)+'</div></div></div>':'')
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;">'
+    +'<div class="footer">Gerado em: '+now+' — HGF Transplante Hepático</div>'
+    +'<div style="text-align:center;"><div class="ass">'+(d.nome||'Enfermeiro(a)')+'<br>COREN: '+(d.coren||'—')+'</div></div>'
+    +'</div>'
     +'</body></html>');
   win.document.close();
-  setTimeout(function(){win.print();},500);
+  setTimeout(function(){ win.print(); }, 500);
 });
 
-function renderDashboardEnf(){
-  var el = get('enf-dashboard-content');
-  if(!el) return;
-  if(!plantoesData.length){
-    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;">📋</div><div>Nenhum plantao registrado ainda.</div></div>';
-    return;
-  }
-  var periodoAtual = window._enfPeriodo||'mes';
-  function filtrarPeriodo(lista){
-    var now=new Date(),cutoff;
-    if(periodoAtual==='semana') cutoff=new Date(now-7*24*60*60*1000);
-    else if(periodoAtual==='mes') cutoff=new Date(now.getFullYear(),now.getMonth(),1);
-    else if(periodoAtual==='trim') cutoff=new Date(now-90*24*60*60*1000);
-    else return lista;
-    return lista.filter(function(p){return new Date(p.created_at)>=cutoff;});
-  }
-  var filtrados=filtrarPeriodo(plantoesData);
-  var total=filtrados.length;
-  var diasPeriodo=periodoAtual==='semana'?7:periodoAtual==='mes'?30:periodoAtual==='trim'?90:365;
-  var taxaPreench=Math.min(100,total?Math.round(total/(diasPeriodo*3)*100):0);
-  function soma(c){return filtrados.reduce(function(a,p){return a+((p.dados&&p.dados[c])||0);},0);}
-  function media(c){return total?Math.round(soma(c)/total*10)/10:0;}
-  var unidades=['Ala C','Ala D','Transplante Hepatico'];
-  var unidadeLabels={'Ala C':'Ala C','Ala D':'Ala D','Transplante Hepatico':'Transplante'};
-  function filtrarU(lista,u){return lista.filter(function(p){return(p.dados&&p.dados.unidade)===u;});}
-  function somaU(u,c){return filtrarU(filtrados,u).reduce(function(a,p){return a+((p.dados&&p.dados[c])||0);},0);}
-  var enfMap={};
-  filtrados.forEach(function(p){
-    var nome=(p.dados&&p.dados.nome)||'Nao identificado';
-    var coren=(p.dados&&p.dados.coren)||'—';
-    var key=nome+'|'+coren;
-    if(!enfMap[key])enfMap[key]={nome:nome,coren:coren,count:0};
-    enfMap[key].count++;
-  });
-  var enfRank=Object.values(enfMap).sort(function(a,b){return b.count-a.count;});
-  var preenchidos={};
-  plantoesData.forEach(function(p){
-    var d=p.dados||{};
-    preenchidos[(d.data||'')+'|'+(d.unidade||'')+'|'+(d.turno||'')]=true;
-  });
-  var faltantes=[],turnos=['Manha','Tarde','Noite'],turnoLabel={Manha:'Manha',Tarde:'Tarde',Noite:'Noite'};
-  var hoje=new Date();
-  for(var dd=0;dd<7;dd++){
-    var dt=new Date(hoje-dd*24*60*60*1000);
-    var dtStr=dt.toISOString().split('T')[0];
-    unidades.forEach(function(u){turnos.forEach(function(t){if(!preenchidos[dtStr+'|'+u+'|'+t])faltantes.push({data:dtStr,unidade:u,turno:t});});});
-  }
-  var semanas={};
-  filtrados.forEach(function(p){
-    if(!p.created_at)return;
-    var d=new Date(p.created_at),sw=new Date(d);
-    sw.setDate(d.getDate()-d.getDay());
-    var key=sw.toISOString().split('T')[0];
-    if(!semanas[key])semanas[key]={quedas:0,flebites:0,lpp:0,label:''};
-    semanas[key].quedas+=((p.dados&&p.dados.quedas)||0);
-    semanas[key].flebites+=((p.dados&&p.dados.flebites)||0);
-    semanas[key].lpp+=((p.dados&&p.dados.lpp_adq)||0);
-    var pts=key.split('-');semanas[key].label=pts[2]+'/'+pts[1];
-  });
-  var semKeys=Object.keys(semanas).sort().slice(-6);
-  var procTotais={SVD:0,SVP:0,ACV:0,AVP:0,SNG:0,Coleta:0,'Adm Med':0,Outros:0};
-  var procIds={SVD:'proc_svd',SVP:'proc_svp',ACV:'proc_acv',AVP:'proc_avp',SNG:'proc_sng',Coleta:'proc_col','Adm Med':'proc_adm',Outros:'proc_out'};
-  filtrados.forEach(function(p){Object.keys(procIds).forEach(function(n){if(p.dados&&p.dados[procIds[n]])procTotais[n]++;});});
-  var procRank=Object.keys(procTotais).map(function(k){return{nome:k,n:procTotais[k]};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
-  var maxProc=procRank.length?procRank[0].n:1;
-  var complexidade=Math.round((media('traqueo')*3+media('intubados')*3+media('acamados'))*10)/10;
-  var alertas=[];
-  if(soma('quedas')>2)alertas.push({tipo:'red',msg:'Atencao: '+soma('quedas')+' quedas no periodo'});
-  if(soma('lpp_adq')>0)alertas.push({tipo:'red',msg:'Atencao: '+soma('lpp_adq')+' LPP adquirida(s)'});
-  if(soma('reacoes_trans')>0)alertas.push({tipo:'red',msg:'Atencao: '+soma('reacoes_trans')+' reacao(oes) transfusional(is)'});
-  if(soma('perfuro')>0)alertas.push({tipo:'yellow',msg:'Atencao: '+soma('perfuro')+' acidente(s) perfuro-cortante'});
-  if(taxaPreench<80)alertas.push({tipo:'yellow',msg:'Taxa de preenchimento baixa: '+taxaPreench+'%'});
-  if(faltantes.length===0)alertas.push({tipo:'green',msg:'Todos os plantoes dos ultimos 7 dias foram preenchidos'});
+// ── DASHBOARD ENFERMAGEM ──
+function initEnfermagemVisao(){
+  var btnPreencher = get('btn-enf-preencher');
+  var btnDash = get('btn-enf-dashboard');
+  if(!btnPreencher || !btnDash) return;
 
-  var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">'
-    +'<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;">Periodo:</div>'
-    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='semana'?'btn-primary':'btn-ghost')+'" data-periodo="semana">Semana</button>'
-    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='mes'?'btn-primary':'btn-ghost')+'" data-periodo="mes">Mes</button>'
-    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='trim'?'btn-primary':'btn-ghost')+'" data-periodo="trim">Trimestre</button>'
-    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='todos'?'btn-primary':'btn-ghost')+'" data-periodo="todos">Todos</button>'
-    +'<div style="margin-left:auto;display:flex;gap:6px;">'
-    +'<button class="btn btn-ghost btn-sm" id="btn-enf-export-pdf">PDF</button>'
-    +'<button class="btn btn-ghost btn-sm" id="btn-enf-export-xls">Excel</button>'
-    +'</div></div>';
-
-  alertas.forEach(function(a){
-    var bg=a.tipo==='red'?'#fdf0ef':a.tipo==='yellow'?'#fffbea':'#e8f7f0';
-    var bc=a.tipo==='red'?'#d93025':a.tipo==='yellow'?'#c47f00':'#1e9e5e';
-    var tc=bc;
-    h+='<div style="background:'+bg+';border-left:4px solid '+bc+';border-radius:6px;padding:8px 12px;font-size:12px;font-weight:600;color:'+tc+';margin-bottom:6px;">'+a.msg+'</div>';
+  btnPreencher.addEventListener('click', function(){
+    get('enfermagem-form-area').style.display='flex';
+    get('enfermagem-form-area').style.flexDirection='column';
+    get('enf-dashboard-area').style.display='none';
+    btnPreencher.className='btn btn-primary btn-sm';
+    btnDash.className='btn btn-ghost btn-sm';
   });
 
-  h+='<div class="stats-grid" style="margin-bottom:14px;">'
-    +'<div class="stat-card"><div class="stat-num">'+total+'</div><div class="stat-label">Plantoes Registrados</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:'+(taxaPreench>=90?'var(--green)':taxaPreench>=70?'var(--yellow)':'var(--red)')+'">'+taxaPreench+'%</div><div class="stat-label">Taxa de Preenchimento</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:'+(faltantes.length>0?'var(--red)':'var(--green)')+'">'+faltantes.length+'</div><div class="stat-label">Faltantes (7 dias)</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+media('internados')+'</div><div class="stat-label">Media Internados/Plantao</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+complexidade+'</div><div class="stat-label">Indice de Complexidade</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+soma('admissoes')+'</div><div class="stat-label">Total Admissoes</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+soma('altas')+'</div><div class="stat-label">Total Altas</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+soma('obitos')+'</div><div class="stat-label">Total Obitos</div></div>'
-    +'</div>';
-
-  h+='<div class="settings-section"><div class="settings-title">Seguranca do Paciente</div><div class="stats-grid">'
-    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">'+soma('quedas')+'</div><div class="stat-label">Quedas</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--yellow)"><div class="stat-num" style="color:var(--yellow)">'+soma('flebites')+'</div><div class="stat-label">Flebites</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--yellow)"><div class="stat-num" style="color:var(--yellow)">'+soma('reacoes_med')+'</div><div class="stat-label">Reacoes Med.</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">'+soma('perfuro')+'</div><div class="stat-label">Perfuro-cortante</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">'+soma('lpp_adm')+'</div><div class="stat-label">LPP na Admissao</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">'+soma('lpp_adq')+'</div><div class="stat-label">LPP Adquirida</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+soma('sng_perda')+'</div><div class="stat-label">Perda/Obstr. SNG</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+soma('curativos')+'</div><div class="stat-label">Curativos</div></div>'
-    +'</div></div>';
-
-  if(semKeys.length>1){
-    var maxT=1;semKeys.forEach(function(k){maxT=Math.max(maxT,semanas[k].quedas,semanas[k].flebites,semanas[k].lpp);});
-    h+='<div class="settings-section"><div class="settings-title">Tendencia Semanal</div>'
-      +'<div style="display:flex;gap:6px;align-items:flex-end;height:100px;margin-bottom:8px;">';
-    semKeys.forEach(function(k){
-      var s=semanas[k];
-      var pQ=Math.max(s.quedas?3:0,Math.round(s.quedas/maxT*90));
-      var pF=Math.max(s.flebites?3:0,Math.round(s.flebites/maxT*90));
-      var pL=Math.max(s.lpp?3:0,Math.round(s.lpp/maxT*90));
-      h+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="width:100%;display:flex;gap:2px;justify-content:center;height:80px;align-items:flex-end;">'
-        +'<div style="width:30%;background:var(--red);height:'+pQ+'px;border-radius:2px 2px 0 0;" title="Quedas"></div>'
-        +'<div style="width:30%;background:var(--yellow);height:'+pF+'px;border-radius:2px 2px 0 0;" title="Flebites"></div>'
-        +'<div style="width:30%;background:#8e44ad;height:'+pL+'px;border-radius:2px 2px 0 0;" title="LPP"></div>'
-        +'</div><div style="font-size:9px;font-family:var(--mono);color:var(--text3);">'+s.label+'</div></div>';
-    });
-    h+='</div><div style="display:flex;gap:12px;font-size:11px;">'
-      +'<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block;"></span>Quedas</span>'
-      +'<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--yellow);border-radius:2px;display:inline-block;"></span>Flebites</span>'
-      +'<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#8e44ad;border-radius:2px;display:inline-block;"></span>LPP Adquirida</span>'
-      +'</div></div>';
-  }
-
-  h+='<div class="settings-section"><div class="settings-title">Comparativo por Unidade</div>'
-    +'<table class="stats-table"><thead><tr><th>Indicador</th>'
-    +unidades.map(function(u){return '<th style="text-align:center">'+unidadeLabels[u]+'</th>';}).join('')
-    +'</tr></thead><tbody>';
-  [['Internados (media)','internados'],['Admissoes','admissoes'],['Quedas','quedas'],
-   ['Flebites','flebites'],['LPP Adquirida','lpp_adq'],['Hemotransfusoes','hemo'],['Curativos','curativos']]
-  .forEach(function(ind){
-    h+='<tr><td>'+ind[0]+'</td>';
-    unidades.forEach(function(u){
-      var listU=filtrarU(filtrados,u);
-      var val=ind[1]==='internados'?(listU.length?Math.round(listU.reduce(function(a,p){return a+((p.dados&&p.dados[ind[1]])||0);},0)/listU.length*10)/10:0):somaU(u,ind[1]);
-      h+='<td style="text-align:center;font-weight:600;">'+val+'</td>';
-    });
-    h+='</tr>';
+  btnDash.addEventListener('click', function(){
+    get('enfermagem-form-area').style.display='none';
+    get('enf-dashboard-area').style.display='flex';
+    get('enf-dashboard-area').style.flexDirection='column';
+    btnDash.className='btn btn-primary btn-sm';
+    btnPreencher.className='btn btn-ghost btn-sm';
+    renderDashboardEnf();
   });
-  h+='</tbody></table></div>';
-
-  h+='<div class="settings-section"><div class="settings-title">Taxa de Ocupacao por Unidade</div><div style="display:flex;flex-direction:column;gap:10px;">';
-  unidades.forEach(function(u){
-    var listU=filtrarU(filtrados,u);
-    var mi=listU.length?Math.round(listU.reduce(function(a,p){return a+((p.dados&&p.dados.internados)||0);},0)/listU.length):0;
-    var pct=Math.min(100,Math.round(mi/10*100));
-    var cor=pct>=90?'var(--red)':pct>=70?'var(--yellow)':'var(--green)';
-    h+='<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;"><span style="font-weight:600;">'+unidadeLabels[u]+'</span><span style="font-family:var(--mono);font-weight:700;color:'+cor+'">'+pct+'% ('+mi+'/10)</span></div>'
-      +'<div style="background:var(--surface2);border-radius:20px;height:12px;overflow:hidden;"><div style="background:'+cor+';width:'+pct+'%;height:100%;border-radius:20px;"></div></div></div>';
-  });
-  h+='</div></div>';
-
-  if(procRank.length){
-    h+='<div class="settings-section"><div class="settings-title">Procedimentos Mais Realizados</div><div style="display:flex;flex-direction:column;gap:8px;">';
-    procRank.forEach(function(p){
-      var pct=Math.round(p.n/maxProc*100);
-      h+='<div><div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;"><span>'+p.nome+'</span><span style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+p.n+' plantoes</span></div>'
-        +'<div style="background:var(--surface2);border-radius:20px;height:8px;overflow:hidden;"><div style="background:var(--accent);width:'+pct+'%;height:100%;border-radius:20px;"></div></div></div>';
-    });
-    h+='</div></div>';
-  }
-
-  h+='<div class="settings-section"><div class="settings-title">Hemoterapia e Perfil</div><div class="stats-grid">'
-    +'<div class="stat-card"><div class="stat-num">'+soma('hemo')+'</div><div class="stat-label">Hemotransfusoes</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">'+soma('reacoes_trans')+'</div><div class="stat-label">Reacoes Transfusionais</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+media('traqueo')+'</div><div class="stat-label">Traqueostomia (media)</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+media('intubados')+'</div><div class="stat-label">Intubados (media)</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+media('acamados')+'</div><div class="stat-label">Acamados (media)</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+media('isolamento')+'</div><div class="stat-label">Isolamento (media)</div></div>'
-    +'</div></div>';
-
-  if(faltantes.length){
-    h+='<div class="settings-section"><div class="settings-title" style="color:var(--red);">Plantoes Nao Preenchidos (7 dias)</div>'
-      +'<table class="stats-table"><thead><tr><th>Data</th><th>Unidade</th><th>Turno</th></tr></thead><tbody>'
-      +faltantes.slice(0,20).map(function(f){return '<tr><td>'+f.data+'</td><td>'+esc(f.unidade)+'</td><td>'+f.turno+'</td></tr>';}).join('')
-      +'</tbody></table></div>';
-  } else {
-    h+='<div class="settings-section"><div style="color:var(--green);font-weight:600;font-size:13px;">Todos os plantoes dos ultimos 7 dias foram preenchidos!</div></div>';
-  }
-
-  h+='<div class="settings-section"><div class="settings-title">Enfermeiros que Preencheram</div>'
-    +'<table class="stats-table"><thead><tr><th>#</th><th>Nome</th><th>COREN</th><th>Plantoes</th></tr></thead><tbody>'
-    +enfRank.map(function(e,i){return '<tr><td style="font-weight:700;color:var(--accent)">'+(i+1)+'</td><td>'+esc(e.nome)+'</td><td style="font-family:var(--mono)">'+esc(e.coren)+'</td><td><strong>'+e.count+'</strong></td></tr>';}).join('')
-    +'</tbody></table></div>';
-
-  el.innerHTML=h;
-  el.querySelectorAll('.enf-periodo-btn').forEach(function(btn){
-    btn.addEventListener('click',function(){window._enfPeriodo=this.dataset.periodo;renderDashboardEnf();});
-  });
-  var bpdf=get('btn-enf-export-pdf'); if(bpdf) bpdf.addEventListener('click',exportarDashboardPDF);
-  var bxls=get('btn-enf-export-xls'); if(bxls) bxls.addEventListener('click',exportarDashboardExcel);
 }
 
+function mostrarSeletorEnf(){
+  var sel = get('enf-visao-selector');
+  if(!sel) return;
+  var canDash = currentRole==='admin' || currentRole==='chefe_enf';
+  sel.style.display = canDash ? 'flex' : 'none';
+}
+
+function renderDashboardEnf(){
+  var dados = plantoesData;
+  if(!dados.length){
+    get('enf-dashboard-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);"><div style="font-size:32px;margin-bottom:12px;">📋</div><div>Nenhum plantão registrado ainda.</div></div>';
+    return;
+  }
+
+  // Período selecionável
+  var periodoAtual = window._enfPeriodo || 'mes';
+
+  function filtrarPeriodo(lista){
+    var now = new Date();
+    var cutoff;
+    if(periodoAtual==='semana') cutoff = new Date(now - 7*24*60*60*1000);
+    else if(periodoAtual==='mes') cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    else if(periodoAtual==='trim') cutoff = new Date(now - 90*24*60*60*1000);
+    else return lista;
+    return lista.filter(function(p){ return new Date(p.created_at) >= cutoff; });
+  }
+
+  var filtrados = filtrarPeriodo(dados);
+  var total = filtrados.length;
+
+  // Calcular esperado (3 turnos x dias do período)
+  var diasPeriodo = periodoAtual==='semana'?7:periodoAtual==='mes'?30:periodoAtual==='trim'?90:999;
+  var esperado = diasPeriodo * 3; // manhã, tarde, noite
+  var taxaPreench = total ? Math.round(total/esperado*100) : 0;
+
+  // Somar indicadores
+  function soma(campo){ return filtrados.reduce(function(acc,p){ return acc + ((p.dados&&p.dados[campo])||0); },0); }
+  function media(campo){ return total ? Math.round(soma(campo)/total*10)/10 : 0; }
+
+  // Ranking enfermeiros
+  var enfMap = {};
+  filtrados.forEach(function(p){
+    var nome = (p.dados&&p.dados.nome)||'Não identificado';
+    var coren = (p.dados&&p.dados.coren)||'—';
+    var key = nome+'|'+coren;
+    if(!enfMap[key]) enfMap[key]={nome:nome,coren:coren,count:0};
+    enfMap[key].count++;
+  });
+  var enfRank = Object.values(enfMap).sort(function(a,b){return b.count-a.count;});
+
+  // Plantões faltantes (verificar buracos por unidade/turno/data)
+  var preenchidos = {};
+  filtrados.forEach(function(p){
+    var d = p.dados||{};
+    var key = (d.data||'')+'|'+(d.unidade||'')+'|'+(d.turno||'');
+    preenchidos[key] = true;
+  });
+
+  // Últimos 7 dias por unidade — verificar faltantes
+  var faltantes = [];
+  var unidades = ['Ala C','Ala D','Transplante Hepatico'];
+  var turnos = ['Manha','Tarde','Noite'];
+  var hoje = new Date();
+  for(var dd=0; dd<7; dd++){
+    var dt = new Date(hoje - dd*24*60*60*1000);
+    var dtStr = dt.toISOString().split('T')[0];
+    unidades.forEach(function(u){
+      turnos.forEach(function(t){
+        var key = dtStr+'|'+u+'|'+t;
+        if(!preenchidos[key]){
+          faltantes.push({data:dtStr, unidade:u, turno:t});
+        }
+      });
+    });
+  }
+
+  // HTML do dashboard
+  var html = '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">'
+    +'<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;">Período:</div>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='semana'?'btn-primary':'btn-ghost')+'" data-periodo="semana" style="font-size:11px;">Semana</button>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='mes'?'btn-primary':'btn-ghost')+'" data-periodo="mes" style="font-size:11px;">Mês</button>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='trim'?'btn-primary':'btn-ghost')+'" data-periodo="trim" style="font-size:11px;">Trimestre</button>'
+    +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='todos'?'btn-primary':'btn-ghost')+'" data-periodo="todos" style="font-size:11px;">Todos</button>'
+    +'</div>';
+
+  // Cards resumo
+  html += '<div class="stats-grid" style="margin-bottom:14px;">'
+    +'<div class="stat-card"><div class="stat-num">'+total+'</div><div class="stat-label">Plantões Registrados</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">'+taxaPreench+'%</div><div class="stat-label">Taxa de Preenchimento</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">'+faltantes.length+'</div><div class="stat-label">Faltantes (7 dias)</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('internados')+'</div><div class="stat-label">Média Internados/Plantão</div></div>'
+    +'</div>';
+
+  // Segurança do Paciente
+  html += '<div class="settings-section"><div class="settings-title">⚠️ Segurança do Paciente</div>'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('quedas')+'</div><div class="stat-label">Quedas</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--yellow);"><div class="stat-num" style="color:var(--yellow)">'+soma('flebites')+'</div><div class="stat-label">Flebites</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('reacoes_med')+'</div><div class="stat-label">Reações Medicamentosas</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--yellow);"><div class="stat-num" style="color:var(--yellow)">'+soma('perfuro')+'</div><div class="stat-label">Perfuro-cortante</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('lpp_adm')+'</div><div class="stat-label">LPP na Admissão</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('lpp_adq')+'</div><div class="stat-label">LPP Adquirida</div></div>'
+    +'</div></div>';
+
+  // Hemoterapia e Assistencial
+  html += '<div class="settings-section"><div class="settings-title">🩸 Hemoterapia & Indicadores Assistenciais</div>'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card"><div class="stat-num">'+soma('hemo')+'</div><div class="stat-label">Hemotransfusões</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red);"><div class="stat-num" style="color:var(--red)">'+soma('reacoes_trans')+'</div><div class="stat-label">Reações Transfusionais</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('admissoes')+'</div><div class="stat-label">Total Admissões</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('altas')+'</div><div class="stat-label">Total Altas</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('obitos')+'</div><div class="stat-label">Total Óbitos</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('curativos')+'</div><div class="stat-label">Curativos</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+soma('sng_perda')+'</div><div class="stat-label">Perda/Obstr. SNG</div></div>'
+    +'</div></div>';
+
+  // Perfil dos Pacientes
+  html += '<div class="settings-section"><div class="settings-title">👥 Perfil dos Pacientes (médias)</div>'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card"><div class="stat-num">'+media('traqueo')+'</div><div class="stat-label">Traqueostomia</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('intubados')+'</div><div class="stat-label">Intubados</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('acamados')+'</div><div class="stat-label">Acamados</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+media('isolamento')+'</div><div class="stat-label">Isolamento de Contato</div></div>'
+    +'</div></div>';
+
+  // Conformidade — faltantes últimos 7 dias
+  if(faltantes.length){
+    html += '<div class="settings-section"><div class="settings-title" style="color:var(--red);">❌ Plantões Não Preenchidos (últimos 7 dias)</div>'
+      +'<table class="stats-table"><thead><tr><th>Data</th><th>Unidade</th><th>Turno</th></tr></thead><tbody>'
+      +faltantes.slice(0,20).map(function(f){
+        return '<tr><td>'+f.data+'</td><td>'+esc(f.unidade)+'</td><td>'+f.turno+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div>';
+  } else {
+    html += '<div class="settings-section"><div style="color:var(--green);font-weight:600;font-size:13px;">✅ Todos os plantões dos últimos 7 dias foram preenchidos!</div></div>';
+  }
+
+  // Ranking de enfermeiros
+  html += '<div class="settings-section"><div class="settings-title">👩‍⚕️ Enfermeiros que Preencheram</div>'
+    +'<table class="stats-table"><thead><tr><th>Nome</th><th>COREN</th><th>Plantões</th></tr></thead><tbody>'
+    +enfRank.map(function(e){
+      return '<tr><td>'+esc(e.nome)+'</td><td>'+esc(e.coren)+'</td><td><strong>'+e.count+'</strong></td></tr>';
+    }).join('')
+    +'</tbody></table></div>';
+
+  get('enf-dashboard-content').innerHTML = html;
+  get('enf-dashboard-content').querySelectorAll('.enf-periodo-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      window._enfPeriodo = this.dataset.periodo;
+      renderDashboardEnf();
+    });
+  });
+  var bpdf = get('btn-enf-export-pdf');
+  if(bpdf) bpdf.addEventListener('click', exportarDashboardPDF);
+  var bxls = get('btn-enf-export-xls');
+  if(bxls) bxls.addEventListener('click', exportarDashboardExcel);
+}
+})();
+</script>
+<script>
+var CSS_IMP = "*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;background:#fff;padding:10mm;}.rel-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #185FA5;padding-bottom:6px;margin-bottom:10px;}.rel-header-title{font-size:13px;font-weight:bold;color:#185FA5;}.rel-header-sub{font-size:9px;color:#666;margin-top:2px;}.rel-header-info{text-align:right;font-size:9px;color:#666;}.card{border:1px solid #dde3ed;border-radius:4px;padding:7px 10px;margin-bottom:6px;page-break-inside:avoid;}.card.red{border-left:4px solid #d93025;background:#fffcfc;}.card.yellow{border-left:4px solid #c47f00;background:#fffdf5;}.card.green{border-left:4px solid #1e9e5e;background:#fafffe;}.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}.card-nome{font-size:11px;font-weight:bold;}.card-meta{font-size:9px;color:#666;margin-bottom:4px;display:flex;gap:10px;flex-wrap:wrap;}.card-body{font-size:9px;color:#444;display:flex;gap:10px;flex-wrap:wrap;line-height:1.5;}.card-body strong{color:#888;font-weight:600;}.section-title{font-size:9px;font-weight:bold;text-transform:uppercase;color:#8a9ab5;background:#f5f7fa;padding:4px 8px;border-radius:3px;margin:10px 0 5px;}.count-badge{display:inline-block;background:#185FA5;color:#fff;border-radius:10px;padding:1px 8px;font-size:9px;font-weight:bold;margin-left:6px;}.rel-footer{margin-top:14px;padding-top:6px;border-top:1px solid #dde3ed;font-size:8px;color:#aaa;display:flex;justify-content:space-between;}table{width:100%;border-collapse:collapse;font-size:9px;}th{background:#f0f4f8;padding:4px 8px;text-align:left;font-weight:bold;color:#4a5e78;border-bottom:1px solid #dde3ed;}td{padding:4px 8px;border-bottom:0.5px solid #eee;vertical-align:top;}.meld{font-weight:bold;color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;display:inline-block;}.meld-alto{background:#d93025;}.meld-med{background:#c47f00;}.meld-baixo{background:#1e9e5e;}.leito-box{border:1px solid #dde3ed;border-radius:4px;padding:6px 8px;margin-bottom:5px;}.leito-id{font-size:10px;font-weight:bold;color:#185FA5;margin-bottom:3px;}.leito-txt{font-size:9px;color:#444;line-height:1.6;white-space:pre-wrap;}.leito-meta{font-size:8px;color:#aaa;margin-top:3px;}";
 function exportarDashboardPDF(){
   var now=new Date().toLocaleString('pt-BR');
   function soma(c){return plantoesData.reduce(function(a,p){return a+((p.dados&&p.dados[c])||0);},0);}
   function media(c){var t=plantoesData.length;return t?Math.round(soma(c)/t*10)/10:0;}
   var win=window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;padding:10mm;}.title{font-size:14px;font-weight:bold;color:#185FA5;text-align:center;margin-bottom:2px;}.sub{font-size:9px;color:#666;text-align:center;margin-bottom:10px;}.sec{border:1px solid #dde3ed;border-radius:3px;margin-bottom:8px;overflow:hidden;page-break-inside:avoid;}.sec-h{background:#185FA5;color:#fff;padding:5px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;}.sec-b{padding:8px;}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}.card{border:1px solid #dde3ed;border-radius:4px;padding:6px 8px;}.card-num{font-size:18px;font-weight:bold;color:#185FA5;}.card-lbl{font-size:8px;color:#888;}.footer{margin-top:10px;font-size:8px;color:#aaa;border-top:1px solid #dde3ed;padding-top:5px;display:flex;justify-content:space-between;}@media print{@page{margin:10mm;}}</style></head><body>'
-    +'<div class="title">Dashboard Estatistico — Enfermagem</div>'
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;padding:10mm;}.title{font-size:14px;font-weight:bold;color:#185FA5;text-align:center;margin-bottom:4px;}.sub{font-size:9px;color:#666;text-align:center;margin-bottom:10px;}.sec{border:1px solid #dde3ed;border-radius:3px;margin-bottom:8px;overflow:hidden;page-break-inside:avoid;}.sec-h{background:#185FA5;color:#fff;padding:5px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;}.sec-b{padding:8px;}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}.card{border:1px solid #dde3ed;border-radius:4px;padding:6px 8px;}.card-num{font-size:18px;font-weight:bold;color:#185FA5;}.card-lbl{font-size:8px;color:#888;}.footer{margin-top:10px;font-size:8px;color:#aaa;border-top:1px solid #dde3ed;padding-top:5px;display:flex;justify-content:space-between;}@media print{@page{margin:10mm;}}</style></head><body>'
+    +'<div class="title">Dashboard Estatistico - Enfermagem</div>'
     +'<div class="sub">Hospital Geral de Fortaleza | '+now+'</div>'
     +'<div class="sec"><div class="sec-h">Resumo Geral</div><div class="sec-b"><div class="grid">'
     +'<div class="card"><div class="card-num">'+plantoesData.length+'</div><div class="card-lbl">Plantoes</div></div>'
@@ -3928,11 +5317,13 @@ function exportarDashboardPDF(){
     +'<div class="card"><div class="card-num">'+soma('curativos')+'</div><div class="card-lbl">Curativos</div></div>'
     +'<div class="card"><div class="card-num">'+soma('sng_perda')+'</div><div class="card-lbl">Perda SNG</div></div>'
     +'</div></div></div>'
-    +'<div class="sec"><div class="sec-h">Hemoterapia</div><div class="sec-b"><div class="grid">'
+    +'<div class="sec"><div class="sec-h">Hemoterapia e Perfil</div><div class="sec-b"><div class="grid">'
     +'<div class="card"><div class="card-num">'+soma('hemo')+'</div><div class="card-lbl">Hemotransfusoes</div></div>'
     +'<div class="card"><div class="card-num" style="color:#d93025">'+soma('reacoes_trans')+'</div><div class="card-lbl">Reacoes Transf</div></div>'
     +'<div class="card"><div class="card-num">'+media('traqueo')+'</div><div class="card-lbl">Traqueo (media)</div></div>'
     +'<div class="card"><div class="card-num">'+media('intubados')+'</div><div class="card-lbl">Intubados (media)</div></div>'
+    +'<div class="card"><div class="card-num">'+media('acamados')+'</div><div class="card-lbl">Acamados (media)</div></div>'
+    +'<div class="card"><div class="card-num">'+media('isolamento')+'</div><div class="card-lbl">Isolamento (media)</div></div>'
     +'</div></div></div>'
     +'<div class="footer"><div>HGF - Transplante Hepatico</div><div>'+now+'</div></div>'
     +'</body></html>');
@@ -3955,19 +5346,24 @@ function exportarDashboardExcel(){
       d.hemo||0,d.reacoes_trans||0,d.curativos||0,d.lpp_adm||0,d.lpp_adq||0,d.sng_perda||0,
       d.traqueo||0,d.intubados||0,d.acamados||0,d.isolamento||0,d.obs||'']);
   });
-      var csv=linhas.map(function(r){return r.map(function(v){return String(v);}).join(';');}).join('\n');
-  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  var csv=linhas.map(function(row){
+    return row.map(function(cel){
+      var s=String(cel);
+      if(s.indexOf(';')>=0) s='"'+s+'"';
+      return s;
+    }).join(';');
+  }).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
-  a.href=url;a.download='estatistica_enfermagem_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.href=url;
+  a.download='estatistica_enfermagem_'+new Date().toISOString().split('T')[0]+'.csv';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('Excel exportado!','success');
+  showToast('Excel exportado com sucesso!','success');
 }
-})();
-</script>
-<script>
-var CSS_IMP="*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;background:#fff;padding:10mm;}.rel-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #185FA5;padding-bottom:6px;margin-bottom:10px;}.rel-header-title{font-size:13px;font-weight:bold;color:#185FA5;}.rel-header-sub{font-size:9px;color:#666;margin-top:2px;}.rel-header-info{text-align:right;font-size:9px;color:#666;}.card{border:1px solid #dde3ed;border-radius:4px;padding:7px 10px;margin-bottom:6px;page-break-inside:avoid;}.card.red{border-left:4px solid #d93025;background:#fffcfc;}.card.yellow{border-left:4px solid #c47f00;background:#fffdf5;}.card.green{border-left:4px solid #1e9e5e;background:#fafffe;}.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}.card-nome{font-size:11px;font-weight:bold;}.card-meta{font-size:9px;color:#666;margin-bottom:4px;display:flex;gap:10px;flex-wrap:wrap;}.card-body{font-size:9px;color:#444;display:flex;gap:10px;flex-wrap:wrap;line-height:1.5;}.card-body strong{color:#888;font-weight:600;}.section-title{font-size:9px;font-weight:bold;text-transform:uppercase;color:#8a9ab5;background:#f5f7fa;padding:4px 8px;border-radius:3px;margin:10px 0 5px;}.count-badge{display:inline-block;background:#185FA5;color:#fff;border-radius:10px;padding:1px 8px;font-size:9px;font-weight:bold;margin-left:6px;}.rel-footer{margin-top:14px;padding-top:6px;border-top:1px solid #dde3ed;font-size:8px;color:#aaa;display:flex;justify-content:space-between;}table{width:100%;border-collapse:collapse;font-size:9px;}th{background:#f0f4f8;padding:4px 8px;text-align:left;font-weight:bold;color:#4a5e78;border-bottom:1px solid #dde3ed;}td{padding:4px 8px;border-bottom:0.5px solid #eee;vertical-align:top;}.meld{font-weight:bold;color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;display:inline-block;}.meld-alto{background:#d93025;}.meld-med{background:#c47f00;}.meld-baixo{background:#1e9e5e;}.leito-box{border:1px solid #dde3ed;border-radius:4px;padding:6px 8px;margin-bottom:5px;page-break-inside:avoid;}.leito-id{font-size:10px;font-weight:bold;color:#185FA5;margin-bottom:3px;}.leito-txt{font-size:9px;color:#444;line-height:1.6;white-space:pre-wrap;}.leito-meta{font-size:8px;color:#aaa;margin-top:3px;}@media print{@page{margin:10mm;}body{padding:0;}}";
+
+
 function mkWin(h){
   var w=window.open("","_blank");
   w.document.write("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><style>"+CSS_IMP+"</style></head><body>"+h+"</body></html>");
@@ -3986,77 +5382,91 @@ function abrirJanelaPrint(conteudo,titulo){
 function fecharRelatorio(){
   document.getElementById("relatorio-overlay").style.display="none";
 }
+
+
 function _printFila(){
   var dh=new Date().toLocaleString("pt-BR");
   var CL={red:"Emergencia",yellow:"Sinais/Sintomas",green:"Exames/Proc."};
   var CO={red:0,yellow:1,green:2};
   var lista=(window.filaAllData||[]).filter(function(p){return p.status==="pendente";});
   lista.sort(function(a,b){var c=(CO[a.color]||9)-(CO[b.color]||9);return c||new Date(a.created_at)-new Date(b.created_at);});
-  var h="<div class=\"rel-header\"><div><div class=\"rel-header-title\">Fila de Internacao</div><div class=\"rel-header-sub\">HGF - Transplante Hepatico</div></div><div class=\"rel-header-info\">"+dh+"<br><strong>"+lista.length+" pendente(s)</strong></div></div>";
-  if(!lista.length){h+="<p style=\"padding:20px;color:#aaa;\">Nenhum paciente pendente.</p>";}
+  var h='<div class="rel-header"><div><div class="rel-header-title">Fila de Internacao</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'<br><strong>'+lista.length+' pendente(s)</strong></div></div>';
+  if(!lista.length){h+='<p style="padding:20px;color:#aaa;">Nenhum paciente pendente.</p>';}
   else{["red","yellow","green"].forEach(function(cor){
     var g=lista.filter(function(p){return p.color===cor;});if(!g.length)return;
-    h+="<div class=\"section-title\">"+CL[cor]+" <span class=\"count-badge\">"+g.length+"</span></div>";
+    h+='<div class="section-title">'+CL[cor]+' <span class="count-badge">'+g.length+'</span></div>';
     g.forEach(function(p){
-      h+="<div class=\"card "+p.color+"\"><div class=\"card-top\"><div class=\"card-nome\">"+_esc(p.nome)+"</div></div>"
-        +"<div class=\"card-meta\"><span>Pront: "+_esc(p.prontuario)+"</span><span>Medico: "+_esc(p.medico)+"</span></div>"
-        +"<div class=\"card-body\"><span><strong>Diag:</strong> "+_esc(p.diagnostico)+"</span>"
-        +(p.cid_code?"<span><strong>CID:</strong> "+_esc(p.cid_code)+"</span>":"")
-        +(p.motivo?"<span><strong>Motivo:</strong> "+_esc(p.motivo)+"</span>":"")
-        +"</div></div>";
+      h+='<div class="card '+p.color+'"><div class="card-top"><div class="card-nome">'+_esc(p.nome)+'</div></div>'
+        +'<div class="card-meta"><span>Pront: '+_esc(p.prontuario)+'</span><span>Mae: '+_esc(p.mae)+'</span><span>Medico: '+_esc(p.medico)+'</span></div>'
+        +'<div class="card-body"><span><strong>Diag:</strong> '+_esc(p.diagnostico)+'</span>'
+        +(p.cid_code?'<span><strong>CID:</strong> '+_esc(p.cid_code)+(p.cid_desc?' - '+_esc(p.cid_desc):'')+'</span>':'')
+        +(p.procedimento?'<span><strong>Proc:</strong> '+_esc(p.procedimento)+'</span>':'')
+        +(p.motivo?'<span><strong>Motivo:</strong> '+_esc(p.motivo)+'</span>':'')
+        +'</div></div>';
     });
   });}
   mkWin(h+relFt(dh));
 }
+
 function _printSessao(){
   var dh=new Date().toLocaleString("pt-BR");
   var lista=(window.sessaoData||[]).filter(function(c){return c.status==="pendente";});
-  var h="<div class=\"rel-header\"><div><div class=\"rel-header-title\">Sessao Clinica</div></div><div class=\"rel-header-info\">"+dh+"</div></div>";
-  if(!lista.length){h+="<p style=\"padding:20px;color:#aaa;\">Nenhum caso pendente.</p>";}
+  lista.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+  var h='<div class="rel-header"><div><div class="rel-header-title">Sessao Clinica</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'<br><strong>'+lista.length+' caso(s)</strong></div></div>';
+  if(!lista.length){h+='<p style="padding:20px;color:#aaa;">Nenhum caso pendente.</p>';}
   else{lista.forEach(function(c,i){
-    h+="<div class=\"card\"><div class=\"card-top\"><div class=\"card-nome\">"+(i+1)+". "+_esc(c.nome)+"</div></div>"
-      +"<div class=\"card-meta\"><span>Pront: "+_esc(c.prontuario)+"</span><span>Medico: "+_esc(c.medico)+"</span></div>"
-      +"<div class=\"card-body\" style=\"flex-direction:column;gap:3px;\"><div><strong>Resumo:</strong> "+_esc(c.resumo)+"</div><div><strong>Duvida:</strong> "+_esc(c.duvida)+"</div></div></div>";
+    h+='<div class="card"><div class="card-top"><div class="card-nome">'+(i+1)+'. '+_esc(c.nome)+'</div></div>'
+      +'<div class="card-meta"><span>Pront: '+_esc(c.prontuario)+'</span><span>Medico: '+_esc(c.medico)+'</span></div>'
+      +'<div class="card-body" style="flex-direction:column;gap:3px;"><div><strong>Resumo:</strong> '+_esc(c.resumo)+'</div><div><strong>Duvida:</strong> '+_esc(c.duvida)+'</div></div></div>';
   });}
   mkWin(h+relFt(dh));
 }
+
 function _printReceptores(){
   var dh=new Date().toLocaleString("pt-BR");
   var lista=(window.receptoresData||[]).filter(function(r){return r.status==="Ativo";});
   lista.sort(function(a,b){return (b.meld||0)-(a.meld||0);});
-  var h="<div class=\"rel-header\"><div><div class=\"rel-header-title\">Lista de Receptores</div></div><div class=\"rel-header-info\">"+dh+"</div></div>";
-  h+="<table><thead><tr><th>#</th><th>Nome</th><th>Grupo</th><th>MELD</th><th>Diagnostico</th><th>Medico</th></tr></thead><tbody>";
+  var h='<div class="rel-header"><div><div class="rel-header-title">Lista de Receptores Ativos</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'<br><strong>'+lista.length+' ativo(s)</strong></div></div>';
+  h+='<table><thead><tr><th>#</th><th>Nome</th><th>Grupo</th><th>MELD</th><th>Child</th><th>Diagnostico</th><th>Priorizacao</th><th>Medico</th></tr></thead><tbody>';
   lista.forEach(function(r,i){
     var mc=r.meld>=25?"meld-alto":r.meld>=15?"meld-med":"meld-baixo";
-    h+="<tr><td>"+(i+1)+"</td><td>"+_esc(r.nome)+"</td><td>"+_esc(r.grupo)+"</td><td><span class=\"meld "+mc+"\">"+(r.meld||"-")+"</span></td><td>"+_esc(r.diagnostico||"-")+"</td><td>"+_esc(r.medico||"-")+"</td></tr>";
+    h+='<tr><td>'+(i+1)+'</td><td><strong>'+_esc(r.nome)+'</strong></td><td style="text-align:center">'+_esc(r.grupo)+'</td>'
+      +'<td style="text-align:center"><span class="meld '+mc+'">'+(r.meld||"-")+'</span></td>'
+      +'<td style="text-align:center">'+(r.child||"-")+'</td><td>'+_esc(r.diagnostico||"-")+'</td>'
+      +'<td>'+_esc(r.priorizacao&&r.priorizacao!=="NAO"?r.priorizacao:"-")+'</td><td>'+_esc(r.medico||"-")+'</td></tr>';
   });
-  h+="</tbody></table>";
+  h+='</tbody></table>';
   mkWin(h+relFt(dh));
 }
+
 function _printPendencias(){
   var dh=new Date().toLocaleString("pt-BR");
   var LL=["208-1","208-2","208-3","208-4","208-5","209-1","209-2","209-3","209-4","Leito Ectopico"];
   var pd=window.pendenciasData||{};
-  var h="<div class=\"rel-header\"><div><div class=\"rel-header-title\">Pendencias Diarias</div></div><div class=\"rel-header-info\">"+dh+"</div></div>";
+  var h='<div class="rel-header"><div><div class="rel-header-title">Pendencias Diarias</div><div class="rel-header-sub">HGF - Transplante Hepatico</div></div><div class="rel-header-info">'+dh+'</div></div>';
   LL.forEach(function(leito){
     var d=pd[leito]||{};
-    h+="<div class=\"leito-box\"><div class=\"leito-id\">"+_esc(leito)+"</div>"
-      +(d.texto?"<div class=\"leito-txt\">"+_esc(d.texto)+"</div>":"<div class=\"leito-txt\" style=\"color:#ccc;\">Sem pendencias.</div>")
-      +"</div>";
+    var txt=d.texto||"";
+    h+='<div class="leito-box"><div class="leito-id">Leito '+_esc(leito)+'</div>'
+      +(txt?'<div class="leito-txt">'+_esc(txt)+'</div>':'<div class="leito-txt" style="color:#ccc;font-style:italic;">Sem pendencias.</div>')
+      +'</div>';
   });
   mkWin(h+relFt(dh));
 }
+
 function _esc(s){if(s===null||s===undefined)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-document.addEventListener("DOMContentLoaded",function(){
+
+document.addEventListener("DOMContentLoaded", function(){
   var bf=document.getElementById("btn-print-fila");
   var bs=document.getElementById("btn-print-sessao");
   var br=document.getElementById("btn-print-receptores");
   var bp=document.getElementById("btn-print-pendencias");
-  if(bf)bf.addEventListener("click",_printFila);
-  if(bs)bs.addEventListener("click",_printSessao);
-  if(br)br.addEventListener("click",_printReceptores);
-  if(bp)bp.addEventListener("click",_printPendencias);
+  if(bf) bf.addEventListener("click", _printFila);
+  if(bs) bs.addEventListener("click", _printSessao);
+  if(br) br.addEventListener("click", _printReceptores);
+  if(bp) bp.addEventListener("click", _printPendencias);
 });
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </body>
