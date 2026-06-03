@@ -3480,13 +3480,21 @@ function loadEnfermagem(){
   var hoje = new Date().toISOString().split('T')[0];
   if(get('enf-data')) get('enf-data').value = hoje;
   plantoesData = [];
+  function aposCarregar(){
+    renderEnfermagemSidebar();
+    // Se o dashboard estiver visivel, re-renderizar com os dados carregados
+    var dashArea = get('enf-dashboard-area');
+    if(dashArea && dashArea.style.display !== 'none' && dashArea.style.display !== ''){
+      renderDashboardEnf();
+    }
+  }
   if(sbClient){
     sbClient.from('plantoes_enfermagem').select('*').order('created_at',{ascending:false})
-      .then(function(r){ plantoesData=r.data||[]; renderEnfermagemSidebar(); })
-      .catch(function(){ plantoesData=lsGet('plantoes_enfermagem')||[]; renderEnfermagemSidebar(); });
+      .then(function(r){ plantoesData=r.data||[]; aposCarregar(); })
+      .catch(function(){ plantoesData=lsGet('plantoes_enfermagem')||[]; aposCarregar(); });
   } else {
     plantoesData = lsGet('plantoes_enfermagem')||[];
-    renderEnfermagemSidebar();
+    aposCarregar();
   }
 }
 
@@ -3515,7 +3523,16 @@ function initEnfermagemVisao(){
     if(get('enf-dashboard-area')) get('enf-dashboard-area').style.display = 'block';
     btnD.className = 'btn btn-primary btn-sm';
     btnP.className = 'btn btn-ghost btn-sm';
-    renderDashboardEnf();
+    // Recarregar dados do banco antes de renderizar o dashboard
+    if(sbClient){
+      get('enf-dashboard-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando dados...</div>';
+      sbClient.from('plantoes_enfermagem').select('*').order('created_at',{ascending:false})
+        .then(function(r){ plantoesData=r.data||[]; renderDashboardEnf(); })
+        .catch(function(){ plantoesData=lsGet('plantoes_enfermagem')||[]; renderDashboardEnf(); });
+    } else {
+      plantoesData = lsGet('plantoes_enfermagem')||[];
+      renderDashboardEnf();
+    }
   });
 }
 
@@ -3617,7 +3634,8 @@ get('btn-enf-salvar').addEventListener('click', function(){
       :sbClient.from('plantoes_enfermagem').insert([rec]);
     q.then(function(r){
       if(r.error){showToast('Erro: '+r.error.message,'error');return;}
-      showToast('Plantao salvo!','success');
+      showToast('Plantao salvo! Formulario limpo para o proximo plantao.','success');
+      limparEnfermagem();
       loadEnfermagem();
     });
   } else {
@@ -3627,7 +3645,8 @@ get('btn-enf-salvar').addEventListener('click', function(){
     lsSet('plantoes_enfermagem',local);
     plantoesData=local;
     renderEnfermagemSidebar();
-    showToast('Plantao salvo!','success');
+    limparEnfermagem();
+    showToast('Plantao salvo! Formulario limpo para o proximo plantao.','success');
   }
 });
 
