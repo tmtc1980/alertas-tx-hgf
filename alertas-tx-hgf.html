@@ -2698,6 +2698,8 @@ var CID10 = [
 var PASS_AMB='AmbulatoriTxHGF2026';
 var PASS_DIA='DiaristatTxHGF2026';
 var PASS_ADM='AdminTxHGF2026';
+var PASS_ENF='Enf2026';
+var PASS_CHF='Enfchefe2026';
 var currentRole=null,selectedTipo=null,sbClient=null,statsPeriod='mes';
 
 var DEFAULT_DOCTORS=['Dra. Camila Bastos','Dra. Camila Veras','Dra. Renata Leitao','Dra. Rita Chelly','Dra. Ana de Lourdes','Dra. Ticiana','Dra. Veronica','Dr. Themistocles','Dr. Emanoel','Dr. Andre Macedo'];
@@ -2747,6 +2749,8 @@ function doLogin(){
   if(pass===PASS_ADM){currentRole='admin';startApp();}
   else if(pass===PASS_DIA){currentRole='diarista';startApp();}
   else if(pass===PASS_AMB){currentRole='ambulatorio';startApp();}
+  else if(pass===PASS_ENF){currentRole='enfermeiro';startApp();}
+  else if(pass===PASS_CHF){currentRole='chefe_enf';startApp();}
   else{get('login-error').style.display='block';get('login-pass').value='';}
 }
 
