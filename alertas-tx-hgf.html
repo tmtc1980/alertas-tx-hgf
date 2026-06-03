@@ -960,14 +960,246 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <div id="panel-enfermagem" style="display:none">
-      <div class="section-header">
-        <div class="section-title">📊 Estatística de Enfermagem</div>
-      </div>
-      <div class="empty-state" style="margin-top:40px;">
-        <div style="font-size:32px;margin-bottom:12px;">📊</div>
-        <div style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:6px;">Em construção</div>
-        <div style="font-size:12px;color:var(--text3);">Novos indicadores serão adicionados em breve.</div>
+    <div id="panel-enfermagem" style="display:none;margin:-16px -24px;height:calc(100vh - 98px);">
+      <div style="display:flex;height:100%;">
+
+        <!-- SIDEBAR plantões anteriores -->
+        <div style="width:180px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;">
+          <div style="padding:10px;">
+            <button class="btn btn-primary" id="btn-novo-plantao" style="width:100%;font-size:12px;padding:7px;">+ Novo Plantão</button>
+          </div>
+          <div style="padding:6px 12px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">Plantões Anteriores</div>
+          <div id="enfermagem-sidebar" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;">
+            <div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhum registro</div>
+          </div>
+        </div>
+
+        <!-- FORMULÁRIO -->
+        <div id="enfermagem-form-area" style="flex:1;overflow-y:auto;padding:20px 24px;">
+
+          <!-- CABEÇALHO IDENTIFICAÇÃO -->
+          <div class="fc-section">
+            <div class="fc-header blue">👤 Identificação do Plantão</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group" style="flex:1">
+                  <div class="fc-label">Unidade</div>
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <label class="fc-cb"><input type="radio" name="enf-unidade" value="Ala C"> Ala C</label>
+                    <label class="fc-cb"><input type="radio" name="enf-unidade" value="Ala D"> Ala D</label>
+                    <label class="fc-cb"><input type="radio" name="enf-unidade" value="Transplante Hepatico"> Transplante Hepático</label>
+                  </div>
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group" style="flex:1">
+                  <div class="fc-label">Nome do Enfermeiro</div>
+                  <input class="fc-input lg" id="enf-nome" placeholder="Nome completo">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">COREN</div>
+                  <input class="fc-input md" id="enf-coren" placeholder="Número do COREN">
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Data do Plantão</div>
+                  <input type="date" class="fc-input md" id="enf-data">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Turno</div>
+                  <div style="display:flex;gap:10px;">
+                    <label class="fc-cb"><input type="radio" name="enf-turno" value="Manha"> Manhã</label>
+                    <label class="fc-cb"><input type="radio" name="enf-turno" value="Tarde"> Tarde</label>
+                    <label class="fc-cb"><input type="radio" name="enf-turno" value="Noite"> Noite</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CENSO DO PLANTÃO -->
+          <div class="fc-section">
+            <div class="fc-header blue">🛏️ Censo do Plantão</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Pacientes Internados</div>
+                  <input type="number" class="fc-input sm" id="enf-internados" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Admissões</div>
+                  <input type="number" class="fc-input sm" id="enf-admissoes" min="0" value="0">
+                </div>
+              </div>
+              <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;">Saídas</div>
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Altas</div>
+                  <input type="number" class="fc-input sm" id="enf-altas" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Óbitos</div>
+                  <input type="number" class="fc-input sm" id="enf-obitos" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Transferências</div>
+                  <input type="number" class="fc-input sm" id="enf-transferencias" min="0" value="0">
+                </div>
+                <div class="fc-group" style="flex:1">
+                  <div class="fc-label">Tempo médio de internamento das saídas (dias)</div>
+                  <input type="number" class="fc-input sm" id="enf-tempo-medio" min="0" step="0.5" placeholder="—">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROCEDIMENTOS -->
+          <div class="fc-section">
+            <div class="fc-header orange">🩺 Procedimentos</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Total de Procedimentos</div>
+                  <input type="number" class="fc-input sm" id="enf-proc-total" min="0" value="0">
+                </div>
+              </div>
+              <div class="fc-group">
+                <div class="fc-label">Tipos de Procedimentos Realizados</div>
+                <div class="fc-cb-group">
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-svd"> SVD</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-svp"> SVP</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-acv"> Acesso Venoso Central</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-avp"> Acesso Venoso Periférico</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-sng"> Passagem de SNG</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-col"> Coleta de Exames</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-adm"> Administração de Medicamentos</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-out"> Outros</label>
+                </div>
+                <textarea class="fc-input lg" id="enf-proc-obs" placeholder="Descreva outros procedimentos ou observações..." style="margin-top:6px;min-height:50px;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEGURANÇA DO PACIENTE -->
+          <div class="fc-section">
+            <div class="fc-header red">⚠️ Segurança do Paciente</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Quedas</div>
+                  <input type="number" class="fc-input sm" id="enf-quedas" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Flebites</div>
+                  <input type="number" class="fc-input sm" id="enf-flebites" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Reações Medicamentosas</div>
+                  <input type="number" class="fc-input sm" id="enf-reacoes-med" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Acidentes Perfuro-cortante</div>
+                  <input type="number" class="fc-input sm" id="enf-perfuro" min="0" value="0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HEMOTERAPIA -->
+          <div class="fc-section">
+            <div class="fc-header purple">🩸 Hemoterapia</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Hemotransfusões</div>
+                  <input type="number" class="fc-input sm" id="enf-hemo" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Reações Transfusionais</div>
+                  <input type="number" class="fc-input sm" id="enf-reacoes-trans" min="0" value="0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FERIDAS E DISPOSITIVOS -->
+          <div class="fc-section">
+            <div class="fc-header green">🩹 Feridas e Dispositivos</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Curativos Realizados</div>
+                  <input type="number" class="fc-input sm" id="enf-curativos" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">LPP na Admissão</div>
+                  <input type="number" class="fc-input sm" id="enf-lpp-adm" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">LPP Adquirida</div>
+                  <input type="number" class="fc-input sm" id="enf-lpp-adq" min="0" value="0">
+                </div>
+              </div>
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Perda/Obstrução de SNG</div>
+                  <input type="number" class="fc-input sm" id="enf-sng-perda" min="0" value="0">
+                </div>
+                <div class="fc-group" style="flex:1">
+                  <div class="fc-label">Tipo</div>
+                  <div class="fc-cb-group">
+                    <label class="fc-cb"><input type="radio" name="enf-sng-tipo" value="Perda acidental"> Perda acidental</label>
+                    <label class="fc-cb"><input type="radio" name="enf-sng-tipo" value="Obstrucao"> Obstrução</label>
+                    <label class="fc-cb"><input type="radio" name="enf-sng-tipo" value="Ambos"> Ambos</label>
+                    <label class="fc-cb"><input type="radio" name="enf-sng-tipo" value="NA"> N/A</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERFIL DOS PACIENTES -->
+          <div class="fc-section">
+            <div class="fc-header gray">👥 Perfil dos Pacientes</div>
+            <div class="fc-body">
+              <div class="fc-row">
+                <div class="fc-group">
+                  <div class="fc-label">Traqueostomia</div>
+                  <input type="number" class="fc-input sm" id="enf-traqueo" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Intubados</div>
+                  <input type="number" class="fc-input sm" id="enf-intubados" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Acamados</div>
+                  <input type="number" class="fc-input sm" id="enf-acamados" min="0" value="0">
+                </div>
+                <div class="fc-group">
+                  <div class="fc-label">Isolamento de Contato</div>
+                  <input type="number" class="fc-input sm" id="enf-isolamento" min="0" value="0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OBSERVAÇÕES -->
+          <div class="fc-section">
+            <div class="fc-header gray">📝 Observações Gerais</div>
+            <div class="fc-body">
+              <textarea class="form-textarea" id="enf-obs" style="min-height:80px;" placeholder="Observações adicionais do plantão..."></textarea>
+            </div>
+          </div>
+
+          <!-- AÇÕES -->
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:20px;">
+            <button class="btn btn-ghost" id="btn-enf-limpar">🗑️ Limpar</button>
+            <button class="btn btn-ghost" id="btn-enf-imprimir">🖨️ Imprimir</button>
+            <button class="btn btn-primary" id="btn-enf-salvar">💾 Salvar Plantão</button>
+          </div>
+
+        </div>
       </div>
     </div>
 
@@ -2570,6 +2802,7 @@ function switchTab(tab){
   if(tab==='pendencias')loadPendencias();
   if(tab==='decisoes')loadDecisoes();
   if(tab==='coleta')loadFichasColeta();
+  if(tab==='enfermagem')loadEnfermagem();
 }
 
 // Filtros de periodo
@@ -4565,6 +4798,268 @@ get('tab-enfermagem').addEventListener('click', function(){ switchTab('enfermage
 
 
 
+
+// ── ESTATÍSTICA DE ENFERMAGEM ──
+var plantoesData = [];
+var plantaoAtivo = null;
+
+function loadEnfermagem(){
+  var hoje = new Date().toISOString().split('T')[0];
+  get('enf-data').value = hoje;
+  plantoesData = [];
+  if(sbClient){
+    sbClient.from('plantoes_enfermagem').select('*').order('created_at',{ascending:false})
+      .then(function(r){
+        plantoesData = r.data||[];
+        renderEnfermagemSidebar();
+      }).catch(function(){
+        plantoesData = lsGet('plantoes_enfermagem')||[];
+        renderEnfermagemSidebar();
+      });
+  } else {
+    plantoesData = lsGet('plantoes_enfermagem')||[];
+    renderEnfermagemSidebar();
+  }
+}
+
+function renderEnfermagemSidebar(){
+  var sb = get('enfermagem-sidebar');
+  if(!sb) return;
+  if(!plantoesData.length){
+    sb.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhum registro</div>';
+    return;
+  }
+  sb.innerHTML = plantoesData.map(function(p){
+    var d = p.dados||{};
+    var data = d.data||'—';
+    var turno = d.turno||'—';
+    var unidade = d.unidade||'—';
+    return '<div class="leito-card" style="padding:9px 10px;cursor:pointer;gap:3px;" data-id="'+esc(p.id||p.created_at)+'">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono);">'+data+'</div>'
+      +'<div style="font-size:10px;color:var(--text2);">'+turno+' — '+unidade+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);">'+esc(d.nome||'')+'</div>'
+      +'</div>';
+  }).join('');
+  sb.querySelectorAll('[data-id]').forEach(function(el){
+    el.addEventListener('click', function(){ carregarPlantao(this.dataset.id); });
+  });
+}
+
+function coletarDadosEnf(){
+  var d = {};
+  // Radios
+  ['unidade','turno','sng-tipo'].forEach(function(n){
+    var el = document.querySelector('input[name="enf-'+n+'"]:checked');
+    if(el) d[n.replace(/-/g,'_')] = el.value;
+  });
+  // Inputs texto
+  ['nome','coren','data'].forEach(function(id){
+    var el = get('enf-'+id);
+    if(el) d[id] = el.value;
+  });
+  // Inputs numéricos
+  ['internados','admissoes','altas','obitos','transferencias','tempo-medio',
+   'proc-total','quedas','flebites','reacoes-med','perfuro','hemo','reacoes-trans',
+   'curativos','lpp-adm','lpp-adq','sng-perda','traqueo','intubados','acamados','isolamento']
+  .forEach(function(id){
+    var el = get('enf-'+id);
+    var key = id.replace(/-/g,'_');
+    if(el) d[key] = parseInt(el.value)||0;
+  });
+  // Checkboxes procedimentos
+  ['svd','svp','acv','avp','sng','col','adm','out'].forEach(function(id){
+    var el = get('enf-proc-'+id);
+    if(el) d['proc_'+id] = el.checked;
+  });
+  // Textarea
+  var obs = get('enf-obs'); if(obs) d.obs = obs.value;
+  var procObs = get('enf-proc-obs'); if(procObs) d.proc_obs = procObs.value;
+  return d;
+}
+
+function limparEnfermagem(){
+  document.querySelectorAll('#enfermagem-form-area input[type="text"], #enfermagem-form-area input[type="date"], #enfermagem-form-area textarea').forEach(function(el){ el.value=''; });
+  document.querySelectorAll('#enfermagem-form-area input[type="number"]').forEach(function(el){ el.value='0'; });
+  document.querySelectorAll('#enfermagem-form-area input[type="radio"], #enfermagem-form-area input[type="checkbox"]').forEach(function(el){ el.checked=false; });
+  var hoje = new Date().toISOString().split('T')[0];
+  if(get('enf-data')) get('enf-data').value = hoje;
+  plantaoAtivo = null;
+}
+
+function carregarPlantao(id){
+  var p = plantoesData.find(function(x){ return (x.id||x.created_at)==id; });
+  if(!p||!p.dados) return;
+  plantaoAtivo = p;
+  limparEnfermagem();
+  var d = p.dados;
+  // Radios
+  ['unidade','turno','sng_tipo'].forEach(function(key){
+    var name = 'enf-'+key.replace(/_/g,'-');
+    if(d[key]){
+      var el = document.querySelector('input[name="'+name+'"][value="'+d[key]+'"]');
+      if(el) el.checked = true;
+    }
+  });
+  // Inputs texto
+  ['nome','coren','data'].forEach(function(id){
+    var el = get('enf-'+id);
+    if(el && d[id]!==undefined) el.value = d[id];
+  });
+  // Numéricos
+  ['internados','admissoes','altas','obitos','transferencias','tempo_medio',
+   'proc_total','quedas','flebites','reacoes_med','perfuro','hemo','reacoes_trans',
+   'curativos','lpp_adm','lpp_adq','sng_perda','traqueo','intubados','acamados','isolamento']
+  .forEach(function(key){
+    var id = 'enf-'+key.replace(/_/g,'-');
+    var el = get(id);
+    if(el && d[key]!==undefined) el.value = d[key];
+  });
+  // Checkboxes
+  ['svd','svp','acv','avp','sng','col','adm','out'].forEach(function(id){
+    var el = get('enf-proc-'+id);
+    if(el) el.checked = !!d['proc_'+id];
+  });
+  // Textareas
+  if(get('enf-obs') && d.obs) get('enf-obs').value = d.obs;
+  if(get('enf-proc-obs') && d.proc_obs) get('enf-proc-obs').value = d.proc_obs;
+  get('enfermagem-form-area').scrollTop = 0;
+}
+
+get('btn-novo-plantao').addEventListener('click', function(){
+  limparEnfermagem();
+  get('enfermagem-form-area').scrollTop = 0;
+});
+
+get('btn-enf-limpar').addEventListener('click', function(){
+  if(confirm('Limpar todos os campos?')) limparEnfermagem();
+});
+
+get('btn-enf-salvar').addEventListener('click', function(){
+  var nome = get('enf-nome').value.trim();
+  var coren = get('enf-coren').value.trim();
+  var data = get('enf-data').value;
+  var turno = document.querySelector('input[name="enf-turno"]:checked');
+  var unidade = document.querySelector('input[name="enf-unidade"]:checked');
+  if(!nome){ showToast('Informe o nome do enfermeiro.','error'); return; }
+  if(!coren){ showToast('Informe o COREN.','error'); return; }
+  if(!data){ showToast('Informe a data do plantão.','error'); return; }
+  if(!turno){ showToast('Selecione o turno.','error'); return; }
+  if(!unidade){ showToast('Selecione a unidade.','error'); return; }
+  var dados = coletarDadosEnf();
+  var rec = { dados: dados, created_at: new Date().toISOString() };
+  if(sbClient){
+    var q = plantaoAtivo
+      ? sbClient.from('plantoes_enfermagem').update({dados:dados,updated_at:new Date().toISOString()}).eq('id',plantaoAtivo.id)
+      : sbClient.from('plantoes_enfermagem').insert([rec]);
+    q.then(function(r){
+      if(r.error){ showToast('Erro: '+r.error.message,'error'); return; }
+      showToast('Plantão salvo!','success');
+      loadEnfermagem();
+    });
+  } else {
+    var local = lsGet('plantoes_enfermagem')||[];
+    if(plantaoAtivo){
+      var idx2 = local.findIndex(function(x){ return x.id===plantaoAtivo.id; });
+      if(idx2>=0) local[idx2].dados = dados;
+    } else {
+      rec.id = Date.now().toString();
+      local.unshift(rec);
+    }
+    lsSet('plantoes_enfermagem', local);
+    plantoesData = local;
+    renderEnfermagemSidebar();
+    showToast('Plantão salvo!','success');
+  }
+});
+
+get('btn-enf-imprimir').addEventListener('click', function(){
+  var d = coletarDadosEnf();
+  var now = new Date().toLocaleDateString('pt-BR');
+  function yn(v){ return v>0?String(v):'0'; }
+  var procs = [];
+  if(d.proc_svd) procs.push('SVD');
+  if(d.proc_svp) procs.push('SVP');
+  if(d.proc_acv) procs.push('ACV Central');
+  if(d.proc_avp) procs.push('AVP');
+  if(d.proc_sng) procs.push('Passagem SNG');
+  if(d.proc_col) procs.push('Coleta de Exames');
+  if(d.proc_adm) procs.push('Adm. Medicamentos');
+  if(d.proc_out) procs.push('Outros');
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:10px;color:#1a2535;padding:10mm;}'
+    +'.titulo{font-size:14px;font-weight:bold;color:#185FA5;text-align:center;margin-bottom:2px;}'
+    +'.subtitulo{font-size:9px;color:#666;text-align:center;margin-bottom:10px;}'
+    +'.sec{border:1px solid #dde3ed;border-radius:3px;margin-bottom:6px;overflow:hidden;}'
+    +'.sec-h{background:#185FA5;color:#fff;padding:4px 8px;font-size:10px;font-weight:bold;text-transform:uppercase;}'
+    +'.sec-h.or{background:#c47f00;}.sec-h.re{background:#c0392b;}.sec-h.pu{background:#6d3fa0;}.sec-h.gr{background:#1e9e5e;}.sec-h.gy{background:#4a5e78;}'
+    +'.sec-b{padding:8px;}'
+    +'.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;}'
+    +'.field{display:flex;flex-direction:column;gap:1px;min-width:80px;}'
+    +'.lbl{font-size:8px;font-weight:bold;color:#888;text-transform:uppercase;}'
+    +'.val{font-size:10px;color:#1a2535;font-weight:600;}'
+    +'.footer{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#aaa;border-top:1px solid #dde3ed;padding-top:6px;}'
+    +'.ass{margin-top:20px;border-top:1px solid #1a2535;width:200px;text-align:center;font-size:8px;padding-top:3px;}'
+    +'@media print{@page{margin:10mm;}}'
+    +'</style></head><body>'
+    +'<div class="titulo">Estatística de Enfermagem</div>'
+    +'<div class="subtitulo">Hospital Geral de Fortaleza</div>'
+    +'<div class="sec"><div class="sec-h">Identificação</div><div class="sec-b">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Unidade</div><div class="val">'+(d.unidade||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Enfermeiro</div><div class="val">'+(d.nome||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">COREN</div><div class="val">'+(d.coren||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Data</div><div class="val">'+(d.data||'—')+'</div></div>'
+    +'<div class="field"><div class="lbl">Turno</div><div class="val">'+(d.turno||'—')+'</div></div>'
+    +'</div></div></div>'
+    +'<div class="sec"><div class="sec-h">Censo do Plantão</div><div class="sec-b">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Internados</div><div class="val">'+yn(d.internados)+'</div></div>'
+    +'<div class="field"><div class="lbl">Admissões</div><div class="val">'+yn(d.admissoes)+'</div></div>'
+    +'<div class="field"><div class="lbl">Altas</div><div class="val">'+yn(d.altas)+'</div></div>'
+    +'<div class="field"><div class="lbl">Óbitos</div><div class="val">'+yn(d.obitos)+'</div></div>'
+    +'<div class="field"><div class="lbl">Transferências</div><div class="val">'+yn(d.transferencias)+'</div></div>'
+    +'<div class="field"><div class="lbl">Tempo Médio</div><div class="val">'+(d.tempo_medio||'—')+' dias</div></div>'
+    +'</div></div></div>'
+    +'<div class="sec"><div class="sec-h or">Procedimentos</div><div class="sec-b">'
+    +'<div class="row">'
+    +'<div class="field"><div class="lbl">Total</div><div class="val">'+yn(d.proc_total)+'</div></div>'
+    +'<div class="field" style="flex:1"><div class="lbl">Tipos</div><div class="val">'+(procs.length?procs.join(', '):'—')+'</div></div>'
+    +'</div>'
+    +(d.proc_obs?'<div style="font-size:9px;margin-top:4px;"><strong>Obs:</strong> '+esc(d.proc_obs)+'</div>':'')
+    +'</div></div>'
+    +'<div class="sec"><div class="sec-h re">Segurança do Paciente</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Quedas</div><div class="val">'+yn(d.quedas)+'</div></div>'
+    +'<div class="field"><div class="lbl">Flebites</div><div class="val">'+yn(d.flebites)+'</div></div>'
+    +'<div class="field"><div class="lbl">Reações Med.</div><div class="val">'+yn(d.reacoes_med)+'</div></div>'
+    +'<div class="field"><div class="lbl">Perfuro-cortante</div><div class="val">'+yn(d.perfuro)+'</div></div>'
+    +'</div></div></div>'
+    +'<div class="sec"><div class="sec-h pu">Hemoterapia</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Hemotransfusões</div><div class="val">'+yn(d.hemo)+'</div></div>'
+    +'<div class="field"><div class="lbl">Reações Transfusionais</div><div class="val">'+yn(d.reacoes_trans)+'</div></div>'
+    +'</div></div></div>'
+    +'<div class="sec"><div class="sec-h gr">Feridas e Dispositivos</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Curativos</div><div class="val">'+yn(d.curativos)+'</div></div>'
+    +'<div class="field"><div class="lbl">LPP Admissão</div><div class="val">'+yn(d.lpp_adm)+'</div></div>'
+    +'<div class="field"><div class="lbl">LPP Adquirida</div><div class="val">'+yn(d.lpp_adq)+'</div></div>'
+    +'<div class="field"><div class="lbl">Perda/Obstr. SNG</div><div class="val">'+yn(d.sng_perda)+'</div></div>'
+    +'<div class="field"><div class="lbl">Tipo SNG</div><div class="val">'+(d.sng_tipo||'—')+'</div></div>'
+    +'</div></div></div>'
+    +'<div class="sec"><div class="sec-h gy">Perfil dos Pacientes</div><div class="sec-b"><div class="row">'
+    +'<div class="field"><div class="lbl">Traqueostomia</div><div class="val">'+yn(d.traqueo)+'</div></div>'
+    +'<div class="field"><div class="lbl">Intubados</div><div class="val">'+yn(d.intubados)+'</div></div>'
+    +'<div class="field"><div class="lbl">Acamados</div><div class="val">'+yn(d.acamados)+'</div></div>'
+    +'<div class="field"><div class="lbl">Isolamento</div><div class="val">'+yn(d.isolamento)+'</div></div>'
+    +'</div></div></div>'
+    +(d.obs?'<div class="sec"><div class="sec-h gy">Observações</div><div class="sec-b"><div style="font-size:9px;">'+esc(d.obs)+'</div></div></div>':'')
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;">'
+    +'<div class="footer">Gerado em: '+now+' — HGF Transplante Hepático</div>'
+    +'<div style="text-align:center;"><div class="ass">'+(d.nome||'Enfermeiro(a)')+'<br>COREN: '+(d.coren||'—')+'</div></div>'
+    +'</div>'
+    +'</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 500);
+});
 })();
 </script>
 <script>
