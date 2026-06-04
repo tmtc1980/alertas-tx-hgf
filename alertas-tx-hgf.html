@@ -5221,7 +5221,7 @@ function renderDashboardEnf(){
   // Últimos 7 dias por unidade — verificar faltantes
   var faltantes = [];
   var unidades = ['Ala C','Ala D','Transplante Hepatico'];
-  var turnos = ['Manha','Tarde','Noite'];
+  var turnos = ['Manha/Tarde','Noite'];
   var hoje = new Date();
   for(var dd=0; dd<7; dd++){
     var dt = new Date(hoje - dd*24*60*60*1000);
