@@ -3744,23 +3744,39 @@ function imprimirFichaAnestesica(){
     s = s.replace(/color\s*:\s*#ff9\b/gi, 'color:#157a48;font-weight:700');
     el.setAttribute('style', s);
   });
-  var html = clone.innerHTML;
+  // Separar cabecalho+identificacao (largura total) do restante (2 colunas)
+  var headerEl = clone.querySelector('.ficha-header');
+  var headerHtml = headerEl ? headerEl.outerHTML : '';
+  // Pegar os grids de identificacao (logo apos o header)
+  var idGrids = '';
+  var node = headerEl ? headerEl.nextElementSibling : null;
+  while(node && !node.classList.contains('ficha-section')){
+    idGrids += node.outerHTML;
+    node = node.nextElementSibling;
+  }
+  headerHtml += '<div class="ficha-id-grid" style="margin-bottom:6px;">'+idGrids+'</div>';
+  // O resto (seções) vai em 2 colunas
+  var bodyHtml = '';
+  clone.querySelectorAll('.ficha-section').forEach(function(sec){ bodyHtml += sec.outerHTML; });
   var win = window.open('','_blank');
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha Pre-Anestesica</title>'
     +'<style>'
     +'*{margin:0;padding:0;box-sizing:border-box;}'
-    +'body{font-family:Arial,sans-serif;font-size:11px;color:#1a2535;background:#fff;padding:10mm;line-height:1.4;}'
-    +'.ficha-header{text-align:center;margin-bottom:14px;border-bottom:2px solid #185FA5;padding-bottom:10px;position:relative;}'
-    +'.ficha-header h2{font-size:16px;color:#185FA5 !important;margin:6px 0;}'
-    +'.ficha-logo{font-family:monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:#185FA5 !important;position:absolute;right:0;top:0;}'
-    +'.ficha-section{background:#f7f9fc;border:1px solid #dde3ed;border-radius:4px;padding:10px;margin-bottom:8px;page-break-inside:avoid;}'
-    +'.ficha-section-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#185FA5 !important;margin-bottom:8px;text-align:center;border-bottom:1px solid #dde3ed;padding-bottom:4px;}'
-    +'table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;}'
-    +'th,td{padding:4px 8px;border-bottom:1px solid #e5e9f0;text-align:left;vertical-align:top;}'
+    +'body{font-family:Arial,sans-serif;font-size:8.5px;color:#1a2535;background:#fff;padding:6mm;line-height:1.25;}'
+    +'.ficha-header{text-align:center;margin-bottom:6px;border-bottom:2px solid #185FA5;padding-bottom:5px;position:relative;}'
+    +'.ficha-header h2{font-size:13px;color:#185FA5 !important;margin:3px 0;}'
+    +'.ficha-logo{font-family:monospace;font-size:10px;font-weight:700;letter-spacing:1px;color:#185FA5 !important;position:absolute;right:0;top:0;}'
+    +'.ficha-content{column-count:2;column-gap:8px;}'
+    +'.ficha-section{background:#f7f9fc;border:1px solid #dde3ed;border-radius:3px;padding:6px;margin-bottom:6px;page-break-inside:avoid;break-inside:avoid;}'
+    +'.ficha-section-title{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#185FA5 !important;margin-bottom:4px;text-align:center;border-bottom:1px solid #dde3ed;padding-bottom:2px;}'
+    +'table{width:100%;border-collapse:collapse;font-size:8px;margin-top:2px;}'
+    +'th,td{padding:2px 4px;border-bottom:1px solid #e5e9f0;text-align:left;vertical-align:top;}'
     +'th{background:#e8f1fb;color:#185FA5;font-weight:700;}'
-    +'@media print{@page{margin:10mm;}body{padding:0;}}'
+    +'.ficha-id-grid{column-span:all;}'
+    +'@media print{@page{margin:6mm;size:A4;}body{padding:0;}}'
     +'</style></head><body><div class="ficha-wrap">'
-    +html
+    +headerHtml
+    +'<div class="ficha-content">'+bodyHtml+'</div>'
     +'</div></body></html>');
   win.document.close();
   setTimeout(function(){ win.print(); }, 500);
