@@ -583,7 +583,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
       <div class="section-header">
         <div class="section-title">Ficha de Avaliação Pré-Anestésica</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" class="form-input" id="anestesia-busca-pront" placeholder="Prontuário..." style="width:160px;padding:6px 10px;font-size:12px;">
+          <input type="text" class="form-input" id="anestesia-busca-pront" placeholder="Prontuário ou nome..." style="width:220px;padding:6px 10px;font-size:12px;">
           <button class="btn btn-primary" id="btn-buscar-ficha">Buscar</button>
           <button class="btn btn-ghost" id="btn-nova-ficha">+ Nova Ficha</button>
         </div>
@@ -3448,9 +3448,9 @@ function getSenhaAnest(){ return lsGet('senha_anest') || SENHA_ANEST_DEFAULT; }
 
 
 get('btn-buscar-ficha').addEventListener('click', function(){
-  var pront = get('anestesia-busca-pront').value.trim();
-  if(!pront){showToast('Digite o prontuário.','error');return;}
-  buscarFicha(pront);
+  var termo = get('anestesia-busca-pront').value.trim();
+  if(!termo){showToast('Digite o prontuário ou nome.','error');return;}
+  buscarFicha(termo);
 });
 
 get('anestesia-busca-pront').addEventListener('keydown', function(e){
@@ -3474,21 +3474,67 @@ function initAnestesia(){
   if(busca) busca.value = '';
 }
 
-function buscarFicha(pront){
+function buscarFicha(termo){
+  var ehNumero = /^[0-9]+$/.test(termo);
   if(!sbClient){
     var local = lsGet('fichas_anest') || {};
-    fichaAtual = local[pront] || null;
-    renderFichaView(fichaAtual, pront);
+    if(ehNumero && local[termo]){
+      fichaAtual = local[termo];
+      renderFichaView(fichaAtual, termo);
+      return;
+    }
+    // Busca por nome no armazenamento local
+    var achados = Object.keys(local).map(function(k){return local[k];}).filter(function(f){
+      return f && f.nome && f.nome.toLowerCase().indexOf(termo.toLowerCase())>=0;
+    });
+    if(achados.length===1){ fichaAtual=achados[0]; renderFichaView(fichaAtual, achados[0].prontuario); }
+    else if(achados.length>1){ renderListaFichas(achados); }
+    else { fichaAtual=null; renderFichaView(null, termo); }
     return;
   }
-  sbClient.from('ficha_anestesica').select('*').eq('prontuario', pront).limit(1)
-    .then(function(r){
-      fichaAtual = (r.data && r.data.length) ? r.data[0] : null;
-      renderFichaView(fichaAtual, pront);
-    }).catch(function(){
+  // Supabase: prontuario exato OU nome parcial (case-insensitive)
+  var query = ehNumero
+    ? sbClient.from('ficha_anestesica').select('*').eq('prontuario', termo)
+    : sbClient.from('ficha_anestesica').select('*').ilike('nome', '%'+termo+'%');
+  query.then(function(r){
+    var dados = r.data || [];
+    if(dados.length===1){
+      fichaAtual = dados[0];
+      renderFichaView(fichaAtual, dados[0].prontuario);
+    } else if(dados.length>1){
+      renderListaFichas(dados);
+    } else {
       fichaAtual = null;
-      renderFichaView(null, pront);
+      renderFichaView(null, termo);
+    }
+  }).catch(function(){
+    fichaAtual = null;
+    renderFichaView(null, termo);
+  });
+}
+
+function renderListaFichas(lista){
+  var c = get('anestesia-content');
+  var html = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;">'
+    +'<div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text2);">'+lista.length+' fichas encontradas — selecione:</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">';
+  lista.forEach(function(f){
+    html += '<div class="ficha-resultado" data-pront="'+esc(f.prontuario)+'" style="cursor:pointer;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);transition:all .2s;">'
+      +'<div style="font-weight:600;font-size:13px;">'+esc(f.nome||'Sem nome')+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);font-family:var(--mono);">Pront: '+esc(f.prontuario)+(f.data_ficha?' | Data: '+fmtDateShort(f.data_ficha):'')+'</div>'
+      +'</div>';
+  });
+  html += '</div></div>';
+  c.innerHTML = html;
+  c.querySelectorAll('.ficha-resultado').forEach(function(el){
+    el.addEventListener('click', function(){
+      var p = this.dataset.pront;
+      var f = lista.find(function(x){ return String(x.prontuario)===String(p); });
+      if(f){ fichaAtual=f; renderFichaView(f, f.prontuario); }
     });
+    el.addEventListener('mouseenter', function(){ this.style.borderColor='var(--accent)'; });
+    el.addEventListener('mouseleave', function(){ this.style.borderColor='var(--border)'; });
+  });
 }
 
 function pedirSenhaAnest(callback){
@@ -3675,8 +3721,49 @@ function renderFichaView(f, pront){
     openModal('modal-alterar-senha-anest');
   });
   get('btn-imprimir-ficha').addEventListener('click', function(){
-    window.print();
+    imprimirFichaAnestesica();
   });
+}
+
+function imprimirFichaAnestesica(){
+  var area = document.getElementById('ficha-print-area');
+  if(!area){ showToast('Abra uma ficha antes de imprimir.','error'); return; }
+  // Clonar o no para nao alterar a tela
+  var clone = area.cloneNode(true);
+  // Remover botoes
+  clone.querySelectorAll('button, .btn-anestesia-print, .btn-anestesia-edit').forEach(function(b){ b.remove(); });
+  // Limpar cores brancas/claras inline que ficam invisiveis no papel
+  clone.querySelectorAll('[style]').forEach(function(el){
+    var s = el.getAttribute('style');
+    // Trocar cores brancas/claras por escuro
+    s = s.replace(/color\s*:\s*rgba\(255[^)]*\)/gi, 'color:#1a2535');
+    s = s.replace(/color\s*:\s*#fff(f{0,3})?/gi, 'color:#1a2535');
+    s = s.replace(/color\s*:\s*white/gi, 'color:#1a2535');
+    s = s.replace(/opacity\s*:\s*[0-9.]+/gi, 'opacity:1');
+    // Destaques amarelos (#ff9) viram verde escuro
+    s = s.replace(/color\s*:\s*#ff9\b/gi, 'color:#157a48;font-weight:700');
+    el.setAttribute('style', s);
+  });
+  var html = clone.innerHTML;
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha Pre-Anestesica</title>'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box;}'
+    +'body{font-family:Arial,sans-serif;font-size:11px;color:#1a2535;background:#fff;padding:10mm;line-height:1.4;}'
+    +'.ficha-header{text-align:center;margin-bottom:14px;border-bottom:2px solid #185FA5;padding-bottom:10px;position:relative;}'
+    +'.ficha-header h2{font-size:16px;color:#185FA5 !important;margin:6px 0;}'
+    +'.ficha-logo{font-family:monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:#185FA5 !important;position:absolute;right:0;top:0;}'
+    +'.ficha-section{background:#f7f9fc;border:1px solid #dde3ed;border-radius:4px;padding:10px;margin-bottom:8px;page-break-inside:avoid;}'
+    +'.ficha-section-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#185FA5 !important;margin-bottom:8px;text-align:center;border-bottom:1px solid #dde3ed;padding-bottom:4px;}'
+    +'table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;}'
+    +'th,td{padding:4px 8px;border-bottom:1px solid #e5e9f0;text-align:left;vertical-align:top;}'
+    +'th{background:#e8f1fb;color:#185FA5;font-weight:700;}'
+    +'@media print{@page{margin:10mm;}body{padding:0;}}'
+    +'</style></head><body><div class="ficha-wrap">'
+    +html
+    +'</div></body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 500);
 }
 
 function renderComorbRow(com, key, label){
