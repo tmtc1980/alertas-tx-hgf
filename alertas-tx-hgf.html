@@ -1074,7 +1074,7 @@ main{flex:1;padding:16px 24px;max-width:1100px;margin:0 auto;width:100%;}
                 <div class="fc-label">Tipos de Procedimentos Realizados</div>
                 <div class="fc-cb-group">
                   <label class="fc-cb"><input type="checkbox" id="enf-proc-svd"> SVD</label>
-                  <label class="fc-cb"><input type="checkbox" id="enf-proc-svp"> SVP</label>
+                  <label class="fc-cb"><input type="checkbox" id="enf-proc-svp"> PIC</label>
                   <label class="fc-cb"><input type="checkbox" id="enf-proc-acv"> Acesso Venoso Central</label>
                   <label class="fc-cb"><input type="checkbox" id="enf-proc-avp"> Acesso Venoso Periférico</label>
                   <label class="fc-cb"><input type="checkbox" id="enf-proc-sng"> Passagem de SNG</label>
@@ -5039,7 +5039,7 @@ get('btn-enf-imprimir').addEventListener('click', function(){
   function yn(v){ return v>0?String(v):'0'; }
   var procs = [];
   if(d.proc_svd) procs.push('SVD');
-  if(d.proc_svp) procs.push('SVP');
+  if(d.proc_svp) procs.push('PIC');
   if(d.proc_acv) procs.push('ACV Central');
   if(d.proc_avp) procs.push('AVP');
   if(d.proc_sng) procs.push('Passagem SNG');
