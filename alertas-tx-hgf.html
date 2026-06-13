@@ -5017,24 +5017,59 @@ function loadEnfermagem(){
 function renderEnfermagemSidebar(){
   var sb = get('enfermagem-sidebar');
   if(!sb) return;
-  if(!plantoesData.length){
-    sb.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhum registro</div>';
+  // Mostrar apenas plantoes incluidos nos ultimos 30 dias (a partir de created_at)
+  var limite = new Date(); limite.setDate(limite.getDate()-30);
+  var visiveis = plantoesData.filter(function(p){
+    if(!p.created_at) return true;
+    return new Date(p.created_at) >= limite;
+  });
+  if(!visiveis.length){
+    sb.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:16px;">Nenhum registro nos últimos 30 dias</div>';
     return;
   }
-  sb.innerHTML = plantoesData.map(function(p){
+  sb.innerHTML = visiveis.map(function(p){
     var d = p.dados||{};
     var data = d.data||'—';
     var turno = d.turno||'—';
     var unidade = d.unidade||'—';
-    return '<div class="leito-card" style="padding:9px 10px;cursor:pointer;gap:3px;" data-id="'+esc(p.id||p.created_at)+'">'
+    var id = esc(p.id||p.created_at);
+    return '<div class="leito-card" style="padding:9px 10px;gap:3px;position:relative;">'
+      +'<div class="enf-card-click" data-id="'+id+'" style="cursor:pointer;">'
       +'<div style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono);">'+data+'</div>'
       +'<div style="font-size:10px;color:var(--text2);">'+turno+' — '+unidade+'</div>'
       +'<div style="font-size:10px;color:var(--text3);">'+esc(d.nome||'')+'</div>'
+      +'</div>'
+      +'<button class="enf-card-del" data-del="'+id+'" title="Excluir plantão" style="position:absolute;top:6px;right:6px;background:transparent;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;">🗑️</button>'
       +'</div>';
   }).join('');
-  sb.querySelectorAll('[data-id]').forEach(function(el){
+  sb.querySelectorAll('.enf-card-click').forEach(function(el){
     el.addEventListener('click', function(){ carregarPlantao(this.dataset.id); });
   });
+  sb.querySelectorAll('.enf-card-del').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      excluirPlantao(this.dataset.del);
+    });
+  });
+}
+
+function excluirPlantao(id){
+  if(!confirm('Excluir este plantão? Os dados serão removidos das estatísticas permanentemente.')) return;
+  if(sbClient){
+    sbClient.from('plantoes_enfermagem').delete().eq('id', id).then(function(r){
+      if(r.error){ showToast('Erro ao excluir: '+r.error.message,'error'); return; }
+      plantoesData = plantoesData.filter(function(p){ return String(p.id)!==String(id); });
+      renderEnfermagemSidebar();
+      showToast('Plantão excluído.','success');
+    });
+  } else {
+    var local = lsGet('plantoes_enfermagem')||[];
+    local = local.filter(function(p){ return String(p.id)!==String(id); });
+    lsSet('plantoes_enfermagem', local);
+    plantoesData = local;
+    renderEnfermagemSidebar();
+    showToast('Plantão excluído.','success');
+  }
 }
 
 function coletarDadosEnf(){
@@ -5310,6 +5345,16 @@ function renderDashboardEnf(){
 
   function filtrarPeriodo(lista){
     var now = new Date();
+    // Filtro por mes especifico do ano atual: 'mesN' (N=0..11)
+    if(periodoAtual && periodoAtual.indexOf('mesEsp')===0){
+      var mesN = parseInt(periodoAtual.replace('mesEsp',''));
+      var anoAtual = now.getFullYear();
+      return lista.filter(function(p){
+        if(!p.created_at) return false;
+        var dt = new Date(p.created_at);
+        return dt.getMonth()===mesN && dt.getFullYear()===anoAtual;
+      });
+    }
     var cutoff;
     if(periodoAtual==='semana') cutoff = new Date(now - 7*24*60*60*1000);
     else if(periodoAtual==='mes') cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -5368,12 +5413,20 @@ function renderDashboardEnf(){
   }
 
   // HTML do dashboard
-  var html = '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">'
+  var html = '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
     +'<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;">Período:</div>'
     +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='semana'?'btn-primary':'btn-ghost')+'" data-periodo="semana" style="font-size:11px;">Semana</button>'
     +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='mes'?'btn-primary':'btn-ghost')+'" data-periodo="mes" style="font-size:11px;">Mês</button>'
     +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='trim'?'btn-primary':'btn-ghost')+'" data-periodo="trim" style="font-size:11px;">Trimestre</button>'
     +'<button class="btn btn-sm enf-periodo-btn '+(periodoAtual==='todos'?'btn-primary':'btn-ghost')+'" data-periodo="todos" style="font-size:11px;">Todos</button>'
+    +'<select id="enf-mes-select" class="form-select" style="font-size:11px;padding:4px 8px;width:auto;margin-left:4px;">'
+    +'<option value="">— Mês ('+(new Date().getFullYear())+') —</option>'
+    +['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map(function(m,i){return '<option value="mesEsp'+i+'"'+(periodoAtual==='mesEsp'+i?' selected':'')+'>'+m+'</option>';}).join('')
+    +'</select>'
+    +'<div style="margin-left:auto;display:flex;gap:6px;">'
+    +'<button class="btn btn-ghost btn-sm" id="btn-enf-export-pdf" style="font-size:11px;">🖨️ PDF</button>'
+    +'<button class="btn btn-ghost btn-sm" id="btn-enf-export-xls" style="font-size:11px;">📊 Excel</button>'
+    +'</div>'
     +'</div>';
 
   // Cards resumo
@@ -5428,6 +5481,91 @@ function renderDashboardEnf(){
     html += '<div class="settings-section"><div style="color:var(--green);font-weight:600;font-size:13px;">✅ Todos os plantões dos últimos 7 dias foram preenchidos!</div></div>';
   }
 
+  // ── GRÁFICOS ──
+  // Helper: barra horizontal
+  function barraH(label, valor, maxVal, cor){
+    var pct = maxVal>0 ? Math.round(valor/maxVal*100) : 0;
+    return '<div style="margin-bottom:8px;">'
+      +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;"><span style="color:var(--text2);">'+label+'</span><span style="font-weight:700;color:var(--text);">'+valor+'</span></div>'
+      +'<div style="background:var(--surface2);border-radius:4px;height:14px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:'+cor+';border-radius:4px;transition:width .4s;"></div></div>'
+      +'</div>';
+  }
+
+  // Gráfico 1: Indicadores de Segurança (barras horizontais)
+  var segInd = [
+    {l:'Quedas', v:soma('quedas'), c:'#d93025'},
+    {l:'Flebites', v:soma('flebites'), c:'#c47f00'},
+    {l:'LPP Adquirida', v:soma('lpp_adq'), c:'#d93025'},
+    {l:'LPP Admissão', v:soma('lpp_adm'), c:'#e8a33d'},
+    {l:'Reações Medic.', v:soma('reacoes_med'), c:'#9b59b6'},
+    {l:'Perfuro-cortante', v:soma('perfuro'), c:'#d93025'},
+    {l:'Reações Transf.', v:soma('reacoes_trans'), c:'#c0392b'}
+  ];
+  var segMax = Math.max.apply(null, segInd.map(function(x){return x.v;}).concat([1]));
+  html += '<div class="settings-section"><div class="settings-title">📊 Indicadores de Segurança do Paciente</div>'
+    + segInd.map(function(x){ return barraH(x.l, x.v, segMax, x.c); }).join('')
+    + '</div>';
+
+  // Gráfico 2: Plantões por Unidade (barras horizontais)
+  var uniCount = {};
+  unidades.forEach(function(u){ uniCount[u]=0; });
+  filtrados.forEach(function(p){ var u=(p.dados&&p.dados.unidade)||'—'; if(uniCount[u]!==undefined) uniCount[u]++; });
+  var uniMax = Math.max.apply(null, unidades.map(function(u){return uniCount[u];}).concat([1]));
+  var coresUni = ['#185FA5','#1e9e5e','#9b59b6'];
+  html += '<div class="settings-section"><div class="settings-title">🏥 Plantões por Unidade</div>'
+    + unidades.map(function(u,i){ return barraH(u, uniCount[u], uniMax, coresUni[i%3]); }).join('')
+    + '</div>';
+
+  // Gráfico 3: Distribuição de Procedimentos (rosca/donut SVG)
+  var procs = [
+    {l:'SVD', v:soma('proc_svd'), c:'#185FA5'},
+    {l:'PIC', v:soma('proc_svp'), c:'#1e9e5e'},
+    {l:'ACV', v:soma('proc_acv'), c:'#9b59b6'},
+    {l:'AVP', v:soma('proc_avp'), c:'#e8a33d'},
+    {l:'SNG', v:soma('proc_sng'), c:'#16a085'},
+    {l:'Coleta', v:soma('proc_col'), c:'#c0392b'},
+    {l:'Adm Med', v:soma('proc_adm'), c:'#34495e'},
+    {l:'Outros', v:soma('proc_out'), c:'#7f8c8d'}
+  ].filter(function(x){return x.v>0;});
+  var procTotal = procs.reduce(function(a,x){return a+x.v;},0);
+  html += '<div class="settings-section"><div class="settings-title">💉 Distribuição de Procedimentos</div>';
+  if(procTotal>0){
+    var r=60, cx=70, cy=70, circ=2*Math.PI*r, offset=0;
+    var svg='<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">';
+    svg+='<svg width="140" height="140" viewBox="0 0 140 140">';
+    procs.forEach(function(x){
+      var frac=x.v/procTotal;
+      var dash=frac*circ;
+      svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+x.c+'" stroke-width="20" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')"/>';
+      offset+=dash;
+    });
+    svg+='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="700" fill="var(--text)">'+procTotal+'</text>';
+    svg+='</svg>';
+    // Legenda
+    svg+='<div style="display:flex;flex-direction:column;gap:4px;font-size:11px;">';
+    procs.forEach(function(x){
+      var pct=Math.round(x.v/procTotal*100);
+      svg+='<div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:2px;background:'+x.c+';display:inline-block;"></span><span style="color:var(--text2);">'+x.l+'</span><span style="font-weight:700;margin-left:auto;">'+x.v+' ('+pct+'%)</span></div>';
+    });
+    svg+='</div></div>';
+    html += svg;
+  } else {
+    html += '<div style="color:var(--text3);font-size:12px;padding:10px;">Nenhum procedimento registrado no período.</div>';
+  }
+  html += '</div>';
+
+  // Gráfico 4: Perfil dos Pacientes (barras horizontais - média)
+  var perfil = [
+    {l:'Traqueostomizados', v:media('traqueo'), c:'#16a085'},
+    {l:'Intubados', v:media('intubados'), c:'#c0392b'},
+    {l:'Acamados', v:media('acamados'), c:'#34495e'},
+    {l:'Isolamento Contato', v:media('isolamento'), c:'#9b59b6'}
+  ];
+  var perfMax = Math.max.apply(null, perfil.map(function(x){return x.v;}).concat([1]));
+  html += '<div class="settings-section"><div class="settings-title">🛏️ Perfil dos Pacientes (média/plantão)</div>'
+    + perfil.map(function(x){ return barraH(x.l, x.v, perfMax, x.c); }).join('')
+    + '</div>';
+
   // Ranking de enfermeiros
   html += '<div class="settings-section"><div class="settings-title">👩‍⚕️ Enfermeiros que Preencheram</div>'
     +'<table class="stats-table"><thead><tr><th>Nome</th><th>COREN</th><th>Plantões</th></tr></thead><tbody>'
@@ -5443,6 +5581,14 @@ function renderDashboardEnf(){
       renderDashboardEnf();
     });
   });
+  var mesSel = get('enf-mes-select');
+  if(mesSel) mesSel.addEventListener('change', function(){
+    if(this.value){ window._enfPeriodo = this.value; renderDashboardEnf(); }
+  });
+  var bpdf = get('btn-enf-export-pdf');
+  if(bpdf) bpdf.addEventListener('click', exportarDashboardPDF);
+  var bxls = get('btn-enf-export-xls');
+  if(bxls) bxls.addEventListener('click', exportarDashboardExcel);
   var bpdf = get('btn-enf-export-pdf');
   if(bpdf) bpdf.addEventListener('click', exportarDashboardPDF);
   var bxls = get('btn-enf-export-xls');
